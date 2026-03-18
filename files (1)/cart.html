@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="سلة التسوق - متجر نور" />
+  <title>سلة التسوق | متجر نور</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar" role="navigation" aria-label="التنقل الرئيسي">
+    <div class="navbar-inner">
+      <div class="navbar-row1">
+        <button class="hamburger-btn" aria-label="فتح القائمة" aria-expanded="false"><span></span><span></span><span></span></button>
+        <a href="index.html" class="navbar-logo"><div class="logo-icon">✨</div><span class="logo-text">متجر <span>نور</span></span></a>
+        <div class="navbar-links">
+          <a href="index.html">الرئيسية</a>
+          <a href="products.html">المنتجات</a>
+          <a href="#">العروض</a>
+          <a href="#">تواصل معنا</a>
+        </div>
+        <div class="navbar-actions">
+          <a href="wishlist.html" class="nav-icon-btn" aria-label="المفضلة">🤍<span class="nav-badge wishlist-count" style="display:none">0</span></a>
+          <a href="cart.html" class="nav-icon-btn" aria-label="السلة">🛒<span class="nav-badge cart-count" style="display:none">0</span></a>
+          <a href="login.html" class="nav-icon-btn" aria-label="حسابي">👤</a>
+        </div>
+      </div>
+      <div class="navbar-row2">
+        <div class="navbar-search">
+          <div class="search-box">
+            <input type="search" placeholder="ابحث عن منتجات، ماركات..." aria-label="بحث في المتجر" readonly />
+            <button class="search-btn" aria-label="بحث">🔍</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="mobile-menu-overlay" aria-hidden="true"></div>
+  <aside class="mobile-menu" role="dialog" aria-label="القائمة الجانبية">
+    <button class="mobile-menu-close" aria-label="إغلاق القائمة">✕</button>
+    <nav class="mobile-menu-links">
+      <a href="index.html"><span class="link-icon">🏠</span>الرئيسية</a>
+      <a href="products.html"><span class="link-icon">🛍️</span>جميع المنتجات</a>
+      <div class="mobile-menu-divider"></div>
+      <a href="#"><span class="link-icon">❤️</span>المفضلة</a>
+      <a href="cart.html" class="active"><span class="link-icon">🛒</span>سلة التسوق</a>
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <main>
+    <div class="cart-page">
+      <div class="container">
+
+        <!-- Page Header -->
+        <nav class="breadcrumb" aria-label="مسار التنقل">
+          <a href="index.html">الرئيسية</a>
+          <span aria-hidden="true">←</span>
+          <span class="current">سلة التسوق</span>
+        </nav>
+
+        <div style="margin-bottom:24px;">
+          <h1 style="font-size:clamp(1.3rem,4vw,2rem);margin-bottom:4px;">سلة التسوق</h1>
+          <p style="color:var(--color-gray-500);font-size:0.9rem;" id="cart-heading-count">
+            لديك <strong id="summary-count">0 منتج</strong> في سلتك
+          </p>
+        </div>
+
+        <!-- Empty Cart (shown when cart is empty) -->
+        <div id="empty-cart" class="empty-cart" style="display:none;">
+          <div class="empty-icon">🛒</div>
+          <h3>سلتك فارغة!</h3>
+          <p>لم تضف أي منتجات بعد. ابدأ التسوق الآن واملأ سلتك بأفضل المنتجات.</p>
+          <a href="products.html" class="btn btn-primary btn-lg">🛍️ تسوق الآن</a>
+        </div>
+
+        <!-- Cart Content (shown when cart has items) -->
+        <div id="cart-content" class="cart-layout" style="display:none;">
+
+          <!-- Left: Items -->
+          <div>
+            <!-- Quick Actions Bar -->
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--color-gray-100);border-radius:var(--radius-md);margin-bottom:12px;flex-wrap:wrap;gap:10px;">
+              <span style="font-size:0.82rem;font-weight:700;color:var(--color-gray-600);">
+                🚚 أضف <strong>50 ر.س</strong> للحصول على شحن مجاني!
+              </span>
+              <a href="products.html" style="font-size:0.82rem;font-weight:700;color:var(--color-black);text-decoration:underline;">
+                + إضافة منتجات
+              </a>
+            </div>
+
+            <!-- Cart Items List -->
+            <div class="cart-items" id="cart-items-list">
+              <!-- يتم تعبئتها ديناميكياً بواسطة JavaScript -->
+              <!-- في حال كان الـ JS معطلاً، تظهر الرسالة الافتراضية -->
+              <div style="padding:32px;text-align:center;color:var(--color-gray-500);">
+                <p>جارٍ تحميل سلة التسوق...</p>
+              </div>
+            </div>
+
+            <!-- Continue Shopping -->
+            <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+              <a href="products.html" class="btn btn-outline btn-sm">
+                ← متابعة التسوق
+              </a>
+              <button class="btn btn-sm" style="border:1.5px solid var(--color-danger);color:var(--color-danger);border-radius:var(--radius-sm);" onclick="if(confirm('هل أنت متأكد من إفراغ السلة؟')){Store.cart=[];Store.saveCart();CartPage.render();}">
+                🗑️ إفراغ السلة
+              </button>
+            </div>
+          </div>
+
+          <!-- Right: Summary -->
+          <div class="cart-summary" aria-label="ملخص الطلب">
+            <h2 class="cart-summary-title">ملخص الطلب</h2>
+
+            <div class="summary-row">
+              <span class="label">المجموع الجزئي</span>
+              <span class="value" id="summary-subtotal">0 ر.س</span>
+            </div>
+
+            <div class="summary-row">
+              <span class="label">الشحن</span>
+              <span class="value" id="summary-shipping">25 ر.س</span>
+            </div>
+
+            <div class="summary-row discount">
+              <span class="label">الخصم</span>
+              <span class="value" id="summary-discount">—</span>
+            </div>
+
+            <div class="summary-row total">
+              <span class="label">الإجمالي</span>
+              <span class="value" id="summary-total">0 ر.س</span>
+            </div>
+
+            <!-- Coupon -->
+            <div>
+              <div style="font-size:0.82rem;font-weight:700;margin-bottom:8px;color:var(--color-gray-700);">
+                🏷️ كود الخصم
+              </div>
+              <div class="coupon-box">
+                <input type="text" placeholder="أدخل كود الخصم" aria-label="كود الخصم" />
+                <button type="button" onclick="UI.showToast('تم تطبيق كود الخصم!','🏷️')">تطبيق</button>
+              </div>
+            </div>
+
+            <!-- Checkout Button -->
+            <a href="checkout.html" class="btn btn-primary btn-full btn-lg" style="text-align:center">
+              💳 إتمام الشراء
+            </a>
+
+            <button class="btn btn-black btn-full" style="opacity:0.85;" onclick="UI.showToast('جاري التوجيه لـ Apple Pay...','')">
+              🍎 Apple Pay
+            </button>
+
+            <!-- Security Note -->
+            <div class="cart-guarantee">
+              <span class="icon">🔒</span>
+              <span>معاملاتك محمية بتشفير SSL 256-bit. بياناتك البنكية في أمان تام.</span>
+            </div>
+
+          </div><!-- /cart-summary -->
+        </div><!-- /cart-content -->
+
+        <!-- You Might Also Like -->
+        <div class="page-section" style="margin-top:16px;">
+          <div class="section-header">
+            <div class="section-title">
+              <h2>قد يعجبك أيضاً</h2>
+              <p>منتجات مختارة لك</p>
+            </div>
+            <a href="products.html" class="view-all-btn">عرض الكل ←</a>
+          </div>
+          <div class="products-grid">
+            <article class="product-card" data-product="p1" data-product-id="p1" data-product-name="سماعة لاسلكية Pro" data-product-price="249" data-product-emoji="🎧">
+              <div class="product-image-wrap"><div class="product-img-placeholder">🎧</div><span class="product-badge badge-hot">الأكثر مبيعًا</span></div>
+              <button class="product-wishlist" data-action="wishlist" data-product-id="p1">🤍</button>
+              <div class="product-info">
+                <span class="product-category-tag">إلكترونيات</span>
+                <h3 class="product-name">سماعة لاسلكية Pro X500</h3>
+                <div class="product-rating"><div class="stars">★★★★★</div><span class="rating-count">(128)</span></div>
+                <div class="product-price-row">
+                  <div class="price-group"><span class="price-current">249 ر.س</span><span class="price-original">349 ر.س</span></div>
+                  <button class="add-to-cart-btn" data-action="add-to-cart">🛒</button>
+                </div>
+              </div>
+            </article>
+
+            <article class="product-card" data-product="p3" data-product-id="p3" data-product-name="ساعة ذكية Sport X" data-product-price="599" data-product-emoji="⌚">
+              <div class="product-image-wrap"><div class="product-img-placeholder">⌚</div><span class="product-badge badge-sale">−30%</span></div>
+              <button class="product-wishlist" data-action="wishlist" data-product-id="p3">🤍</button>
+              <div class="product-info">
+                <span class="product-category-tag">إلكترونيات</span>
+                <h3 class="product-name">ساعة ذكية Sport X</h3>
+                <div class="product-rating"><div class="stars">★★★★★</div><span class="rating-count">(312)</span></div>
+                <div class="product-price-row">
+                  <div class="price-group"><span class="price-current">599 ر.س</span><span class="price-original">849 ر.س</span></div>
+                  <button class="add-to-cart-btn" data-action="add-to-cart">🛒</button>
+                </div>
+              </div>
+            </article>
+
+            <article class="product-card" data-product="p6" data-product-id="p6" data-product-name="حذاء رياضي Ultra" data-product-price="320" data-product-emoji="👟">
+              <div class="product-image-wrap"><div class="product-img-placeholder">👟</div><span class="product-badge badge-hot">رائج</span></div>
+              <button class="product-wishlist" data-action="wishlist" data-product-id="p6">🤍</button>
+              <div class="product-info">
+                <span class="product-category-tag">رياضة</span>
+                <h3 class="product-name">حذاء رياضي Ultra Run</h3>
+                <div class="product-rating"><div class="stars">★★★★★</div><span class="rating-count">(198)</span></div>
+                <div class="product-price-row">
+                  <div class="price-group"><span class="price-current">320 ر.س</span><span class="price-original">420 ر.س</span></div>
+                  <button class="add-to-cart-btn" data-action="add-to-cart">🛒</button>
+                </div>
+              </div>
+            </article>
+
+            <article class="product-card" data-product="p4" data-product-id="p4" data-product-name="عطر نور الرجالي" data-product-price="180" data-product-emoji="🌹">
+              <div class="product-image-wrap"><div class="product-img-placeholder">🌹</div></div>
+              <button class="product-wishlist" data-action="wishlist" data-product-id="p4">🤍</button>
+              <div class="product-info">
+                <span class="product-category-tag">جمال وعناية</span>
+                <h3 class="product-name">عطر نور الرجالي 100ml</h3>
+                <div class="product-rating"><div class="stars">★★★★★</div><span class="rating-count">(56)</span></div>
+                <div class="product-price-row">
+                  <div class="price-group"><span class="price-current">180 ر.س</span><span class="price-original">220 ر.س</span></div>
+                  <button class="add-to-cart-btn" data-action="add-to-cart">🛒</button>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+
+      </div><!-- /container -->
+    </div><!-- /cart-page -->
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <div class="logo-icon">✨</div>
+            <span class="logo-text">متجر <span>نور</span></span>
+          </div>
+          <p class="footer-desc">تجربة تسوق إلكتروني فريدة في العالم العربي.</p>
+          <div class="footer-socials">
+            <a href="#" class="social-btn">𝕏</a>
+            <a href="#" class="social-btn">📸</a>
+            <a href="#" class="social-btn">𝕗</a>
+          </div>
+        </div>
+        <div>
+          <h3 class="footer-col-title">روابط سريعة</h3>
+          <ul class="footer-links">
+            <li><a href="index.html">الرئيسية</a></li>
+            <li><a href="products.html">المنتجات</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="footer-col-title">خدمة العملاء</h3>
+          <ul class="footer-links">
+            <li><a href="#">طلباتي</a></li>
+            <li><a href="#">الإرجاع</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="footer-col-title">النشرة البريدية</h3>
+          <div class="footer-newsletter">
+            <input type="email" placeholder="بريدك الإلكتروني" />
+            <button type="button">اشترك</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 متجر نور. جميع الحقوق محفوظة.</p>
+      <div class="footer-payments">
+        <span class="payment-icon">VISA</span>
+        <span class="payment-icon">مدى</span>
+        <span class="payment-icon">Apple Pay</span>
+      </div>
+    </div>
+  </footer>
+
+  <nav class="bottom-nav" aria-label="التنقل السفلي">
+    <a href="index.html" aria-label="الرئيسية"><span class="icon">🏠</span>الرئيسية</a>
+    <a href="products.html" aria-label="المنتجات"><span class="icon">🛍️</span>المنتجات</a>
+    <a href="#" aria-label="بحث"><span class="icon">🔍</span>بحث</a>
+    <a href="#" aria-label="المفضلة"><span class="icon">❤️</span>المفضلة</a>
+    <a href="cart.html" class="active" aria-label="السلة">
+      <span class="icon">🛒</span>السلة
+      <span class="bnav-badge cart-count" style="display:none">0</span>
+    </a>
+  </nav>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="قائمة مفضلتك في متجر نور" />
+  <title>متجر نور | المفضلة</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="wishlist-page-body">
+
+  <!-- PROMO BANNER -->
+  <div class="promo-banner" role="banner">
+    <span>🎉</span>
+    <span>شحن مجاني على الطلبات فوق <strong>200 ريال</strong> — كود: <strong>NOOR10</strong></span>
+    <button class="close-promo" aria-label="إغلاق">✕</button>
+  </div>
+
+  <!-- NAVBAR -->
+  <nav class="navbar" role="navigation" aria-label="التنقل الرئيسي">
+    <div class="navbar-inner">
+      <div class="navbar-row1">
+        <button class="hamburger-btn" aria-label="فتح القائمة" aria-expanded="false"><span></span><span></span><span></span></button>
+        <a href="index.html" class="navbar-logo"><div class="logo-icon">✨</div><span class="logo-text">متجر <span>نور</span></span></a>
+        <div class="navbar-links">
+          <a href="index.html">الرئيسية</a>
+          <a href="products.html">المنتجات</a>
+          <a href="#">العروض</a>
+          <a href="#">تواصل معنا</a>
+        </div>
+        <div class="navbar-actions">
+          <a href="wishlist.html" class="nav-icon-btn active" aria-label="المفضلة">❤️<span class="nav-badge wishlist-count" style="display:none">0</span></a>
+          <a href="cart.html" class="nav-icon-btn" aria-label="السلة">🛒<span class="nav-badge cart-count" style="display:none">0</span></a>
+          <a href="login.html" class="nav-icon-btn" aria-label="حسابي">👤</a>
+        </div>
+      </div>
+      <div class="navbar-row2">
+        <div class="navbar-search">
+          <div class="search-box">
+            <input type="search" placeholder="ابحث عن منتجات، ماركات..." aria-label="بحث" readonly />
+            <button class="search-btn" aria-label="بحث">🔍</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu-overlay" aria-hidden="true"></div>
+  <aside class="mobile-menu" role="dialog" aria-label="القائمة">
+    <button class="mobile-menu-close" aria-label="إغلاق القائمة">✕</button>
+    <nav class="mobile-menu-links">
+      <a href="index.html"><span class="link-icon">🏠</span>الرئيسية</a>
+      <a href="products.html"><span class="link-icon">🛍️</span>جميع المنتجات</a>
+      <a href="#"><span class="link-icon">🏷️</span>العروض والخصومات</a>
+      <div class="mobile-menu-divider"></div>
+      <a href="wishlist.html" class="active"><span class="link-icon">❤️</span>المفضلة</a>
+      <a href="cart.html"><span class="link-icon">🛒</span>سلة التسوق</a>
+      <div class="mobile-menu-divider"></div>
+      <a href="login.html"><span class="link-icon">👤</span>تسجيل الدخول</a>
+      <a href="register.html"><span class="link-icon">✍️</span>إنشاء حساب</a>
+    </nav>
+  </aside>
+
+  <!-- BREADCRUMB -->
+  <div style="background:var(--color-gray-100);padding:10px 0;border-bottom:1px solid var(--color-gray-200)">
+    <div class="container" style="font-size:0.8rem;color:var(--color-gray-500);display:flex;align-items:center;gap:8px">
+      <a href="index.html" style="color:var(--color-gray-500)">الرئيسية</a>
+      <span>←</span>
+      <span style="color:var(--color-black);font-weight:700">المفضلة</span>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <div class="wishlist-page-hero">
+    <div class="container">
+      <div class="wishlist-hero-text">
+        <h1>❤️ قائمة مفضلتي</h1>
+        <p>احفظ المنتجات التي تعجبك وتسوّق منها لاحقاً بسهولة</p>
+        <div class="wishlist-count-pill">
+          <span>📦</span>
+          <span><strong class="wishlist-total-count">0</strong> منتج محفوظ</span>
+        </div>
+      </div>
+      <div class="wishlist-hero-actions">
+        <button class="wishlist-hero-btn wishlist-hero-btn-primary" id="addAllToCart">🛒 أضف الكل للسلة</button>
+        <button class="wishlist-hero-btn wishlist-hero-btn-outline" id="clearWishlist">🗑️ مسح الكل</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div class="wishlist-filter-bar">
+    <div class="container">
+      <div class="wishlist-filter-inner">
+        <div class="wishlist-categories" role="group" aria-label="تصفية حسب التصنيف">
+          <button class="wcat-btn active" data-cat="all">الكل</button>
+          <button class="wcat-btn" data-cat="إلكترونيات">📱 إلكترونيات</button>
+          <button class="wcat-btn" data-cat="أزياء">👗 أزياء</button>
+          <button class="wcat-btn" data-cat="عطور">🌸 عطور</button>
+          <button class="wcat-btn" data-cat="منزل">🏠 منزل</button>
+          <button class="wcat-btn" data-cat="رياضة">⚽ رياضة</button>
+        </div>
+        <div class="wishlist-sort-wrap">
+          <span>ترتيب:</span>
+          <select class="wishlist-sort-select" id="wishlistSort">
+            <option value="newest">الأحدث أولاً</option>
+            <option value="price_asc">السعر: الأقل</option>
+            <option value="price_desc">السعر: الأعلى</option>
+            <option value="name">الاسم</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <main class="wishlist-main wishlist-page">
+    <div class="container">
+
+      <!-- Empty State -->
+      <div class="wishlist-empty" id="wishlistEmpty">
+        <span class="wishlist-empty-icon">🤍</span>
+        <div class="wishlist-empty-title">قائمة المفضلة فارغة</div>
+        <div class="wishlist-empty-desc">لم تضف أي منتجات بعد. تصفّح متجرنا واضغط على قلب ❤️ لحفظ المنتجات التي تعجبك.</div>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+          <a href="products.html" class="btn btn-primary">🛍️ تصفّح المنتجات</a>
+          <a href="index.html" class="btn btn-outline">الصفحة الرئيسية</a>
+        </div>
+
+        <!-- Demo Products to add -->
+        <div style="margin-top:48px">
+          <p style="font-size:0.85rem;color:var(--color-gray-500);margin-bottom:20px">💡 جرّب إضافة بعض هذه المنتجات لمفضلتك:</p>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;max-width:700px;margin:0 auto" id="demoProductsGrid">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Wishlist Grid -->
+      <div class="wishlist-grid" id="wishlistGrid" style="display:none"></div>
+
+    </div>
+  </main>
+
+  <!-- STICKY ADD-ALL BAR -->
+  <div class="wishlist-sticky-bar" style="display:none">
+    <div class="wl-sticky-text" id="wlStickyText"><strong>0 منتج</strong> في مفضلتك</div>
+    <button class="wl-sticky-btn" id="addAllToCartSticky">🛒 أضف الكل للسلة</button>
+  </div>
+
+  <!-- SHARE MODAL -->
+  <div class="wl-share-modal" id="wlShareModal" role="dialog" aria-modal="true">
+    <div class="wl-share-modal-overlay" id="wlShareModalOverlay"></div>
+    <div class="wl-share-modal-box">
+      <button class="wl-share-close" id="wlShareClose">✕</button>
+      <div class="wl-share-modal-title">🔗 مشاركة قائمة المفضلة</div>
+      <div class="wl-share-link-wrap">
+        <input class="wl-share-link-input" type="text" id="wlShareLinkInput" readonly />
+        <button class="wl-share-copy-btn" id="wlCopyLink">نسخ</button>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button style="padding:10px 20px;background:#25D366;color:white;border:none;border-radius:8px;cursor:pointer;font-family:var(--font-main);font-weight:700">💬 واتساب</button>
+        <button style="padding:10px 20px;background:#1877F2;color:white;border:none;border-radius:8px;cursor:pointer;font-family:var(--font-main);font-weight:700">📘 فيسبوك</button>
+        <button style="padding:10px 20px;background:#000;color:white;border:none;border-radius:8px;cursor:pointer;font-family:var(--font-main);font-weight:700">✖ تويتر</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-grid">
+        <div>
+          <a href="index.html" class="footer-logo"><div class="footer-logo-icon">✨</div><span>متجر <span>نور</span></span></a>
+          <p class="footer-desc">وجهتك الأولى للتسوق الإلكتروني في العالم العربي.</p>
+          <div class="footer-social">
+            <a href="#" class="social-btn" aria-label="إنستغرام">📸</a>
+            <a href="#" class="social-btn" aria-label="تويتر">🐦</a>
+            <a href="#" class="social-btn" aria-label="يوتيوب">▶</a>
+            <a href="#" class="social-btn" aria-label="تيك توك">♪</a>
+          </div>
+        </div>
+        <div>
+          <h3 class="footer-col-title">روابط سريعة</h3>
+          <ul class="footer-links">
+            <li><a href="index.html">الصفحة الرئيسية</a></li>
+            <li><a href="products.html">جميع المنتجات</a></li>
+            <li><a href="#">العروض والخصومات</a></li>
+            <li><a href="wishlist.html">المفضلة</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="footer-col-title">حسابي</h3>
+          <ul class="footer-links">
+            <li><a href="login.html">تسجيل الدخول</a></li>
+            <li><a href="register.html">إنشاء حساب</a></li>
+            <li><a href="profile.html">طلباتي</a></li>
+            <li><a href="cart.html">سلة التسوق</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="footer-col-title">النشرة البريدية</h3>
+          <div class="footer-newsletter">
+            <input type="email" placeholder="بريدك الإلكتروني" aria-label="البريد الإلكتروني" />
+            <button type="button">اشترك</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 متجر نور. جميع الحقوق محفوظة.</p>
+      <div class="footer-payments">
+        <span class="payment-icon">VISA</span>
+        <span class="payment-icon">مدى</span>
+        <span class="payment-icon">STC</span>
+        <span class="payment-icon">Apple Pay</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav" aria-label="التنقل السفلي">
+    <a href="index.html" aria-label="الرئيسية"><span class="icon">🏠</span>الرئيسية</a>
+    <a href="products.html" aria-label="المنتجات"><span class="icon">🛍️</span>المنتجات</a>
+    <a href="#" aria-label="بحث" onclick="openSearch();return false"><span class="icon">🔍</span>بحث</a>
+    <a href="wishlist.html" class="active" aria-label="المفضلة"><span class="icon">❤️</span>المفضلة</a>
+    <a href="cart.html" aria-label="السلة">
+      <span class="icon">🛒</span>السلة
+      <span class="bnav-badge cart-count" style="display:none">0</span>
+    </a>
+  </nav>
+
+  <script src="js/main.js"></script>
+  <script>
+    // Demo products for empty state
+    const demoProducts = [
+      { id: 'demo1', name: 'سماعة لاسلكية Pro X500', price: 249, oldPrice: 349, emoji: '🎧', category: 'إلكترونيات', rating: 4.8, reviews: 128 },
+      { id: 'demo2', name: 'ساعة ذكية Ultra S', price: 899, oldPrice: 1199, emoji: '⌚', category: 'إلكترونيات', rating: 4.7, reviews: 94 },
+      { id: 'demo3', name: 'عطر نور الشرق', price: 199, emoji: '🌸', category: 'عطور', rating: 4.9, reviews: 210 },
+      { id: 'demo4', name: 'حقيبة جلد فاخرة', price: 349, oldPrice: 480, emoji: '👜', category: 'أزياء', rating: 4.6, reviews: 67 },
+      { id: 'demo5', name: 'كاميرا رقمية 4K', price: 1299, emoji: '📷', category: 'إلكترونيات', rating: 4.8, reviews: 43 },
+      { id: 'demo6', name: 'حذاء رياضي ألتيما', price: 279, oldPrice: 380, emoji: '👟', category: 'رياضة', rating: 4.5, reviews: 155 },
+    ];
+
+    const grid = document.getElementById('demoProductsGrid');
+    if (grid) {
+      grid.innerHTML = demoProducts.map(p => `
+        <div style="background:white;border:1.5px solid var(--color-gray-200);border-radius:12px;padding:14px;text-align:center;cursor:pointer;transition:all 0.2s"
+          data-product-id="${p.id}" data-product-name="${p.name}" data-product-price="${p.price}" data-product-emoji="${p.emoji}" data-product-category="${p.category}" data-product-old-price="${p.oldPrice||''}" data-product-rating="${p.rating}" data-product-reviews="${p.reviews}">
+          <div style="font-size:2.5rem;margin-bottom:8px">${p.emoji}</div>
+          <div style="font-size:0.8rem;font-weight:700;color:var(--color-black);margin-bottom:8px;line-height:1.3">${p.name}</div>
+          <button data-action="wishlist" data-product-id="${p.id}" style="padding:6px 16px;background:var(--color-black);color:var(--color-primary);border:none;border-radius:20px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:var(--font-main)">+ أضف للمفضلة</button>
+        </div>
+      `).join('');
+    }
+
+    // Sticky add-all
+    document.getElementById('addAllToCartSticky')?.addEventListener('click', () => {
+      document.getElementById('addAllToCart')?.click();
+    });
+
+    // Sort handler
+    document.getElementById('wishlistSort')?.addEventListener('change', function() {
+      const items = Store.wishlistItems;
+      if (this.value === 'price_asc') items.sort((a,b) => a.price - b.price);
+      else if (this.value === 'price_desc') items.sort((a,b) => b.price - a.price);
+      else if (this.value === 'name') items.sort((a,b) => a.name.localeCompare(b.name, 'ar'));
+      else items.sort((a,b) => (b.addedAt||0) - (a.addedAt||0));
+      WishlistPage.render();
+    });
+  </script>
+</body>
+</html>
