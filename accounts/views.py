@@ -46,7 +46,15 @@ class LoginView(View):
             if user is not None:
                 login(request, user)
                 messages.success(request, f"مرحبًا {user.username}")
-                return redirect('core:home')
+
+                # Get next URL or default to home
+                next_url = request.POST.get('next') or request.GET.get('next') or 'core:home'
+
+                # If user has cart in localStorage, redirect to cart for sync
+                if request.POST.get('has_cart_data') == 'true':
+                    next_url = f"{next_url}{'&' if '?' in next_url else '?'}login=success"
+
+                return redirect(next_url)
             else:
                 messages.error(request, "بيانات الدخول غير صحيحة")
         return render(request, self.template_name, {'form': form})

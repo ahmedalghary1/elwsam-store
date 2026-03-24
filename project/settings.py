@@ -25,12 +25,13 @@ SECRET_KEY = 'django-insecure-rl17&5ecdx1h131wc@wy!^r-*7zh(q@!+#4jy2*%tw=z@4dv2i
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'accounts',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -63,13 +64,15 @@ ROOT_URLCONF = 'project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'core.context_processors.cart.cart_processor',
+                'core.context_processors.wishlist.wishlist_processor',
             ],
         },
     },
@@ -124,3 +127,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+MEDIA_URL='/media/'
+MEDIA_ROOT=BASE_DIR / "media"
+
+AUTH_USER_MODEL = 'accounts.User'

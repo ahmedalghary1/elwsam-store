@@ -1,22 +1,44 @@
-"""
-URL configuration for project project.
 
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/6.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from core import views as core_views
+from products.views import (
+    CategoryListView, 
+    category_products,
+    ProductDetailView,
+    ProductListView,
+    product_images_by_color,
+    search_products
+)
+
+from django.conf import settings
+from django.conf.urls.static import static
+
 
 urlpatterns = [
+    # Admin Panel
     path('admin/', admin.site.urls),
+    
+    # Core Routes
+    path('', core_views.index, name='index'),
+    
+    # Products Routes
+    path('categories/', CategoryListView.as_view(), name='category_list'),
+    path('categories/<str:slug>/', category_products, name='category_products'),
+    path('products/', ProductListView.as_view(), name='product_list'),
+    path('products/<str:slug>/', ProductDetailView.as_view(), name='product_detail'),
+    
+    # Accounts Routes
+    path('accounts/', include('accounts.urls')),
+    
+    # Orders Routes
+    path('', include('orders.urls')),
+    
+    # API Routes
+    path('api/product-images/<int:product_id>/<int:color_id>/', product_images_by_color, name='product_images_by_color'),
+    path('search/', search_products, name='search_products'),
+    
+    # Static and Media
+    *static(settings.STATIC_URL, document_root=settings.STATIC_ROOT),
+    *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
 ]

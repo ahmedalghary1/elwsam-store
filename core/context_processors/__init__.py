@@ -1,0 +1,1 @@
+# هذا الملف يجعل مجلد context_processors حزمة Python
