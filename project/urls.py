@@ -32,7 +32,7 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     
     # Orders Routes
-    path('', include('orders.urls')),
+    path('orders/', include('orders.urls')),
     
     # API Routes
     path('api/product-images/<int:product_id>/<int:color_id>/', product_images_by_color, name='product_images_by_color'),

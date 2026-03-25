@@ -1,10 +1,6 @@
 from orders.models import Cart
 
-
 def cart_processor(request):
-    """
-    Context processor للسلة - يضيف معلومات السلة لجميع الصفحات
-    """
     if request.user.is_authenticated:
         try:
             cart = request.user.cart
@@ -16,17 +12,23 @@ def cart_processor(request):
             cart_items = []
             cart_total = 0
             cart_count = 0
+
+        # إضافة wishlist_count
+        wishlist_count = request.user.wishlist.count()
     else:
-        # للمستخدمين غير المسجلين، السلة تكون فارغة هنا
-        # البيانات تأتي من JavaScript/localStorage
         cart = None
         cart_items = []
         cart_total = 0
         cart_count = 0
+        wishlist_count = 0
 
     return {
         'cart': cart,
         'cart_items': cart_items,
         'cart_total': cart_total,
         'cart_count': cart_count,
+        'wishlist_count': wishlist_count,   # هذا السطر الجديد
     }
+
+
+

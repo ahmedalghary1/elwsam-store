@@ -38,6 +38,8 @@ class CartView(View):
         })
 
 
+
+
 # =========================
 # Add to Cart (إضافة للسلة)
 # =========================
@@ -51,9 +53,7 @@ def add_to_cart(request):
             product = get_object_or_404(Product, id=product_id, is_active=True)
 
             if request.user.is_authenticated:
-                # للمستخدمين المسجلين
                 cart, created = Cart.objects.get_or_create(user=request.user)
-
                 variant = None
                 if variant_id:
                     variant = get_object_or_404(ProductVariant, id=variant_id, product=product)
@@ -64,23 +64,43 @@ def add_to_cart(request):
                     variant=variant,
                     defaults={'quantity': quantity}
                 )
-
                 if not created:
                     cart_item.quantity += quantity
                     cart_item.save()
 
-                messages.success(request, f"تم إضافة {product.name} للسلة")
-                return redirect('orders:cart')
+                # للطلبات AJAX: نرسل JSON
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': True,
+                        'message': f"تم إضافة {product.name} للسلة",
+                        'cart_count': cart.get_total_items()
+                    })
+                else:
+                    messages.success(request, f"تم إضافة {product.name} للسلة")
+                    return redirect('orders:cart')
+
             else:
-                # للمستخدمين غير المسجلين - يتم التعامل معها عبر JavaScript
-                messages.info(request, "يرجى تسجيل الدخول لإضافة المنتجات للسلة")
-                return redirect('accounts:login')
+                # المستخدم غير مسجل – لا يتم إضافة على السيرفر
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'يرجى تسجيل الدخول لإضافة المنتجات للسلة',
+                        'login_required': True
+                    })
+                else:
+                    messages.info(request, "يرجى تسجيل الدخول لإضافة المنتجات للسلة")
+                    return redirect('accounts:login')
 
         except Exception as e:
-            messages.error(request, "حدث خطأ أثناء إضافة المنتج للسلة")
-            return redirect('products:product_list')
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'message': 'حدث خطأ أثناء إضافة المنتج للسلة'})
+            else:
+                messages.error(request, "حدث خطأ أثناء إضافة المنتج للسلة")
+                return redirect('products:product_list')
 
     return redirect('products:product_list')
+
+
 
 
 # =========================
@@ -370,7 +390,6 @@ def update_cart_item_ajax(request, item_id):
                     'success': True,
                     'item_total': cart_item.get_total_price(),
                     'cart_total': cart.get_total_price(),
-                    'cart_subtotal': cart.get_subtotal(),
                 })
             else:
                 cart_item.delete()
@@ -379,7 +398,6 @@ def update_cart_item_ajax(request, item_id):
                     'success': True,
                     'deleted': True,
                     'cart_total': cart.get_total_price() if hasattr(request.user, 'cart') else 0,
-                    'cart_subtotal': cart.get_subtotal() if hasattr(request.user, 'cart') else 0,
                 })
 
         except CartItem.DoesNotExist:
@@ -401,14 +419,10 @@ def remove_from_cart_ajax(request, item_id):
         return JsonResponse({
             'success': True,
             'cart_total': cart.get_total_price(),
-            'cart_subtotal': cart.get_subtotal(),
         })
     except CartItem.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'المنتج غير موجود في السلة'})
-
-    return JsonResponse({'success': False})
-
-
+        
 # =========================
 # AJAX: Sync Cart from localStorage (للمستخدمين غير المسجلين)
 # =========================

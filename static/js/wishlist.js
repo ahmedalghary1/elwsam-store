@@ -76,7 +76,7 @@ class WishlistManager {
 
     // Update wishlist badge in navbar
     updateWishlistBadge() {
-        const isAuthenticated = document.querySelector('[data-authenticated="true"]') !== null;
+        const isAuthenticated = document.body.dataset.auth === 'true';
         let count = 0;
 
         if (isAuthenticated) {
@@ -111,6 +111,38 @@ class WishlistManager {
         });
     }
 
+    // ==============================
+    // Bind Add to Wishlist Buttons (NEW)
+    // ==============================
+    bindAddToWishlistButtons() {
+        document.addEventListener('click', (e) => {
+            const button = e.target.closest('[data-action="add-to-wishlist"]');
+            if (!button) return;
+
+            e.preventDefault();
+
+            const productId = button.dataset.productId;
+            if (!productId) return;
+
+            // Check if user is authenticated
+            const isAuthenticated = document.body.dataset.auth === 'true';
+
+            if (isAuthenticated) {
+                // User is logged in, use AJAX
+                this.addToWishlistAjax(productId, button);
+            } else {
+                // User is not logged in, use localStorage
+                this.addToWishlist(productId);
+                // Update button appearance
+                const icon = button.querySelector('i');
+                if (icon) {
+                    icon.className = 'fas fa-heart';
+                    button.classList.add('active');
+                }
+            }
+        });
+    }
+
     // Bind remove from wishlist buttons
     bindRemoveFromWishlistButtons() {
         document.addEventListener('click', (e) => {
@@ -122,7 +154,7 @@ class WishlistManager {
             const productId = button.dataset.productId;
 
             // Check if user is authenticated
-            const isAuthenticated = document.querySelector('[data-authenticated="true"]') !== null;
+            const isAuthenticated = document.body.dataset.auth === 'true';
 
             if (isAuthenticated) {
                 // User is logged in, use AJAX
@@ -216,18 +248,18 @@ class WishlistManager {
 
         if (wishlist.length === 0) {
             // Show empty wishlist
-            document.querySelector('.wishlist-page').innerHTML = `
-                <div class="container">
-                    <div class="empty-wishlist">
-                        <div class="empty-wishlist-icon">
-                            <i class="fas fa-heart"></i>
-                        </div>
-                        <h2>المفضلة فارغة</h2>
-                        <p>لم تقم بإضافة أي منتجات للمفضلة بعد</p>
-                        <a href="{% url 'products:product_list' %}" class="btn btn-primary">تصفح المنتجات</a>
+            const emptyHTML = `
+                <div class="empty-wishlist">
+                    <div class="empty-wishlist-icon">
+                        <i class="fas fa-heart"></i>
                     </div>
+                    <h2>المفضلة فارغة</h2>
+                    <p>لم تقم بإضافة أي منتجات للمفضلة بعد</p>
+                    <a href="{% url 'products:product_list' %}" class="btn btn-primary">تصفح المنتجات</a>
                 </div>
             `;
+            // Replace container content
+            wishlistContainer.innerHTML = emptyHTML;
             return;
         }
 
@@ -308,13 +340,16 @@ class WishlistManager {
 
     // Get CSRF token
     getCSRFToken() {
-        const token = document.querySelector('[name=csrfmiddlewaretoken]');
-        return token ? token.value : '';
+        // First try meta tag
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        if (meta) return meta.content;
+        // Fallback to cookie
+        const cookie = document.cookie.split('; ').find(row => row.startsWith('csrftoken='));
+        return cookie ? cookie.split('=')[1] : '';
     }
 
     // Show toast message
     showToast(message) {
-        // Simple toast implementation
         const toast = document.createElement('div');
         toast.className = 'toast';
         toast.textContent = message;

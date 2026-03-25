@@ -1,4 +1,4 @@
-// Cart functionality for guest users using localStorage
+// Cart Manager (Hybrid System)
 class CartManager {
     constructor() {
         this.cartKey = 'noor_cart';
@@ -6,72 +6,42 @@ class CartManager {
     }
 
     init() {
-        // Sync cart with server when user logs in
-        this.syncCartOnLogin();
-
-        // Update cart badge on page load
         this.updateCartBadge();
-
-        // Handle add to cart buttons
         this.bindAddToCartButtons();
-
-        // Handle cart page functionality
         this.initCartPage();
+        this.syncCartOnLogin();
     }
 
-    // Get cart from localStorage
+    isAuthenticated() {
+        return document.body.dataset.auth === 'true';
+    }
+
+    // ==============================
+    // LocalStorage (Guest)
+    // ==============================
     getCart() {
         try {
             return JSON.parse(localStorage.getItem(this.cartKey) || '[]');
-        } catch (e) {
+        } catch {
             return [];
         }
     }
 
-    // Save cart to localStorage
     saveCart(cart) {
         localStorage.setItem(this.cartKey, JSON.stringify(cart));
         this.updateCartBadge();
     }
 
-    // Add to cart via AJAX (for authenticated users)
-    addToCartAjax(productId, variantId = null, quantity = 1) {
-        const formData = new URLSearchParams();
-        formData.append('product_id', productId);
-        if (variantId) formData.append('variant_id', variantId);
-        formData.append('quantity', quantity);
-
-        fetch('/orders/cart/add/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRFToken': this.getCSRFToken()
-            },
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                this.showToast('تم إضافة المنتج للسلة');
-                // Optionally update cart count from server
-                if (data.cart_count !== undefined) {
-                    this.updateCartBadgeFromServer(data.cart_count);
-                }
-            } else {
-                this.showToast(data.message || 'حدث خطأ أثناء إضافة المنتج للسلة');
-            }
-        })
-        .catch(error => {
-            console.error('Error adding to cart:', error);
-            this.showToast('حدث خطأ أثناء إضافة المنتج للسلة');
-        });
+    clearCart() {
+        this.saveCart([]);
     }
-        const cart = this.getCart();
-        const existingItem = cart.find(item =>
-            item.product_id == productId &&
-            item.variant_id == variantId
-        );
 
+    // ==============================
+    // Guest Add
+    // ==============================
+    addToCart(productId, variantId = null, quantity = 1, productData = {}) {
+        const cart = this.getCart();
+        const existingItem = cart.find(item => item.product_id == productId && item.variant_id == variantId);
         if (existingItem) {
             existingItem.quantity += quantity;
         } else {
@@ -82,315 +52,367 @@ class CartManager {
                 ...productData
             });
         }
-
         this.saveCart(cart);
         this.showToast('تم إضافة المنتج للسلة');
+        if (document.querySelector('.cart-page')) this.renderGuestCart();
     }
 
-    // Remove item from cart
-    removeFromCart(productId, variantId = null) {
-        const cart = this.getCart().filter(item =>
-            !(item.product_id == productId && item.variant_id == variantId)
-        );
+    // ==============================
+    // Authenticated Add (AJAX)
+    // ==============================
+    addToCartAjax(productId, variantId = null, quantity = 1) {
+        const formData = new URLSearchParams();
+        formData.append('product_id', productId);
+        if (variantId) formData.append('variant_id', variantId);
+        formData.append('quantity', quantity);
+
+        fetch('/orders/cart/add/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': this.getCSRFToken(),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                this.showToast(data.message);
+                this.updateCartBadgeFromServer(data.cart_count);
+                if (document.querySelector('.cart-page')) location.reload(); // تحديث صفحة السلة
+            } else if (data.login_required) {
+                window.location.href = '/accounts/login/?next=' + encodeURIComponent(window.location.pathname);
+            } else {
+                this.showToast(data.message || 'حدث خطأ');
+            }
+        })
+        .catch(() => this.showToast('خطأ في الاتصال بالسيرفر'));
+    }
+
+    // ==============================
+    // Guest Remove
+    // ==============================
+    removeFromGuestCart(productId, variantId = null) {
+        const cart = this.getCart().filter(item => !(item.product_id == productId && item.variant_id == variantId));
         this.saveCart(cart);
-        this.showToast('تم حذف المنتج من السلة');
+        this.showToast('تم حذف المنتج');
+        if (document.querySelector('.cart-page')) this.renderGuestCart();
     }
 
-    // Update item quantity
-    updateQuantity(productId, variantId = null, quantity) {
+    // ==============================
+    // Guest Update Quantity
+    // ==============================
+    updateGuestQuantity(productId, variantId, quantity) {
         const cart = this.getCart();
-        const item = cart.find(item =>
-            item.product_id == productId &&
-            item.variant_id == variantId
-        );
-
+        const item = cart.find(item => item.product_id == productId && item.variant_id == variantId);
         if (item) {
             item.quantity = Math.max(1, quantity);
             this.saveCart(cart);
         }
+        if (document.querySelector('.cart-page')) this.renderGuestCart();
     }
 
-    // Get cart total
-    getCartTotal() {
-        return this.getCart().reduce((total, item) => total + (item.price * item.quantity), 0);
-    }
+    // ==============================
+    // Authenticated Update via AJAX
+    // ==============================
+    updateCartItemAjax(itemId, quantity) {
+        const formData = new URLSearchParams();
+        formData.append('quantity', quantity);
 
-    // Get cart count
-    getCartCount() {
-        return this.getCart().reduce((count, item) => count + item.quantity, 0);
-    }
-
-    // Clear cart
-    clearCart() {
-        this.saveCart([]);
-    }
-
-    // Update cart badge from server data
-    updateCartBadgeFromServer(count) {
-        document.querySelectorAll('.cart-count').forEach(badge => {
-            badge.textContent = count;
-            badge.style.display = count > 0 ? 'flex' : 'none';
+        fetch(`/orders/cart/update-ajax/${itemId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': this.getCSRFToken(),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                this.showToast('تم تحديث الكمية');
+                if (data.deleted) {
+                    location.reload();
+                } else {
+                    document.querySelector(`.cart-item[data-item-id="${itemId}"] .cart-item-price`).textContent = data.item_total + ' ج.م';
+                    document.getElementById('subtotal').textContent = data.cart_total + ' ج.م';
+                    document.getElementById('total').textContent = data.cart_total + ' ج.م';
+                }
+            } else {
+                this.showToast(data.error || 'حدث خطأ');
+            }
         });
     }
 
-    // Bind add to cart buttons
+    removeCartItemAjax(itemId) {
+        fetch(`/orders/cart/remove-ajax/${itemId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': this.getCSRFToken(),
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                this.showToast('تم حذف المنتج');
+                location.reload();
+            } else {
+                this.showToast(data.error || 'حدث خطأ');
+            }
+        });
+    }
+
+    // ==============================
+    // Badge
+    // ==============================
+    updateCartBadge() {
+        const count = this.getCartCount();
+        document.querySelectorAll('.cart-count').forEach(el => {
+            el.textContent = count;
+            el.style.display = count > 0 ? 'flex' : 'none';
+        });
+    }
+
+    updateCartBadgeFromServer(count) {
+        document.querySelectorAll('.cart-count').forEach(el => {
+            el.textContent = count;
+            el.style.display = count > 0 ? 'flex' : 'none';
+        });
+    }
+
+    getCartCount() {
+        return this.getCart().reduce((c, item) => c + item.quantity, 0);
+    }
+
+    // ==============================
+    // Add To Cart Buttons
+    // ==============================
     bindAddToCartButtons() {
         document.addEventListener('click', (e) => {
-            const button = e.target.closest('[data-action="add-to-cart"]');
-            if (!button) return;
+            const btn = e.target.closest('[data-action="add-to-cart"]');
+            if (!btn) return;
 
             e.preventDefault();
+            const productId = btn.dataset.productId;
+            const quantity = parseInt(btn.dataset.quantity || 1);
 
-            const productId = button.dataset.productId;
-            const quantity = parseInt(button.dataset.quantity) || 1;
+            if (!productId) return;
 
-            // Check if user is authenticated
-            const isAuthenticated = document.querySelector('[data-authenticated="true"]') !== null;
-
-            if (isAuthenticated) {
-                // User is logged in, use AJAX
+            if (this.isAuthenticated()) {
                 this.addToCartAjax(productId, null, quantity);
             } else {
-                // User is not logged in, use localStorage
                 const productData = {
-                    name: button.dataset.productName || 'منتج',
-                    price: parseFloat(button.dataset.productPrice) || 0,
-                    image: button.dataset.productImage || ''
+                    name: btn.dataset.productName || 'منتج',
+                    price: parseFloat(btn.dataset.productPrice) || 0,
+                    image: btn.dataset.productImage || ''
                 };
                 this.addToCart(productId, null, quantity, productData);
             }
         });
     }
 
-    // Initialize cart page functionality
+    // ==============================
+    // Cart Page Initialization
+    // ==============================
     initCartPage() {
         if (!document.querySelector('.cart-page')) return;
 
-        this.renderCartPage();
-        this.bindCartPageEvents();
+        if (this.isAuthenticated()) {
+            // للمستخدم المسجل: نربط أحداث تحديث وحذف المنتجات الموجودة
+            this.bindAuthenticatedCartEvents();
+        } else {
+            // للضيف: نعرض السلة من localStorage ونديرها
+            this.renderGuestCart();
+            this.bindGuestCartEvents();
+        }
     }
 
-    // Render cart items on cart page
-    renderCartPage() {
-        const cart = this.getCart();
-        const cartContainer = document.querySelector('.cart-items');
+    bindAuthenticatedCartEvents() {
+        // تحديث الكمية
+        document.querySelectorAll('.cart-qty-btn, .cart-qty-val').forEach(el => {
+            el.addEventListener('click', (e) => {
+                const itemDiv = e.target.closest('.cart-item');
+                if (!itemDiv) return;
+                const itemId = itemDiv.dataset.itemId;
+                const input = itemDiv.querySelector('.cart-qty-val');
+                let quantity = parseInt(input.value);
 
-        if (!cartContainer) return;
+                if (e.target.classList.contains('minus')) {
+                    quantity = Math.max(1, quantity - 1);
+                    input.value = quantity;
+                } else if (e.target.classList.contains('plus')) {
+                    quantity = quantity + 1;
+                    input.value = quantity;
+                } else {
+                    quantity = parseInt(input.value);
+                }
+                this.updateCartItemAjax(itemId, quantity);
+            });
+        });
+
+        // حذف العنصر
+        document.querySelectorAll('.cart-remove-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const itemId = e.target.closest('.cart-item').dataset.itemId;
+                if (confirm('هل تريد حذف هذا المنتج؟')) {
+                    this.removeCartItemAjax(itemId);
+                }
+            });
+        });
+    }
+
+    renderGuestCart() {
+        const cart = this.getCart();
+        const container = document.getElementById('guest-cart-items');
+        const summaryDiv = document.getElementById('cart-content-guest');
+        const emptyDiv = document.getElementById('guest-empty-cart');
+
+        if (!container) return;
 
         if (cart.length === 0) {
-            // Show empty cart
-            document.querySelector('.cart-page').innerHTML = `
-                <div class="container">
-                    <div class="empty-cart">
-                        <div class="empty-cart-icon">
-                            <i class="fas fa-shopping-cart"></i>
-                        </div>
-                        <h2>سلة التسوق فارغة</h2>
-                        <p>لم تقم بإضافة أي منتجات للسلة بعد</p>
-                        <a href="{% url 'products:product_list' %}" class="btn btn-primary">تصفح المنتجات</a>
-                    </div>
-                </div>
-            `;
+            summaryDiv.style.display = 'none';
+            emptyDiv.style.display = 'block';
             return;
         }
 
-        // Render cart items (this would need to be implemented with actual product data from server)
-        // For now, just show basic structure
-        cartContainer.innerHTML = cart.map(item => `
-            <div class="cart-item" data-product-id="${item.product_id}" data-variant-id="${item.variant_id}">
-                <div class="item-image">
-                    <img src="${item.image || '/static/image/no-image.png'}" alt="${item.name}">
+        summaryDiv.style.display = 'block';
+        emptyDiv.style.display = 'none';
+
+        container.innerHTML = cart.map(item => `
+            <div class="cart-item" data-product-id="${item.product_id}" data-variant-id="${item.variant_id || ''}">
+                <div class="cart-item-img">
+                    <img src="${item.image || '/static/image/no-image.png'}">
                 </div>
-                <div class="item-details">
-                    <h3>${item.name}</h3>
-                    <p class="item-price">${item.price} ريال</p>
-                </div>
-                <div class="item-quantity">
-                    <button class="quantity-btn minus" data-action="decrease">-</button>
-                    <input type="number" class="quantity-input" value="${item.quantity}" min="1" max="99">
-                    <button class="quantity-btn plus" data-action="increase">+</button>
-                </div>
-                <div class="item-total">
-                    <p class="total-price">${(item.price * item.quantity).toFixed(2)} ريال</p>
-                </div>
-                <div class="item-actions">
-                    <button class="remove-btn" data-product-id="${item.product_id}" data-variant-id="${item.variant_id}">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                <div class="cart-item-content">
+                    <div class="cart-item-name">${item.name}</div>
+                    <div class="cart-item-price">${item.price} ج.م</div>
+                    <div class="cart-item-controls">
+                        <div class="cart-qty">
+                            <button class="cart-qty-btn minus">−</button>
+                            <input type="number" class="cart-qty-val" value="${item.quantity}" min="1">
+                            <button class="cart-qty-btn plus">+</button>
+                        </div>
+                        <button class="cart-remove-btn">✕</button>
+                    </div>
                 </div>
             </div>
         `).join('');
 
-        this.updateCartSummary();
+        this.updateGuestSummary();
     }
 
-    // Bind cart page events
-    bindCartPageEvents() {
-        // Quantity buttons
+    updateGuestSummary() {
+        const total = this.getCartTotal();
+        const subtotalEl = document.getElementById('guest-subtotal');
+        const totalEl = document.getElementById('guest-total');
+        if (subtotalEl) subtotalEl.textContent = total.toFixed(2) + ' ج.م';
+        if (totalEl) totalEl.textContent = total.toFixed(2) + ' ج.م';
+    }
+
+    getCartTotal() {
+        return this.getCart().reduce((t, i) => t + (i.price * i.quantity), 0);
+    }
+
+    bindGuestCartEvents() {
         document.addEventListener('click', (e) => {
-            const btn = e.target.closest('.quantity-btn');
-            if (!btn) return;
-
-            const item = btn.closest('.cart-item');
-            const input = item.querySelector('.quantity-input');
-            const action = btn.dataset.action;
-            let quantity = parseInt(input.value);
-
-            if (action === 'increase') {
-                quantity++;
-            } else if (action === 'decrease' && quantity > 1) {
-                quantity--;
+            const btn = e.target.closest('.cart-remove-btn');
+            if (btn) {
+                const item = btn.closest('.cart-item');
+                const productId = item.dataset.productId;
+                const variantId = item.dataset.variantId;
+                this.removeFromGuestCart(productId, variantId);
             }
 
-            input.value = quantity;
-            this.updateQuantity(
-                item.dataset.productId,
-                item.dataset.variantId,
-                quantity
-            );
-            this.updateCartItemTotal(item);
-            this.updateCartSummary();
-        });
-
-        // Quantity input change
-        document.addEventListener('change', (e) => {
-            if (!e.target.classList.contains('quantity-input')) return;
-
-            const item = e.target.closest('.cart-item');
-            const quantity = parseInt(e.target.value);
-
-            if (quantity > 0) {
-                this.updateQuantity(
-                    item.dataset.productId,
-                    item.dataset.variantId,
-                    quantity
-                );
-                this.updateCartItemTotal(item);
-                this.updateCartSummary();
+            const minusBtn = e.target.closest('.cart-qty-btn.minus');
+            if (minusBtn) {
+                const item = minusBtn.closest('.cart-item');
+                const productId = item.dataset.productId;
+                const variantId = item.dataset.variantId;
+                const input = item.querySelector('.cart-qty-val');
+                let qty = parseInt(input.value) - 1;
+                if (qty < 1) qty = 1;
+                input.value = qty;
+                this.updateGuestQuantity(productId, variantId, qty);
             }
-        });
 
-        // Remove buttons
-        document.addEventListener('click', (e) => {
-            const btn = e.target.closest('.remove-btn');
-            if (!btn) return;
-
-            if (confirm('هل أنت متأكد من حذف هذا المنتج من السلة؟')) {
-                this.removeFromCart(
-                    btn.dataset.productId,
-                    btn.dataset.variantId
-                );
-                btn.closest('.cart-item').remove();
-                this.updateCartSummary();
-                this.checkEmptyCart();
+            const plusBtn = e.target.closest('.cart-qty-btn.plus');
+            if (plusBtn) {
+                const item = plusBtn.closest('.cart-item');
+                const productId = item.dataset.productId;
+                const variantId = item.dataset.variantId;
+                const input = item.querySelector('.cart-qty-val');
+                let qty = parseInt(input.value) + 1;
+                input.value = qty;
+                this.updateGuestQuantity(productId, variantId, qty);
             }
         });
     }
 
-    // Update cart item total
-    updateCartItemTotal(item) {
-        const input = item.querySelector('.quantity-input');
-        const price = parseFloat(item.querySelector('.item-price').textContent.replace(' ريال', ''));
-        const quantity = parseInt(input.value);
-        const totalElement = item.querySelector('.total-price');
-
-        totalElement.textContent = (price * quantity).toFixed(2) + ' ريال';
-    }
-
-    // Update cart summary
-    updateCartSummary() {
-        const subtotalElement = document.getElementById('subtotal');
-        const totalElement = document.getElementById('total');
-
-        if (subtotalElement && totalElement) {
-            const total = this.getCartTotal();
-            subtotalElement.textContent = total.toFixed(2) + ' ريال';
-            totalElement.textContent = total.toFixed(2) + ' ريال';
-        }
-
-        // Update cart count
-        const countElement = document.getElementById('cart-count');
-        if (countElement) {
-            countElement.textContent = this.getCartCount() + ' منتج';
-        }
-    }
-
-    // Check if cart is empty
-    checkEmptyCart() {
-        const items = document.querySelectorAll('.cart-item');
-        if (items.length === 0) {
-            location.reload(); // Reload to show empty cart state
-        }
-    }
-
-    // Sync cart with server when user logs in
+    // ==============================
+    // Sync after login
+    // ==============================
     syncCartOnLogin() {
-        // Check if user just logged in and has cart data to sync
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('login') === 'success' && this.getCart().length > 0) {
             this.syncCartWithServer();
         }
     }
 
-    // Sync localStorage cart with server
     syncCartWithServer() {
         const cart = this.getCart();
-        if (cart.length === 0) return;
+        if (!cart.length) return;
 
         fetch('/orders/cart/sync/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRFToken': this.getCSRFToken()
+                'X-CSRFToken': this.getCSRFToken(),
+                'X-Requested-With': 'XMLHttpRequest'
             },
             body: `cart_data=${encodeURIComponent(JSON.stringify(cart))}`
         })
-        .then(response => response.json())
+        .then(res => res.json())
         .then(data => {
             if (data.success) {
                 this.clearCart();
-                this.showToast('تم مزامنة سلة التسوق مع حسابك');
+                this.showToast('تم مزامنة السلة مع حسابك');
                 setTimeout(() => location.reload(), 1000);
             }
-        })
-        .catch(error => {
-            console.error('Error syncing cart:', error);
         });
     }
 
-    // Get CSRF token
+    // ==============================
+    // CSRF Token
+    // ==============================
     getCSRFToken() {
-        const token = document.querySelector('[name=csrfmiddlewaretoken]');
-        return token ? token.value : '';
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        if (meta) return meta.content;
+        const cookie = document.cookie.split('; ').find(row => row.startsWith('csrftoken='));
+        return cookie ? cookie.split('=')[1] : '';
     }
 
-    // Show toast message
     showToast(message) {
-        // Simple toast implementation
         const toast = document.createElement('div');
-        toast.className = 'toast';
         toast.textContent = message;
         toast.style.cssText = `
             position: fixed;
-            top: 20px;
+            bottom: 20px;
             right: 20px;
             background: #22c55e;
-            color: white;
-            padding: 12px 24px;
+            color: #fff;
+            padding: 12px 20px;
             border-radius: 8px;
-            z-index: 1000;
-            font-weight: 500;
+            z-index: 9999;
+            font-size: 14px;
         `;
-
         document.body.appendChild(toast);
-
-        setTimeout(() => {
-            toast.remove();
-        }, 3000);
+        setTimeout(() => toast.remove(), 3000);
     }
 }
 
-// Initialize cart manager when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     window.cartManager = new CartManager();
 });

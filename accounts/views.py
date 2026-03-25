@@ -35,6 +35,7 @@ class LoginView(View):
 
     def get(self, request):
         form = UserLoginForm()
+
         return render(request, self.template_name, {'form': form})
 
     def post(self, request):
@@ -48,7 +49,7 @@ class LoginView(View):
                 messages.success(request, f"مرحبًا {user.username}")
 
                 # Get next URL or default to home
-                next_url = request.POST.get('next') or request.GET.get('next') or 'core:home'
+                next_url = request.POST.get('next') or request.GET.get('next') or 'index'
 
                 # If user has cart in localStorage, redirect to cart for sync
                 if request.POST.get('has_cart_data') == 'true':
@@ -67,7 +68,7 @@ class LogoutView(View):
     def get(self, request):
         logout(request)
         messages.success(request, "تم تسجيل الخروج بنجاح")
-        return redirect('core:home')
+        return redirect('index')
 
 
 # =========================
