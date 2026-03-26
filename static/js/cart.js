@@ -1,4 +1,4 @@
-// Cart Manager (Hybrid System)
+// Cart Manager (Hybrid System) - Improved Version
 class CartManager {
     constructor() {
         this.cartKey = 'noor_cart';
@@ -37,28 +37,31 @@ class CartManager {
     }
 
     // ==============================
-    // Guest Add
+    // Guest Add (returns Promise)
     // ==============================
     addToCart(productId, variantId = null, quantity = 1, productData = {}) {
-        const cart = this.getCart();
-        const existingItem = cart.find(item => item.product_id == productId && item.variant_id == variantId);
-        if (existingItem) {
-            existingItem.quantity += quantity;
-        } else {
-            cart.push({
-                product_id: productId,
-                variant_id: variantId,
-                quantity: quantity,
-                ...productData
-            });
-        }
-        this.saveCart(cart);
-        this.showToast('تم إضافة المنتج للسلة');
-        if (document.querySelector('.cart-page')) this.renderGuestCart();
+        return new Promise((resolve) => {
+            const cart = this.getCart();
+            const existingItem = cart.find(item => item.product_id == productId && item.variant_id == variantId);
+            if (existingItem) {
+                existingItem.quantity += quantity;
+            } else {
+                cart.push({
+                    product_id: productId,
+                    variant_id: variantId,
+                    quantity: quantity,
+                    ...productData
+                });
+            }
+            this.saveCart(cart);
+            this.showToast('تم إضافة المنتج للسلة');
+            if (document.querySelector('.cart-page')) this.renderGuestCart();
+            resolve(true);
+        });
     }
 
     // ==============================
-    // Authenticated Add (AJAX)
+    // Authenticated Add (returns Promise)
     // ==============================
     addToCartAjax(productId, variantId = null, quantity = 1) {
         const formData = new URLSearchParams();
@@ -66,7 +69,7 @@ class CartManager {
         if (variantId) formData.append('variant_id', variantId);
         formData.append('quantity', quantity);
 
-        fetch('/orders/cart/add/', {
+        return fetch('/orders/cart/add/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -80,14 +83,21 @@ class CartManager {
             if (data.success) {
                 this.showToast(data.message);
                 this.updateCartBadgeFromServer(data.cart_count);
-                if (document.querySelector('.cart-page')) location.reload(); // تحديث صفحة السلة
+                if (document.querySelector('.cart-page')) location.reload();
+                return true;
             } else if (data.login_required) {
                 window.location.href = '/accounts/login/?next=' + encodeURIComponent(window.location.pathname);
+                return false;
             } else {
                 this.showToast(data.message || 'حدث خطأ');
+                return false;
             }
         })
-        .catch(() => this.showToast('خطأ في الاتصال بالسيرفر'));
+        .catch(err => {
+            console.error('AJAX error:', err);
+            this.showToast('خطأ في الاتصال بالسيرفر');
+            return false;
+        });
     }
 
     // ==============================
@@ -188,32 +198,62 @@ class CartManager {
     }
 
     // ==============================
-    // Add To Cart Buttons
+    // Add To Cart Buttons (Improved)
     // ==============================
+    
     bindAddToCartButtons() {
+        if (this._addToCartBound) return;
+        this._addToCartBound = true;
+
         document.addEventListener('click', (e) => {
             const btn = e.target.closest('[data-action="add-to-cart"]');
             if (!btn) return;
 
             e.preventDefault();
+            e.stopPropagation();
+
+            if (btn.disabled) return;
+            btn.disabled = true;
+
             const productId = btn.dataset.productId;
-            const quantity = parseInt(btn.dataset.quantity || 1);
+            if (!productId) {
+                btn.disabled = false;
+                return;
+            }
 
-            if (!productId) return;
+            // ⭐ قراءة الكمية من حقل الإدخال المرتبط
+            let quantity = 1;
+            const qtyInput = document.querySelector(`.qty-input[data-product-id="${productId}"]`);
+            if (qtyInput) {
+                let qtyVal = parseInt(qtyInput.value, 10);
+                if (!isNaN(qtyVal) && qtyVal >= 1 && qtyVal <= 99) {
+                    quantity = qtyVal;
+                }
+            } else {
+                // إذا لم يوجد حقل كمية، نستخدم البيانات المخزنة (احتياطي)
+                quantity = parseInt(btn.dataset.quantity || '1', 10);
+            }
 
+            let promise;
             if (this.isAuthenticated()) {
-                this.addToCartAjax(productId, null, quantity);
+                promise = this.addToCartAjax(productId, null, quantity);
             } else {
                 const productData = {
                     name: btn.dataset.productName || 'منتج',
                     price: parseFloat(btn.dataset.productPrice) || 0,
                     image: btn.dataset.productImage || ''
                 };
-                this.addToCart(productId, null, quantity, productData);
+                promise = this.addToCart(productId, null, quantity, productData);
             }
+
+            promise.finally(() => {
+                btn.disabled = false;
+            }).catch(err => {
+                console.error('Add to cart error:', err);
+                btn.disabled = false;
+            });
         });
     }
-
     // ==============================
     // Cart Page Initialization
     // ==============================
@@ -221,10 +261,8 @@ class CartManager {
         if (!document.querySelector('.cart-page')) return;
 
         if (this.isAuthenticated()) {
-            // للمستخدم المسجل: نربط أحداث تحديث وحذف المنتجات الموجودة
             this.bindAuthenticatedCartEvents();
         } else {
-            // للضيف: نعرض السلة من localStorage ونديرها
             this.renderGuestCart();
             this.bindGuestCartEvents();
         }
@@ -238,7 +276,7 @@ class CartManager {
                 if (!itemDiv) return;
                 const itemId = itemDiv.dataset.itemId;
                 const input = itemDiv.querySelector('.cart-qty-val');
-                let quantity = parseInt(input.value);
+                let quantity = parseInt(input.value, 10);
 
                 if (e.target.classList.contains('minus')) {
                     quantity = Math.max(1, quantity - 1);
@@ -247,7 +285,7 @@ class CartManager {
                     quantity = quantity + 1;
                     input.value = quantity;
                 } else {
-                    quantity = parseInt(input.value);
+                    quantity = parseInt(input.value, 10);
                 }
                 this.updateCartItemAjax(itemId, quantity);
             });
@@ -273,13 +311,13 @@ class CartManager {
         if (!container) return;
 
         if (cart.length === 0) {
-            summaryDiv.style.display = 'none';
-            emptyDiv.style.display = 'block';
+            if (summaryDiv) summaryDiv.style.display = 'none';
+            if (emptyDiv) emptyDiv.style.display = 'block';
             return;
         }
 
-        summaryDiv.style.display = 'block';
-        emptyDiv.style.display = 'none';
+        if (summaryDiv) summaryDiv.style.display = 'block';
+        if (emptyDiv) emptyDiv.style.display = 'none';
 
         container.innerHTML = cart.map(item => `
             <div class="cart-item" data-product-id="${item.product_id}" data-variant-id="${item.variant_id || ''}">
@@ -332,7 +370,7 @@ class CartManager {
                 const productId = item.dataset.productId;
                 const variantId = item.dataset.variantId;
                 const input = item.querySelector('.cart-qty-val');
-                let qty = parseInt(input.value) - 1;
+                let qty = parseInt(input.value, 10) - 1;
                 if (qty < 1) qty = 1;
                 input.value = qty;
                 this.updateGuestQuantity(productId, variantId, qty);
@@ -344,7 +382,7 @@ class CartManager {
                 const productId = item.dataset.productId;
                 const variantId = item.dataset.variantId;
                 const input = item.querySelector('.cart-qty-val');
-                let qty = parseInt(input.value) + 1;
+                let qty = parseInt(input.value, 10) + 1;
                 input.value = qty;
                 this.updateGuestQuantity(productId, variantId, qty);
             }
@@ -407,12 +445,17 @@ class CartManager {
             border-radius: 8px;
             z-index: 9999;
             font-size: 14px;
+            font-family: sans-serif;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         `;
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
     }
 }
 
+// تهيئة المدير بعد تحميل الصفحة
 document.addEventListener('DOMContentLoaded', () => {
-    window.cartManager = new CartManager();
+    if (!window.cartManager) {
+        window.cartManager = new CartManager();
+    }
 });

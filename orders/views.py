@@ -83,9 +83,9 @@ def add_to_cart(request):
                 # المستخدم غير مسجل – لا يتم إضافة على السيرفر
                 if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                     return JsonResponse({
-                        'success': False,
-                        'message': 'يرجى تسجيل الدخول لإضافة المنتجات للسلة',
-                        'login_required': True
+                        'success': True,
+                        'message': f"تم إضافة {product.name} للسلة",
+                        'cart_count': cart.get_total_items()
                     })
                 else:
                     messages.info(request, "يرجى تسجيل الدخول لإضافة المنتجات للسلة")

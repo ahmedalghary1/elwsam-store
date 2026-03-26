@@ -26,6 +26,16 @@ class Cart(models.Model):
         return sum(item.quantity for item in self.items.all())
 
 
+    def get_subtotal(self):
+        """إجمالي السعر قبل الشحن"""
+        return sum(item.get_total_price() for item in self.items.all())
+
+    def get_total_items(self):
+        return self.items.aggregate(total=Sum('quantity'))['total'] or 0
+
+    @property
+    def subtotal(self):
+        return self.get_subtotal()
 # =========================
 # CartItem Model (عنصر في السلة)
 # =========================
@@ -90,7 +100,8 @@ class Order(models.Model):
         """حساب عدد العناصر في الطلب"""
         return sum(item.quantity for item in self.items.all())
 
-
+    def get_subtotal(self):
+        return sum(item.price * item.quantity for item in self.items.all())
 # =========================
 # OrderItem Model (عنصر في الطلب)
 # =========================

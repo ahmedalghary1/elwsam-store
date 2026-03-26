@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.views import View
 from django.views.generic import ListView
 from django.contrib import messages
-from .models import User, UserProfile, Address, Wishlist, UserOTP
+from .models import User, UserProfile, Address, UserOTP
 from .forms import UserRegisterForm, UserLoginForm, UserProfileForm, AddressForm
 
 # =========================
@@ -30,37 +30,55 @@ class RegisterView(View):
 # =========================
 #  Login View
 # =========================
+# class LoginView(View):
+#     template_name = "accounts/login.html"
+
+#     def get(self, request):
+#         form = UserLoginForm()
+
+#         return render(request, self.template_name, {'form': form})
+
+#     def post(self, request):
+#         form = UserLoginForm(request.POST)
+#         if form.is_valid():
+#             email = form.cleaned_data['email']
+#             password = form.cleaned_data['password']
+#             user = authenticate(request, email=email, password=password)
+#             if user is not None:
+#                 login(request, user)
+#                 messages.success(request, f"مرحبًا {user.username}")
+
+#                 # Get next URL or default to home
+#                 next_url = request.POST.get('next') or request.GET.get('next') or 'index'
+
+#                 # If user has cart in localStorage, redirect to cart for sync
+#                 if request.POST.get('has_cart_data') == 'true':
+#                     next_url = f"{next_url}{'&' if '?' in next_url else '?'}login=success"
+
+#                 return redirect(next_url)
+#             else:
+#                 messages.error(request, "بيانات الدخول غير صحيحة")
+#         return render(request, self.template_name, {'form': form})
+
 class LoginView(View):
     template_name = "accounts/login.html"
 
     def get(self, request):
         form = UserLoginForm()
-
         return render(request, self.template_name, {'form': form})
 
     def post(self, request):
         form = UserLoginForm(request.POST)
         if form.is_valid():
-            email = form.cleaned_data['email']
-            password = form.cleaned_data['password']
-            user = authenticate(request, email=email, password=password)
-            if user is not None:
-                login(request, user)
-                messages.success(request, f"مرحبًا {user.username}")
-
-                # Get next URL or default to home
-                next_url = request.POST.get('next') or request.GET.get('next') or 'index'
-
-                # If user has cart in localStorage, redirect to cart for sync
-                if request.POST.get('has_cart_data') == 'true':
-                    next_url = f"{next_url}{'&' if '?' in next_url else '?'}login=success"
-
-                return redirect(next_url)
-            else:
-                messages.error(request, "بيانات الدخول غير صحيحة")
+            user = form.cleaned_data['user']
+            login(request, user)
+            messages.success(request, f"مرحبًا {user.username}")
+            next_url = request.POST.get('next') or request.GET.get('next') or 'index'
+            if request.POST.get('has_cart_data') == 'true':
+                next_url = f"{next_url}{'&' if '?' in next_url else '?'}login=success"
+            return redirect(next_url)
+        # إذا كانت البيانات غير صالحة، أعد الصفحة مع الأخطاء
         return render(request, self.template_name, {'form': form})
-
-
 # =========================
 #  Logout View
 # =========================

@@ -1,10 +1,12 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth.forms import UserCreationForm
 from .models import User, UserProfile, Address
 
+User = get_user_model()
 
 # =========================
-# User Registration Form
+# User Registration Form (no changes needed)
 # =========================
 class UserRegisterForm(UserCreationForm):
     email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={
@@ -37,10 +39,10 @@ class UserRegisterForm(UserCreationForm):
 
 
 # =========================
-# User Login Form
+# User Login Form (corrected)
 # =========================
-class UserLoginForm(AuthenticationForm):
-    username = forms.EmailField(widget=forms.EmailInput(attrs={
+class UserLoginForm(forms.Form):
+    email = forms.EmailField(widget=forms.EmailInput(attrs={
         'class': 'form-control',
         'placeholder': 'البريد الإلكتروني'
     }))
@@ -49,9 +51,22 @@ class UserLoginForm(AuthenticationForm):
         'placeholder': 'كلمة المرور'
     }))
 
-    class Meta:
-        model = User
-        fields = ['username', 'password']
+    def clean(self):
+        cleaned_data = super().clean()
+        email = cleaned_data.get('email')
+        password = cleaned_data.get('password')
+
+        if email and password:
+            try:
+                user = User.objects.get(email=email)
+            except User.DoesNotExist:
+                raise forms.ValidationError("البريد الإلكتروني غير مسجل.")
+
+            if not user.check_password(password):
+                raise forms.ValidationError("كلمة المرور غير صحيحة.")
+
+            cleaned_data['user'] = user
+        return cleaned_data
 
 
 # =========================
