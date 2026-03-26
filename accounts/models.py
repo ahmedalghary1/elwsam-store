@@ -72,19 +72,19 @@ class Address(models.Model):
 # =========================
 # 4️⃣ Wishlist Model (اختياري)
 # =========================
-class Wishlist(models.Model):
-    """
-    قائمة الرغبات لكل مستخدم.
-    """
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="wishlist")
-    product = models.ForeignKey('products.Product', on_delete=models.CASCADE)
-    added_at = models.DateTimeField(auto_now_add=True)
+# class Wishlist(models.Model):
+#     """
+#     قائمة الرغبات لكل مستخدم.
+#     """
+#     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="wishlist")
+#     product = models.ForeignKey('products.Product', on_delete=models.CASCADE)
+#     added_at = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
-        unique_together = ('user', 'product')  # لا يمكن إضافة نفس المنتج مرتين
+#     class Meta:
+#         unique_together = ('user', 'product')  # لا يمكن إضافة نفس المنتج مرتين
 
-    def __str__(self):
-        return f"{self.user.email} → {self.product.name}"
+#     def __str__(self):
+#         return f"{self.user.email} → {self.product.name}"
 
 
 # =========================

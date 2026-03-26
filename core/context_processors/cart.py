@@ -14,20 +14,20 @@ def cart_processor(request):
             cart_count = 0
 
         # إضافة wishlist_count
-        wishlist_count = request.user.wishlist.count()
+        # wishlist_count = request.user.wishlist.count()
     else:
         cart = None
         cart_items = []
         cart_total = 0
         cart_count = 0
-        wishlist_count = 0
+        # wishlist_count = 0
 
     return {
         'cart': cart,
         'cart_items': cart_items,
         'cart_total': cart_total,
         'cart_count': cart_count,
-        'wishlist_count': wishlist_count,   # هذا السطر الجديد
+        # 'wishlist_count': wishlist_count,   # هذا السطر الجديد
     }
 
 

@@ -165,13 +165,13 @@ def set_default_address(request, pk):
 # =========================
 #  Wishlist View
 # =========================
-class WishlistView(ListView):
-    model = Wishlist
-    template_name = "accounts/wishlist.html"
-    context_object_name = "wishlist_items"
+# class WishlistView(ListView):
+#     model = Wishlist
+#     template_name = "accounts/wishlist.html"
+#     context_object_name = "wishlist_items"
 
-    def get_queryset(self):
-        return Wishlist.objects.filter(user=self.request.user).select_related('product').order_by('-added_at')
+#     def get_queryset(self):
+#         return Wishlist.objects.filter(user=self.request.user).select_related('product').order_by('-added_at')
 
 
 # =========================
