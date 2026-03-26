@@ -185,17 +185,7 @@ function initPromoBanner() {
 
 // ============ Cart Buttons ============
 function initCartButtons() {
-  document.addEventListener('click', e => {
-    const btn = e.target.closest('[data-action="add-to-cart"]');
-    if (!btn) return;
-    const card = btn.closest('[data-product-id]') || btn.closest('[data-product]');
-    if (!card) return;
-    const product = { id: card.dataset.productId || card.dataset.product, name: card.dataset.productName || 'منتج', price: parseFloat(card.dataset.productPrice || 0), emoji: card.dataset.productEmoji || '📦' };
-    Store.addToCart(product);
-    UI.showToast(`تمت إضافة "${product.name}" إلى السلة`);
-    btn.textContent = '✓'; btn.style.background = '#22c55e'; btn.style.color = 'white';
-    setTimeout(() => { btn.innerHTML = '🛒'; btn.style.background = ''; btn.style.color = ''; }, 1500);
-  });
+  // Disabled: CartManager in cart.js handles all add-to-cart logic
 }
 
 // ============ Wishlist Buttons ============
@@ -215,158 +205,11 @@ function initWishlistButtons() {
   });
 }
 
-// ============ Cart Page ============
-// ============ Cart Page (معدل للعمل مع HTML ثابت) ============
+// ============ Cart Page - Minimal (CartManager handles cart logic) ============
 const CartPage = {
   init() {
-    if (!document.querySelector('.cart-page')) return;
-    this.loadFromDOM();        // مزامنة Store.cart مع العناصر الثابتة (اختياري)
-    this.updateDisplay();      // إظهار/إخفاء الأقسام وتحديث الملخصات
-    this.bindEvents();         // ربط أحداث التفاعل
-  },
-
-  // قراءة العناصر من DOM وتخزينها في Store.cart (للاتساق مع باقي الموقع)
-  loadFromDOM() {
-    const items = document.querySelectorAll('#cart-items-list .cart-item');
-    if (items.length === 0) return;
-
-    // مسح السلة الحالية في الذاكرة
-    Store.cart = [];
-
-    items.forEach(item => {
-      const id = item.dataset.id;
-      const unitPrice = parseFloat(item.dataset.unitPrice) || 0;
-      const name = item.querySelector('.cart-item-name')?.textContent.trim() || 'منتج';
-      const qtyEl = item.querySelector('.cart-qty-val');
-      const qty = qtyEl ? parseInt(qtyEl.textContent) : 1;
-      
-      // استخراج الإيموجي أو الصورة (اختياري)
-      const imgDiv = item.querySelector('.cart-item-img');
-      let emoji = '📦';
-      if (imgDiv && imgDiv.textContent.trim()) {
-        emoji = imgDiv.textContent.trim();
-      }
-
-      Store.cart.push({ id, name, price: unitPrice, qty, emoji });
-    });
-
-    Store.saveCart(); // حفظ في localStorage
-  },
-
-  // تحديث ظهور الأقسام (فارغة/غير فارغة) وحساب الملخصات
-  updateDisplay() {
-    const list = document.getElementById('cart-items-list');
-    const empty = document.getElementById('empty-cart');
-    const content = document.getElementById('cart-content');
-    if (!list) return;
-
-    const hasItems = list.children.length > 0; // اعتماداً على DOM
-
-    if (!hasItems) {
-      empty && (empty.style.display = 'block');
-      content && (content.style.display = 'none');
-    } else {
-      empty && (empty.style.display = 'none');
-      content && (content.style.display = 'grid');
-      this.updateSummary();
-    }
-  },
-
-  // حساب المجموع من DOM وتحديث عناصر الملخص
-  updateSummary() {
-    let sub = 0;
-    let totalQty = 0;
-
-    document.querySelectorAll('#cart-items-list .cart-item').forEach(item => {
-      const priceEl = item.querySelector('.cart-item-price');
-      const qtyEl = item.querySelector('.cart-qty-val');
-      if (priceEl && qtyEl) {
-        // استخراج الرقم من النص (إزالة كل ما ليس رقماً)
-        const priceText = priceEl.textContent.trim();
-        const price = parseFloat(priceText.replace(/[^0-9]/g, '')) || 0;
-        const qty = parseInt(qtyEl.textContent) || 1;
-        
-        sub += price;        // price هو السعر الإجمالي للعنصر (سعر الوحدة × الكمية)
-        totalQty += qty;
-      }
-    });
-
-    const ship = sub >= 200 ? 0 : 25;
-    const total = sub + ship;
-
-    const set = (id, v) => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = v;
-    };
-
-    set('summary-subtotal', UI.formatPrice(sub));
-    set('summary-shipping', ship === 0 ? 'مجاني' : UI.formatPrice(ship));
-    set('summary-discount', '—');
-    set('summary-total', UI.formatPrice(total));
-    set('summary-count', `(${totalQty} منتج)`);
-  },
-
-  // ربط الأحداث (مرة واحدة فقط)
-  bindEvents() {
-    const c = document.getElementById('cart-items-list');
-    if (!c) return;
-
-    // منع إضافة مستمع مكرر
-    if (this._eventsBound) return;
-    c.addEventListener('click', this.handleClick.bind(this));
-    this._eventsBound = true;
-  },
-
-  // معالج النقرات على الأزرار
-  handleClick(e) {
-    const btn = e.target.closest('[data-action]');
-    if (!btn) return;
-
-    const id = btn.dataset.id;
-    const action = btn.dataset.action;
-    const item = btn.closest('.cart-item');
-    if (!item) return;
-
-    // زيادة/نقصان الكمية
-    if (action === 'qty-plus' || action === 'qty-minus') {
-      const qtySpan = item.querySelector('.cart-qty-val');
-      const priceEl = item.querySelector('.cart-item-price');
-      const unitPrice = parseFloat(item.dataset.unitPrice) || 0;
-
-      if (!qtySpan || !priceEl || !unitPrice) return;
-
-      let qty = parseInt(qtySpan.textContent) || 1;
-      if (action === 'qty-plus') qty++;
-      else if (action === 'qty-minus') qty = Math.max(1, qty - 1);
-
-      // تحديث العدد في DOM
-      qtySpan.textContent = qty;
-      // تحديث السعر الإجمالي
-      priceEl.textContent = UI.formatPrice(unitPrice * qty);
-
-      // تحديث Store (اختياري، للاتساق مع بقية الموقع)
-      const cartItem = Store.cart.find(i => i.id === id);
-      if (cartItem) {
-        cartItem.qty = qty;
-        Store.saveCart();
-      }
-
-      this.updateSummary();
-    }
-
-    // إزالة منتج
-    else if (action === 'remove-item') {
-      item.remove(); // حذف العنصر من DOM
-
-      // تحديث Store
-      Store.removeFromCart(id);
-
-      // إعادة التحقق من وجود عناصر
-      this.updateDisplay();
-
-      // رسالة تأكيد
-      UI.showToast('تمت إزالة المنتج', '🗑️');
-    }
+    // CartManager in cart.js handles all cart functionality
+    // This is just a placeholder for compatibility
   }
 };
 
@@ -475,14 +318,7 @@ const ProductDetail = {
     p?.addEventListener('click',()=>{this.qty=Math.min(10,this.qty+1);if(d)d.textContent=this.qty;});
   },
   initAddToCart() {
-    const btn=document.getElementById('detail-add-to-cart'); if(!btn)return;
-    btn.addEventListener('click',()=>{
-      const p={id:btn.dataset.productId||'p1',name:btn.dataset.productName||'منتج',price:parseFloat(btn.dataset.productPrice||0),emoji:btn.dataset.productEmoji||'📦'};
-      for(let i=0;i<this.qty;i++) Store.addToCart(p);
-      UI.showToast(`تمت إضافة ${this.qty} قطعة إلى السلة`);
-      btn.textContent='✓ تمت الإضافة!'; btn.style.background='#22c55e';
-      setTimeout(()=>{btn.textContent='🛒 أضف إلى السلة';btn.style.background='';},2000);
-    });
+    // Disabled: CartManager in cart.js handles this via bindAddToCartButtons
   }
 };
 
@@ -515,7 +351,7 @@ function syncWishlistBtns() {
 function initPage() {
   MobileMenu.init(); initSearch(); initPromoBanner(); initCartButtons(); initWishlistButtons();
   setActiveNavLinks(); syncWishlistBtns(); UI.updateCartBadge(); UI.updateWishlistBadge();
-  CartPage.init(); 
+  // CartPage.init(); // Disabled - CartManager handles cart 
   ProductDetail.init(); WishlistPage.init(); initFilterToggle();
 }
 

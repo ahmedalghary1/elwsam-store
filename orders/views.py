@@ -80,16 +80,16 @@ def add_to_cart(request):
                     return redirect('orders:cart')
 
             else:
-                # المستخدم غير مسجل – لا يتم إضافة على السيرفر
+                # المستخدم غير مسجل – يتم التعامل من localStorage في الواجهة
                 if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                     return JsonResponse({
                         'success': True,
                         'message': f"تم إضافة {product.name} للسلة",
-                        'cart_count': cart.get_total_items()
+                        'cart_count': 0
                     })
                 else:
-                    messages.info(request, "يرجى تسجيل الدخول لإضافة المنتجات للسلة")
-                    return redirect('accounts:login')
+                    messages.info(request, "تم إضافة المنتج للسلة")
+                    return redirect('orders:cart')
 
         except Exception as e:
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
@@ -146,31 +146,44 @@ def remove_from_cart(request, item_id):
 # =========================
 # Checkout View (الدفع والشراء)
 # =========================
-class CheckoutView(LoginRequiredMixin, View):
+class CheckoutView(View):
     template_name = "orders/checkout.html"
 
     def get(self, request):
-        try:
-            cart = request.user.cart
-            cart_items = cart.items.all().select_related('product', 'variant')
+        if request.user.is_authenticated:
+            try:
+                cart = request.user.cart
+                cart_items = cart.items.all().select_related('product', 'variant')
 
-            if not cart_items:
+                if not cart_items:
+                    messages.warning(request, "سلة التسوق فارغة")
+                    return redirect('orders:cart')
+
+                addresses = request.user.addresses.all()
+
+                return render(request, self.template_name, {
+                    'cart': cart,
+                    'cart_items': cart_items,
+                    'addresses': addresses,
+                    'is_guest': False,
+                })
+
+            except Cart.DoesNotExist:
                 messages.warning(request, "سلة التسوق فارغة")
-                return redirect('orders:cart')
-
-            addresses = request.user.addresses.all()
-
+                return redirect('products:product_list')
+        else:
+            # Guest checkout
             return render(request, self.template_name, {
-                'cart': cart,
-                'cart_items': cart_items,
-                'addresses': addresses,
+                'is_guest': True,
             })
 
-        except Cart.DoesNotExist:
-            messages.warning(request, "سلة التسوق فارغة")
-            return redirect('products:product_list')
-
     def post(self, request):
+        if request.user.is_authenticated:
+            return self._authenticated_checkout(request)
+        else:
+            return self._guest_checkout(request)
+
+    def _authenticated_checkout(self, request):
         try:
             cart = request.user.cart
             cart_items = cart.items.all().select_related('product', 'variant')
@@ -196,6 +209,8 @@ class CheckoutView(LoginRequiredMixin, View):
                     total_price=cart.get_total_price(),
                     shipping_address=f"{address.full_name}\n{address.street}\n{address.city}, {address.country}\n{address.postal_code}",
                     shipping_phone=address.phone,
+                    shipping_name=address.full_name,
+                    shipping_city=address.city,
                     payment_method=payment_method,
                     status='pending' if payment_method == 'cash_on_delivery' else 'paid'
                 )
@@ -219,6 +234,112 @@ class CheckoutView(LoginRequiredMixin, View):
         except Exception as e:
             messages.error(request, "حدث خطأ أثناء إنشاء الطلب")
             return redirect('orders:checkout')
+
+    def _guest_checkout(self, request):
+        try:
+            # الحصول على بيانات النموذج
+            full_name = request.POST.get('full_name', '').strip()
+            phone = request.POST.get('phone', '').strip()
+            address = request.POST.get('address', '').strip()
+            city = request.POST.get('city', '').strip()
+            notes = request.POST.get('notes', '').strip()
+            email = request.POST.get('email', '').strip()
+            cart_data = request.POST.get('cart_data', '[]')
+
+            # التحقق من البيانات المطلوبة
+            if not all([full_name, phone, address, city]):
+                messages.error(request, "يرجى ملء جميع الحقول المطلوبة")
+                return redirect('orders:checkout')
+
+            # التحقق من رقم الهاتف
+            if len(phone) < 10:
+                messages.error(request, "رقم الهاتف غير صحيح")
+                return redirect('orders:checkout')
+
+            # تحليل بيانات السلة من localStorage
+            try:
+                cart_items = json.loads(cart_data)
+            except:
+                messages.error(request, "بيانات السلة غير صحيحة")
+                return redirect('orders:cart')
+
+            if not cart_items:
+                messages.error(request, "سلة التسوق فارغة")
+                return redirect('orders:cart')
+
+            # حساب الإجمالي
+            total_price = 0
+            order_items_data = []
+
+            for item in cart_items:
+                try:
+                    product = Product.objects.get(id=item['product_id'], is_active=True)
+                    variant = None
+                    if item.get('variant_id'):
+                        variant = ProductVariant.objects.get(id=item['variant_id'], product=product)
+
+                    price = variant.price if variant else product.price
+                    quantity = int(item.get('quantity', 1))
+                    item_total = price * quantity
+                    total_price += item_total
+
+                    order_items_data.append({
+                        'product': product,
+                        'variant': variant,
+                        'quantity': quantity,
+                        'price': price
+                    })
+                except (Product.DoesNotExist, ProductVariant.DoesNotExist, ValueError):
+                    continue
+
+            if not order_items_data:
+                messages.error(request, "لا توجد منتجات صالحة في السلة")
+                return redirect('orders:cart')
+
+            # إنشاء الطلب
+            with transaction.atomic():
+                order = Order.objects.create(
+                    user=None,
+                    total_price=total_price,
+                    shipping_address=address,
+                    shipping_phone=phone,
+                    shipping_name=full_name,
+                    shipping_city=city,
+                    shipping_notes=notes,
+                    guest_email=email if email else None,
+                    payment_method='cash_on_delivery',
+                    status='pending'
+                )
+
+                # إنشاء عناصر الطلب
+                for item_data in order_items_data:
+                    OrderItem.objects.create(
+                        order=order,
+                        product=item_data['product'],
+                        variant=item_data['variant'],
+                        quantity=item_data['quantity'],
+                        price=item_data['price']
+                    )
+
+            messages.success(request, f"تم إنشاء الطلب بنجاح. رقم الطلب: #{order.id}")
+            return redirect('orders:guest_order_success', order_id=order.id)
+
+        except Exception as e:
+            messages.error(request, "حدث خطأ أثناء إنشاء الطلب")
+            return redirect('orders:checkout')
+
+
+# =========================
+# Guest Order Success View
+# =========================
+def guest_order_success(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=None)
+    order_items = order.items.all().select_related('product', 'variant')
+
+    return render(request, 'orders/guest_order_success.html', {
+        'order': order,
+        'order_items': order_items,
+    })
 
 
 # =========================

@@ -4,7 +4,7 @@ def cart_processor(request):
     if request.user.is_authenticated:
         try:
             cart = request.user.cart
-            cart_items = cart.items.all().select_related('product', 'variant')
+            cart_items = cart.items.select_related('product', 'variant').prefetch_related('variant__options')
             cart_total = cart.get_total_price()
             cart_count = cart.get_total_items()
         except Cart.DoesNotExist:
@@ -27,7 +27,6 @@ def cart_processor(request):
         'cart_items': cart_items,
         'cart_total': cart_total,
         'cart_count': cart_count,
-        # 'wishlist_count': wishlist_count,   # هذا السطر الجديد
     }
 
 

@@ -9,9 +9,10 @@ urlpatterns = [
     path('cart/add/', views.add_to_cart, name='add_to_cart'),
     path('cart/item/<int:item_id>/update/', views.update_cart_item, name='update_cart_item'),
     path('cart/item/<int:item_id>/remove/', views.remove_from_cart, name='remove_from_cart'),
-
+    
     # Checkout
     path('checkout/', views.CheckoutView.as_view(), name='checkout'),
+    path('guest-order-success/<int:order_id>/', views.guest_order_success, name='guest_order_success'),
 
     # Orders
     path('orders/', views.OrderListView.as_view(), name='order_list'),
@@ -27,7 +28,7 @@ urlpatterns = [
     path('wishlist/remove-ajax/<int:product_id>/', views.remove_from_wishlist_ajax, name='remove_from_wishlist_ajax'),
     path('wishlist/sync/', views.sync_wishlist_from_localstorage, name='sync_wishlist'),
 
-    # AJAX
+    # AJAX Cart
     path('cart/sync/', views.sync_cart_from_localstorage, name='sync_cart'),
     path('cart/item/<int:item_id>/update-ajax/', views.update_cart_item_ajax, name='update_cart_item_ajax'),
     path('cart/item/<int:item_id>/remove-ajax/', views.remove_from_cart_ajax, name='remove_from_cart_ajax'),

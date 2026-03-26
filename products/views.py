@@ -182,12 +182,3 @@ def search_products(request):
         'results_count': products.count(),
     }
     return render(request, "search_results.html", context)
-# =========================
-def search_products(request):
-    query = request.GET.get('q', '')
-    products = Product.objects.filter(name__icontains=query).order_by('order')
-    context = {
-        'products': products,
-        'query': query
-    }
-    return render(request, "products/product_search.html", context)

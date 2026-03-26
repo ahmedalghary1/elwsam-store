@@ -2,7 +2,7 @@ from django.db import models
 from django.conf import settings
 from products.models import Product, ProductVariant
 
-
+from django.db.models import Sum
 # =========================
 # Cart Model (سلة التسوق)
 # =========================
@@ -23,15 +23,11 @@ class Cart(models.Model):
 
     def get_total_items(self):
         """حساب عدد العناصر"""
-        return sum(item.quantity for item in self.items.all())
-
+        return self.items.aggregate(total=Sum('quantity'))['total'] or 0
 
     def get_subtotal(self):
         """إجمالي السعر قبل الشحن"""
-        return sum(item.get_total_price() for item in self.items.all())
-
-    def get_total_items(self):
-        return self.items.aggregate(total=Sum('quantity'))['total'] or 0
+        return self.get_total_price()
 
     @property
     def subtotal(self):
@@ -67,7 +63,7 @@ class CartItem(models.Model):
 # =========================
 class Order(models.Model):
     """
-    نموذج الطلب
+    نموذج الطلب - للمستخدمين المسجلين والضيوف
     """
     STATUS_CHOICES = [
         ('pending', 'في انتظار الدفع'),
@@ -78,23 +74,31 @@ class Order(models.Model):
         ('cancelled', 'ملغي'),
     ]
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="orders")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="orders", null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     # معلومات الشحن
     shipping_address = models.TextField()
     shipping_phone = models.CharField(max_length=20)
+    shipping_name = models.CharField(max_length=255, default='', blank=True)
+    shipping_city = models.CharField(max_length=100, default='', blank=True)
+    shipping_notes = models.TextField(blank=True, null=True)
 
     # معلومات الدفع
     payment_method = models.CharField(max_length=50, default='cash_on_delivery')
+
+    # للضيوف - بريد إلكتروني اختياري
+    guest_email = models.EmailField(blank=True, null=True)
 
     # التواريخ
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Order #{self.id} - {self.user.email}"
+        if self.user:
+            return f"Order #{self.id} - {self.user.email}"
+        return f"Order #{self.id} - Guest ({self.shipping_name})"
 
     def get_total_items(self):
         """حساب عدد العناصر في الطلب"""
@@ -102,6 +106,11 @@ class Order(models.Model):
 
     def get_subtotal(self):
         return sum(item.price * item.quantity for item in self.items.all())
+
+    @property
+    def is_guest_order(self):
+        """التحقق من كون الطلب لضيف"""
+        return self.user is None
 # =========================
 # OrderItem Model (عنصر في الطلب)
 # =========================
