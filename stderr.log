@@ -1,0 +1,674 @@
+Internal Server Error: /
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/shop/core/views.py", line 18, in index
+    return render(request, 'index.html', context)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: index.html
+Not Found: /favicon.ico
+Internal Server Error: /
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/shop/core/views.py", line 18, in index
+    return render(request, 'index.html', context)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: index.html
+Internal Server Error: /
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/shop/core/views.py", line 18, in index
+    return render(request, 'index.html', context)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: index.html
+Internal Server Error: /
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/shop/core/views.py", line 18, in index
+    return render(request, 'index.html', context)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: index.html
+Internal Server Error: /
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/shop/core/views.py", line 18, in index
+    return render(request, 'index.html', context)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: index.html
+Internal Server Error: /
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/shop/core/views.py", line 18, in index
+    return render(request, 'index.html', context)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: index.html
+Internal Server Error: /
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/shop/core/views.py", line 18, in index
+    return render(request, 'index.html', context)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: index.html
+Not Found: /favicon.ico
+Not Found: /favicon.ico
+Not Found: /favicon.ico
+Not Found: /favicon.ico
+Internal Server Error: /
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/shop/core/views.py", line 18, in index
+    return render(request, 'index.html', context)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: index.html
+Internal Server Error: /
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/shop/core/views.py", line 18, in index
+    return render(request, 'index.html', context)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: index.html
+Internal Server Error: /
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/shop/core/views.py", line 18, in index
+    return render(request, 'index.html', context)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: index.html
+Internal Server Error: /
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/shop/core/views.py", line 18, in index
+    return render(request, 'index.html', context)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: index.html
+Internal Server Error: /
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/shop/core/views.py", line 18, in index
+    return render(request, 'index.html', context)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: index.html
+Internal Server Error: /
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/shop/core/views.py", line 18, in index
+    return render(request, 'index.html', context)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: index.html
+Internal Server Error: /
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/shop/core/views.py", line 18, in index
+    return render(request, 'index.html', context)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: index.html
+Not Found: /data:,
+Internal Server Error: /
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/shop/core/views.py", line 18, in index
+    return render(request, 'index.html', context)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: index.html
+Internal Server Error: /
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/shop/core/views.py", line 18, in index
+    return render(request, 'index.html', context)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: index.html
+Not Found: /robots.txt
+Internal Server Error: /
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/shop/core/views.py", line 18, in index
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: index.html
+Internal Server Error: /
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/shop/core/views.py", line 18, in index
+    return render(request, 'index.html', context)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: index.html
+Internal Server Error: /
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/shop/core/views.py", line 18, in index
+    return render(request, 'index.html', context)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: index.html
+Internal Server Error: /static/css/style.css
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/views/static.py", line 45, in serve
+    fullpath = Path(safe_join(document_root, path))
+                    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/utils/_os.py", line 73, in safe_join
+    final_path = abspath(join(base, *paths))
+                         ~~~~^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 77, in join
+TypeError: expected str, bytes or os.PathLike object, not NoneType
+Internal Server Error: /static/js/main.js
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/views/static.py", line 45, in serve
+    fullpath = Path(safe_join(document_root, path))
+                    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/utils/_os.py", line 73, in safe_join
+    final_path = abspath(join(base, *paths))
+                         ~~~~^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 77, in join
+TypeError: expected str, bytes or os.PathLike object, not NoneType
+Internal Server Error: /static/image/3.png
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/views/static.py", line 45, in serve
+    fullpath = Path(safe_join(document_root, path))
+                    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/utils/_os.py", line 73, in safe_join
+    final_path = abspath(join(base, *paths))
+                         ~~~~^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 77, in join
+TypeError: expected str, bytes or os.PathLike object, not NoneType
+Internal Server Error: /static/image/ELWSAM-LOGO2020.png
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/views/static.py", line 45, in serve
+    fullpath = Path(safe_join(document_root, path))
+                    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/utils/_os.py", line 73, in safe_join
+    final_path = abspath(join(base, *paths))
+                         ~~~~^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 77, in join
+TypeError: expected str, bytes or os.PathLike object, not NoneType
+Internal Server Error: /static/js/wishlist.js
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/views/static.py", line 45, in serve
+    fullpath = Path(safe_join(document_root, path))
+                    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/utils/_os.py", line 73, in safe_join
+    final_path = abspath(join(base, *paths))
+                         ~~~~^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 77, in join
+TypeError: expected str, bytes or os.PathLike object, not NoneType
+Internal Server Error: /static/js/cart.js
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/views/static.py", line 45, in serve
+    fullpath = Path(safe_join(document_root, path))
+                    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/utils/_os.py", line 73, in safe_join
+    final_path = abspath(join(base, *paths))
+                         ~~~~^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 77, in join
+TypeError: expected str, bytes or os.PathLike object, not NoneType
+Internal Server Error: /static/image/15.png
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/views/static.py", line 45, in serve
+    fullpath = Path(safe_join(document_root, path))
+                    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/utils/_os.py", line 73, in safe_join
+    final_path = abspath(join(base, *paths))
+                         ~~~~^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 77, in join
+TypeError: expected str, bytes or os.PathLike object, not NoneType
+Internal Server Error: /static/image/21-2.png
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/views/static.py", line 45, in serve
+    fullpath = Path(safe_join(document_root, path))
+                    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/utils/_os.py", line 73, in safe_join
+    final_path = abspath(join(base, *paths))
+                         ~~~~^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 77, in join
+TypeError: expected str, bytes or os.PathLike object, not NoneType
+Not Found: /favicon.ico
+Internal Server Error: /static/image/ELWSAM-LOGO2020.png
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/views/static.py", line 45, in serve
+    fullpath = Path(safe_join(document_root, path))
+                    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/utils/_os.py", line 73, in safe_join
+    final_path = abspath(join(base, *paths))
+                         ~~~~^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 77, in join
+TypeError: expected str, bytes or os.PathLike object, not NoneType
+Internal Server Error: /static/css/style.css
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/views/static.py", line 45, in serve
+    fullpath = Path(safe_join(document_root, path))
+                    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/utils/_os.py", line 73, in safe_join
+    final_path = abspath(join(base, *paths))
+                         ~~~~^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 77, in join
+TypeError: expected str, bytes or os.PathLike object, not NoneType
+Internal Server Error: /static/js/cart.js
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/views/static.py", line 45, in serve
+    fullpath = Path(safe_join(document_root, path))
+                    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/utils/_os.py", line 73, in safe_join
+    final_path = abspath(join(base, *paths))
+                         ~~~~^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 77, in join
+TypeError: expected str, bytes or os.PathLike object, not NoneType
+Internal Server Error: /static/image/3.png
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/views/static.py", line 45, in serve
+    fullpath = Path(safe_join(document_root, path))
+                    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/utils/_os.py", line 73, in safe_join
+    final_path = abspath(join(base, *paths))
+                         ~~~~^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 77, in join
+TypeError: expected str, bytes or os.PathLike object, not NoneType
+Internal Server Error: /static/js/wishlist.js
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/views/static.py", line 45, in serve
+    fullpath = Path(safe_join(document_root, path))
+                    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/utils/_os.py", line 73, in safe_join
+    final_path = abspath(join(base, *paths))
+                         ~~~~^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 77, in join
+TypeError: expected str, bytes or os.PathLike object, not NoneType
+Internal Server Error: /static/image/21-2.png
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/views/static.py", line 45, in serve
+    fullpath = Path(safe_join(document_root, path))
+                    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/utils/_os.py", line 73, in safe_join
+    final_path = abspath(join(base, *paths))
+                         ~~~~^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 77, in join
+TypeError: expected str, bytes or os.PathLike object, not NoneType
+Internal Server Error: /static/image/15.png
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/views/static.py", line 45, in serve
+    fullpath = Path(safe_join(document_root, path))
+                    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/utils/_os.py", line 73, in safe_join
+    final_path = abspath(join(base, *paths))
+                         ~~~~^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 77, in join
+TypeError: expected str, bytes or os.PathLike object, not NoneType
+Internal Server Error: /static/js/main.js
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/views/static.py", line 45, in serve
+    fullpath = Path(safe_join(document_root, path))
+                    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/utils/_os.py", line 73, in safe_join
+    final_path = abspath(join(base, *paths))
+                         ~~~~^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 77, in join
+TypeError: expected str, bytes or os.PathLike object, not NoneType
+Internal Server Error: /static/css/style.css
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/views/static.py", line 45, in serve
+    fullpath = Path(safe_join(document_root, path))
+                    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/utils/_os.py", line 73, in safe_join
+    final_path = abspath(join(base, *paths))
+                         ~~~~^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 77, in join
+TypeError: expected str, bytes or os.PathLike object, not NoneType
+Internal Server Error: /static/image/3.png
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/views/static.py", line 45, in serve
+    fullpath = Path(safe_join(document_root, path))
+                    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/utils/_os.py", line 73, in safe_join
+    final_path = abspath(join(base, *paths))
+                         ~~~~^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 77, in join
+TypeError: expected str, bytes or os.PathLike object, not NoneType
+Internal Server Error: /static/image/ELWSAM-LOGO2020.png
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/views/static.py", line 45, in serve
+    fullpath = Path(safe_join(document_root, path))
+                    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/utils/_os.py", line 73, in safe_join
+    final_path = abspath(join(base, *paths))
+                         ~~~~^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 77, in join
+TypeError: expected str, bytes or os.PathLike object, not NoneType
+Internal Server Error: /static/js/cart.js
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/views/static.py", line 45, in serve
+    fullpath = Path(safe_join(document_root, path))
+                    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/utils/_os.py", line 73, in safe_join
+    final_path = abspath(join(base, *paths))
+                         ~~~~^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 77, in join
+TypeError: expected str, bytes or os.PathLike object, not NoneType
+Internal Server Error: /static/image/15.png
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/views/static.py", line 45, in serve
+    fullpath = Path(safe_join(document_root, path))
+                    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/utils/_os.py", line 73, in safe_join
+    final_path = abspath(join(base, *paths))
+                         ~~~~^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 77, in join
+TypeError: expected str, bytes or os.PathLike object, not NoneType
+Internal Server Error: /static/js/wishlist.js
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/views/static.py", line 45, in serve
+    fullpath = Path(safe_join(document_root, path))
+                    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/utils/_os.py", line 73, in safe_join
+    final_path = abspath(join(base, *paths))
+                         ~~~~^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 77, in join
+TypeError: expected str, bytes or os.PathLike object, not NoneType
+Internal Server Error: /static/image/21-2.png
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/views/static.py", line 45, in serve
+    fullpath = Path(safe_join(document_root, path))
+                    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/utils/_os.py", line 73, in safe_join
+    final_path = abspath(join(base, *paths))
+                         ~~~~^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 77, in join
+TypeError: expected str, bytes or os.PathLike object, not NoneType
+Internal Server Error: /static/js/main.js
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/views/static.py", line 45, in serve
+    fullpath = Path(safe_join(document_root, path))
+                    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/utils/_os.py", line 73, in safe_join
+    final_path = abspath(join(base, *paths))
+                         ~~~~^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 77, in join
+TypeError: expected str, bytes or os.PathLike object, not NoneType
+Internal Server Error: /static/css/style.css
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/views/static.py", line 45, in serve
+    fullpath = Path(safe_join(document_root, path))
+                    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/utils/_os.py", line 73, in safe_join
+    final_path = abspath(join(base, *paths))
+                         ~~~~^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 77, in join
+TypeError: expected str, bytes or os.PathLike object, not NoneType
+Internal Server Error: /static/js/cart.js
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/views/static.py", line 45, in serve
+    fullpath = Path(safe_join(document_root, path))
+                    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/utils/_os.py", line 73, in safe_join
+    final_path = abspath(join(base, *paths))
+                         ~~~~^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 77, in join
+TypeError: expected str, bytes or os.PathLike object, not NoneType
+Internal Server Error: /static/image/21-2.png
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/views/static.py", line 45, in serve
+    fullpath = Path(safe_join(document_root, path))
+                    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/utils/_os.py", line 73, in safe_join
+    final_path = abspath(join(base, *paths))
+                         ~~~~^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 77, in join
+TypeError: expected str, bytes or os.PathLike object, not NoneType
+Not Found: /categories/\u0642\u0633\u0645-\u0627\u0644\u0645\u0634\u062a\u0631\u0643/categories/%D9%82%D8%B3%D9%85-%D8%A7%D9%84%D9%85%D8%B4%D8%AA%D8%B1%D9%83/
+Not Found: /categories/\u0642\u0633\u0645-\u0627\u0644\u0645\u0634\u062a\u0631\u0643/categories/%D9%82%D8%B3%D9%85-%D8%A7%D9%84%D9%85%D8%B4%D8%AA%D8%B1%D9%83/
+Not Found: /categories/\u0642\u0633\u0645-\u0627\u0644\u0645\u0634\u062a\u0631\u0643/categories/%D9%82%D8%B3%D9%85-%D8%A7%D9%84%D9%85%D8%B4%D8%AA%D8%B1%D9%83/
+Not Found: /categories/\u0642\u0633\u0645-\u0627\u0644\u0645\u0634\u062a\u0631\u0643/categories/%D9%82%D8%B3%D9%85-%D8%A7%D9%84%D9%85%D8%B4%D8%AA%D8%B1%D9%83/
