@@ -30,8 +30,8 @@
     height: 34px;
   }
 
-  /* Product cards */
-  .products-grid {
+  /* Product cards - exclude category page (use #productsGrid) */
+  .products-grid:not(#productsGrid) {
     grid-template-columns: 1fr;
     gap: 10px;
   }
@@ -62,7 +62,7 @@
 
 /* ============ Small Mobile (375px - 480px) ============ */
 @media (min-width: 375px) and (max-width: 480px) {
-  .products-grid {
+  .products-grid:not(#productsGrid) {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
   }
@@ -95,7 +95,7 @@
 
 /* ============ Mobile Landscape (481px - 640px) ============ */
 @media (min-width: 481px) and (max-width: 640px) {
-  .products-grid {
+  .products-grid:not(#productsGrid) {
     grid-template-columns: repeat(2, 1fr);
     gap: 14px;
   }
@@ -117,7 +117,7 @@
 
 /* ============ Tablet Portrait (641px - 768px) ============ */
 @media (min-width: 641px) and (max-width: 768px) {
-  .products-grid {
+  .products-grid:not(#productsGrid) {
     grid-template-columns: repeat(3, 1fr);
     gap: 16px;
   }
@@ -139,7 +139,7 @@
 
 /* ============ Tablet Landscape (769px - 1024px) ============ */
 @media (min-width: 769px) and (max-width: 1024px) {
-  .products-grid {
+  .products-grid:not(#productsGrid) {
     grid-template-columns: repeat(3, 1fr);
     gap: 18px;
   }
@@ -162,7 +162,7 @@
 
 /* ============ Desktop Small (1025px - 1280px) ============ */
 @media (min-width: 1025px) and (max-width: 1280px) {
-  .products-grid {
+  .products-grid:not(#productsGrid) {
     grid-template-columns: repeat(4, 1fr);
     gap: 20px;
   }
@@ -175,7 +175,7 @@
 
 /* ============ Desktop Large (> 1280px) ============ */
 @media (min-width: 1281px) {
-  .products-grid {
+  .products-grid:not(#productsGrid) {
     grid-template-columns: repeat(5, 1fr);
     gap: 24px;
   }

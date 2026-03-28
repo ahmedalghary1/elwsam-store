@@ -103,9 +103,16 @@ class ProductDetailView(View):
         patterns = Pattern.objects.filter(product=product).order_by('order')
         
         # Variants مع البيانات المرتبطة
-        variants = ProductVariant.objects.filter(product=product).select_related(
+        variants_qs = ProductVariant.objects.filter(product=product).select_related(
             'color', 'size', 'pattern'
         ).order_by('order')
+
+        variants = list(variants_qs.values(
+            'id', 'price', 'stock',
+            'pattern__id', 'pattern__name',
+            'color__id', 'color__name', 'color__code',
+            'size__id', 'size__name'
+        ))
         
         # مواصفات المنتج
         specs = product.specs.all().order_by('order')

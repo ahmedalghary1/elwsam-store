@@ -125,8 +125,8 @@
             })
             .catch(err => {
                 console.error('AJAX error:', err);
-                this.showToast('خطأ في الاتصال بالسيرفر');
-                return false;
+                // Return special error object to trigger fallback
+                return { error: true, message: err };
             });
         }
 
@@ -332,22 +332,33 @@
                     }
                 }
 
+                const productData = {
+                    name: btn.dataset.productName || 'منتج',
+                    price: parseFloat(btn.dataset.productPrice) || 0,
+                    image: btn.dataset.productImage || ''
+                };
+
                 let promise;
                 if (this.isAuthenticated()) {
-                    promise = this.addToCartAjax(productId, null, quantity);
+                    // محاولة AJAX أولاً، مع fallback إلى localStorage عند الفشل
+                    promise = this.addToCartAjax(productId, null, quantity).then(result => {
+                        // إذا كان هناك خطأ أو فشل، استخدم localStorage
+                        if (!result || result === false || (result && result.error)) {
+                            console.log('AJAX failed, using localStorage fallback');
+                            return this.addToCart(productId, null, quantity, productData);
+                        }
+                        return result;
+                    });
                 } else {
-                    const productData = {
-                        name: btn.dataset.productName || 'منتج',
-                        price: parseFloat(btn.dataset.productPrice) || 0,
-                        image: btn.dataset.productImage || ''  // قد يكون غير موجود
-                    };
                     promise = this.addToCart(productId, null, quantity, productData);
                 }
 
-                promise.finally(() => {
+                promise.then(() => {
                     btn.disabled = false;
                 }).catch(err => {
                     console.error('Add to cart error:', err);
+                    // fallback to localStorage on error
+                    this.addToCart(productId, null, quantity, productData);
                     btn.disabled = false;
                 });
             });

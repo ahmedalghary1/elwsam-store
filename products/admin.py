@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from django.db.models import Count, Avg
 from .models import (
     Category, Product, Pattern, Color, ProductColor, Size, ProductSize,
@@ -177,7 +178,7 @@ class ProductAdmin(admin.ModelAdmin):
     def product_thumbnail(self, obj):
         if obj.image:
             return format_html('<img src="{}" style="width:48px;height:48px;object-fit:cover;border-radius:8px;border:1px solid #ddd;" />', obj.image.url)
-        return format_html('<div style="width:48px;height:48px;background:#f0f0f0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;">📦</div>')
+        return mark_safe('<div style="width:48px;height:48px;background:#f0f0f0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;">📦</div>')
     product_thumbnail.short_description = ''
 
     def price_display(self, obj):
@@ -204,7 +205,7 @@ class ProductAdmin(admin.ModelAdmin):
             return format_html('<span style="color:#28a745;font-weight:bold;">✓ متوفر ({})</span>', total_stock)
         elif total_stock > 0:
             return format_html('<span style="color:#ffc107;font-weight:bold;">⚠ محدود ({})</span>', total_stock)
-        return format_html('<span style="color:#dc3545;font-weight:bold;">✗ نفد</span>')
+        return mark_safe('<span style="color:#dc3545;font-weight:bold;">✗ نفد</span>')
     stock_status.short_description = 'المخزون'
 
     def main_image_preview(self, obj):

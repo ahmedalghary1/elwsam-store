@@ -1152,21 +1152,21 @@ h4 { font-size: 1rem; font-weight: 600; }
 }
 
 /* Products Grid */
-.products-grid {
+.products-grid:not(#productsGrid) {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
 }
 
 @media (min-width: 640px) {
-  .products-grid {
+  .products-grid:not(#productsGrid) {
     grid-template-columns: repeat(3, 1fr);
     gap: 16px;
   }
 }
 
 @media (min-width: 1024px) {
-  .products-grid {
+  .products-grid:not(#productsGrid) {
     grid-template-columns: repeat(4, 1fr);
   }
 }
@@ -1308,6 +1308,20 @@ h4 { font-size: 1rem; font-weight: 600; }
 }
 
 /* ============ Footer ============ */
+
+/* ============ Product Variants ============ */
+.variant-group { margin-bottom: 1.25rem; }
+.variant-label { font-size: 0.9rem; font-weight: 700; color: var(--color-gray-700); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 8px; }
+.variant-options { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.variant-btn { padding: 0.6rem 1.2rem; border: 1.5px solid var(--color-gray-300); border-radius: var(--radius-md); background-color: var(--color-white); color: var(--color-gray-800); font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all var(--transition-fast); position: relative; display: inline-flex; align-items: center; gap: 8px; }
+.variant-btn:hover { border-color: var(--color-primary); color: var(--color-black); }
+.variant-btn.active { border-color: var(--color-primary-dark); background-color: var(--color-primary-light); color: var(--color-black); font-weight: 700; }
+.variant-btn.active::before { content: '\f00c'; font-family: 'Font Awesome 5 Free'; font-weight: 900; font-size: 0.8rem; color: var(--color-primary-dark); margin-left: 6px; }
+.variant-btn:disabled { opacity: 0.4; cursor: not-allowed; background: var(--color-gray-100); text-decoration: line-through; }
+.variant-btn:disabled:hover { border-color: var(--color-gray-300); }
+.color-btn { padding: 0.5rem; padding-right: 1rem; gap: 8px; }
+.color-swatch { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--color-gray-200); display: inline-block; }
+.color-btn.active .color-swatch { border-color: var(--color-primary-dark); }
 .footer {
   background: var(--color-black);
   color: rgba(255,255,255,0.7);
@@ -4865,32 +4879,32 @@ h4 { font-size: 1rem; font-weight: 600; }
 }
 
 /* تنسيق الشبكة */
-.products-grid {
+.products-grid:not(#productsGrid) {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 20px;
 }
 
 @media (min-width: 480px) {
-  .products-grid {
+  .products-grid:not(#productsGrid) {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (min-width: 768px) {
-  .products-grid {
+  .products-grid:not(#productsGrid) {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
 @media (min-width: 1024px) {
-  .products-grid {
+  .products-grid:not(#productsGrid) {
     grid-template-columns: repeat(4, 1fr);
   }
 }
 
 @media (min-width: 1280px) {
-  .products-grid {
+  .products-grid:not(#productsGrid) {
     grid-template-columns: repeat(5, 1fr);
   }
 }
@@ -5006,7 +5020,7 @@ h4 { font-size: 1rem; font-weight: 600; }
 
 @media (min-width: 1024px) {
   /* زيادة عدد الأعمدة في الشبكة لشاشات كبيرة */
-  .products-grid {
+  .products-grid:not(#productsGrid) {
     grid-template-columns: repeat(4, 1fr);
     gap: 24px;
   }
@@ -5065,7 +5079,7 @@ h4 { font-size: 1rem; font-weight: 600; }
 
 /* لشاشات أكبر من 1440px (مثلاً 4K) */
 @media (min-width: 1440px) {
-  .products-grid {
+  .products-grid:not(#productsGrid) {
     grid-template-columns: repeat(5, 1fr);
     gap: 28px;
   }
@@ -5197,10 +5211,7 @@ h4 { font-size: 1rem; font-weight: 600; }
   /* === سلة التسوق (CSS في style.css - للضيف) === */
   .cart-page { padding: 20px 0 48px; }
   .cart-layout { grid-template-columns: 1fr; }
-  .cart-summary { position: static; }
-
-  /* === صفحة الدفع === */
-  .checkout-page { padding: 20px 0 48px; }
+  
 
   /* === صفحات المصادقة (login/register) === */
   .auth-page,
@@ -5232,7 +5243,7 @@ h4 { font-size: 1rem; font-weight: 600; }
   :root { --container-padding: 12px; }
 
   /* === شبكة المنتجات: عمودان دائماً === */
-  .products-grid {
+  .products-grid:not(#productsGrid) {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 10px !important;
   }
