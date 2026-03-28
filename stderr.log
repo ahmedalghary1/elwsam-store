@@ -672,3 +672,279 @@ Not Found: /categories/\u0642\u0633\u0645-\u0627\u0644\u0645\u0634\u062a\u0631\u
 Not Found: /categories/\u0642\u0633\u0645-\u0627\u0644\u0645\u0634\u062a\u0631\u0643/categories/%D9%82%D8%B3%D9%85-%D8%A7%D9%84%D9%85%D8%B4%D8%AA%D8%B1%D9%83/
 Not Found: /categories/\u0642\u0633\u0645-\u0627\u0644\u0645\u0634\u062a\u0631\u0643/categories/%D9%82%D8%B3%D9%85-%D8%A7%D9%84%D9%85%D8%B4%D8%AA%D8%B1%D9%83/
 Not Found: /categories/\u0642\u0633\u0645-\u0627\u0644\u0645\u0634\u062a\u0631\u0643/categories/%D9%82%D8%B3%D9%85-%D8%A7%D9%84%D9%85%D8%B4%D8%AA%D8%B1%D9%83/
+Not Found: /products/\u0645\u0634\u062a\u0631\u0643-\u064a\u0648\u0645\u0627-6a/products/%D9%85%D8%B4%D8%AA%D8%B1%D9%83-%D9%8A%D9%88%D9%85%D8%A7-6a/
+Internal Server Error: /admin/products/product/
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/db/models/options.py", line 684, in get_field
+    return self.fields_map[field_name]
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^
+KeyError: 'stock_status'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/contrib/admin/utils.py", line 293, in lookup_field
+    f = _get_non_gfk_field(opts, name)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/contrib/admin/utils.py", line 333, in _get_non_gfk_field
+    field = opts.get_field(name)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/db/models/options.py", line 686, in get_field
+    raise FieldDoesNotExist(
+        "%s has no field named '%s'" % (self.object_name, field_name)
+    )
+django.core.exceptions.FieldDoesNotExist: Product has no field named 'stock_status'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 221, in _get_response
+    response = response.render()
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/response.py", line 92, in rendered_content
+    return template.render(context, self._request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/backends/django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/base.py", line 174, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader_tags.py", line 160, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader_tags.py", line 160, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader_tags.py", line 66, in render
+    result = block.nodelist.render(context)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader_tags.py", line 66, in render
+    result = block.nodelist.render(context)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/contrib/admin/templatetags/base.py", line 47, in render
+    return super().render(context)
+           ~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/library.py", line 363, in render
+    _dict = self.func(*resolved_args, **resolved_kwargs)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/contrib/admin/templatetags/admin_list.py", line 357, in result_list
+    "results": list(results(cl)),
+               ~~~~^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/contrib/admin/templatetags/admin_list.py", line 330, in results
+    yield ResultList(form, items_for_result(cl, res, form))
+          ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/contrib/admin/templatetags/admin_list.py", line 324, in __init__
+    super().__init__(*items)
+    ~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/contrib/admin/templatetags/admin_list.py", line 221, in items_for_result
+    f, attr, value = lookup_field(field_name, result, cl.model_admin)
+                     ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/contrib/admin/utils.py", line 302, in lookup_field
+    value = attr(obj)
+  File "/home/elwsamst/shop/products/admin.py", line 207, in stock_status
+    return format_html('<span style="color:#dc3545;font-weight:bold;">\u2717 \u0646\u0641\u062f</span>')
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/utils/html.py", line 137, in format_html
+    raise TypeError("args or kwargs must be provided.")
+TypeError: args or kwargs must be provided.
+Internal Server Error: /admin/products/product/
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/db/models/options.py", line 684, in get_field
+    return self.fields_map[field_name]
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^
+KeyError: 'stock_status'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/contrib/admin/utils.py", line 293, in lookup_field
+    f = _get_non_gfk_field(opts, name)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/contrib/admin/utils.py", line 333, in _get_non_gfk_field
+    field = opts.get_field(name)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/db/models/options.py", line 686, in get_field
+    raise FieldDoesNotExist(
+        "%s has no field named '%s'" % (self.object_name, field_name)
+    )
+django.core.exceptions.FieldDoesNotExist: Product has no field named 'stock_status'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/handlers/base.py", line 221, in _get_response
+    response = response.render()
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/response.py", line 92, in rendered_content
+    return template.render(context, self._request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/backends/django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/base.py", line 174, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader_tags.py", line 160, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader_tags.py", line 160, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader_tags.py", line 66, in render
+    result = block.nodelist.render(context)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/loader_tags.py", line 66, in render
+    result = block.nodelist.render(context)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/contrib/admin/templatetags/base.py", line 47, in render
+    return super().render(context)
+           ~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/template/library.py", line 363, in render
+    _dict = self.func(*resolved_args, **resolved_kwargs)
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/contrib/admin/templatetags/admin_list.py", line 357, in result_list
+    "results": list(results(cl)),
+               ~~~~^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/contrib/admin/templatetags/admin_list.py", line 330, in results
+    yield ResultList(form, items_for_result(cl, res, form))
+          ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/contrib/admin/templatetags/admin_list.py", line 324, in __init__
+    super().__init__(*items)
+    ~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/contrib/admin/templatetags/admin_list.py", line 221, in items_for_result
+    f, attr, value = lookup_field(field_name, result, cl.model_admin)
+                     ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/contrib/admin/utils.py", line 302, in lookup_field
+    value = attr(obj)
+  File "/home/elwsamst/shop/products/admin.py", line 207, in stock_status
+    return format_html('<span style="color:#dc3545;font-weight:bold;">\u2717 \u0646\u0641\u062f</span>,'')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/utils/html.py", line 137, in format_html
+    raise TypeError("args or kwargs must be provided.")
+TypeError: args or kwargs must be provided.
+Traceback (most recent call last):
+  File "/home/elwsamst/shop/passenger_wsgi.py", line 13, in <module>
+    application = get_wsgi_application()
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/wsgi.py", line 12, in get_wsgi_application
+    django.setup(set_prefix=False)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/__init__.py", line 24, in setup
+    apps.populate(settings.INSTALLED_APPS)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/apps/registry.py", line 124, in populate
+    app_config.ready()
+    ~~~~~~~~~~~~~~~~^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/contrib/admin/apps.py", line 27, in ready
+    self.module.autodiscover()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/contrib/admin/__init__.py", line 52, in autodiscover
+    autodiscover_modules("admin", register_to=site)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/utils/module_loading.py", line 58, in autodiscover_modules
+    import_module("%s.%s" % (app_config.name, module_to_search))
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/alt/python313/lib64/python3.13/importlib/__init__.py", line 88, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 1019, in exec_module
+  File "<frozen importlib._bootstrap_external>", line 1157, in get_code
+  File "<frozen importlib._bootstrap_external>", line 1087, in source_to_code
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/home/elwsamst/shop/products/admin.py", line 207
+    return format_html('<span style="color:#dc3545;font-weight:bold;">\u2717 \u0646\u0641\u062f</span>,'')
+                                                                                    ^
+SyntaxError: unterminated string literal (detected at line 207)
+Traceback (most recent call last):
+  File "/home/elwsamst/shop/passenger_wsgi.py", line 13, in <module>
+    application = get_wsgi_application()
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/core/wsgi.py", line 12, in get_wsgi_application
+    django.setup(set_prefix=False)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/__init__.py", line 24, in setup
+    apps.populate(settings.INSTALLED_APPS)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elwsamst/virtualenv/shop/3.13/lib/python3.13/site-packages/django/apps/registry.py", line 83, in populate
+    raise RuntimeError("populate() isn't reentrant")
+RuntimeError: populate() isn't reentrant
+[UID:2099][2985465] Child process with pid: 2985605 was killed by signal: 15, core dumped: no

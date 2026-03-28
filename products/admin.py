@@ -84,7 +84,7 @@ class CategoryAdmin(admin.ModelAdmin):
     list_filter = ['is_hot', 'created_at']
     search_fields = ['name', 'description']
     ordering = ['order']
-    readonly_fields = ['slug', 'created_at', 'updated_at', 'category_image_preview']
+    readonly_fields = ['created_at', 'updated_at', 'category_image_preview']
     prepopulated_fields = {}
 
     fieldsets = (
@@ -142,7 +142,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_filter = ['category', 'is_active', 'is_hot', 'is_new', 'created_at']
     search_fields = ['name', 'description', 'category__name']
     ordering = ['order']
-    readonly_fields = ['slug', 'created_at', 'updated_at', 'main_image_preview', 'discount_percent_display']
+    readonly_fields = ['created_at', 'updated_at', 'main_image_preview', 'discount_percent_display']
     date_hierarchy = 'created_at'
     list_per_page = 25
 
@@ -204,7 +204,7 @@ class ProductAdmin(admin.ModelAdmin):
             return format_html('<span style="color:#28a745;font-weight:bold;">✓ متوفر ({})</span>', total_stock)
         elif total_stock > 0:
             return format_html('<span style="color:#ffc107;font-weight:bold;">⚠ محدود ({})</span>', total_stock)
-        return format_html('<span style="color:#dc3545;font-weight:bold;">✗ نفد</span>')
+        return format_html('<span style="color:#dc3545;font-weight:bold;">✗ نفد</span>,'')
     stock_status.short_description = 'المخزون'
 
     def main_image_preview(self, obj):
