@@ -18,7 +18,8 @@ class Category(models.Model):
 
     class Meta:
         ordering = ['order']
-        verbose_name_plural = 'Categories'
+        verbose_name = 'قسم'
+        verbose_name_plural = 'الأقسام'
 
     def __str__(self):
         return self.name
@@ -61,6 +62,8 @@ class Product(models.Model):
 
     class Meta:
         ordering = ['order']
+        verbose_name = 'منتج'
+        verbose_name_plural = 'المنتجات'
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -98,6 +101,8 @@ class Pattern(models.Model):
 
     class Meta:
         ordering = ['order']
+        verbose_name = 'نمط'
+        verbose_name_plural = 'الأنماط'
 
     def __str__(self):
         return f"{self.product.name} - {self.name}"
@@ -109,6 +114,10 @@ class Pattern(models.Model):
 class Color(models.Model):
     name = models.CharField(max_length=50)
     code = models.CharField(max_length=7, blank=True)
+
+    class Meta:
+        verbose_name = 'لون'
+        verbose_name_plural = 'الألوان'
 
     def __str__(self):
         return self.name
@@ -125,6 +134,8 @@ class ProductColor(models.Model):
     class Meta:
         ordering = ['order']
         unique_together = ('product', 'color')
+        verbose_name = 'لون منتج'
+        verbose_name_plural = 'ألوان المنتجات'
 
     def __str__(self):
         return f"{self.product.name} - {self.color.name}"
@@ -135,6 +146,10 @@ class ProductColor(models.Model):
 # =========================
 class Size(models.Model):
     name = models.CharField(max_length=50)
+
+    class Meta:
+        verbose_name = 'مقاس'
+        verbose_name_plural = 'المقاسات'
 
     def __str__(self):
         return self.name
@@ -151,6 +166,8 @@ class ProductSize(models.Model):
     class Meta:
         ordering = ['order']
         unique_together = ('product', 'size')
+        verbose_name = 'مقاس منتج'
+        verbose_name_plural = 'مقاسات المنتجات'
 
     def __str__(self):
         return f"{self.product.name} - {self.size.name}"
@@ -167,6 +184,8 @@ class ProductImage(models.Model):
 
     class Meta:
         ordering = ['order']
+        verbose_name = 'صورة منتج'
+        verbose_name_plural = 'صور المنتجات'
 
     def __str__(self):
         return f"Image for {self.product.name}"
@@ -189,6 +208,8 @@ class ProductVariant(models.Model):
     class Meta:
         unique_together = ('product', 'pattern', 'color', 'size')
         ordering = ['order']
+        verbose_name = 'متغير منتج'
+        verbose_name_plural = 'متغيرات المنتجات'
 
     def __str__(self):
         return f"{self.product.name} Variant"
@@ -205,6 +226,8 @@ class ProductSpecification(models.Model):
 
     class Meta:
         ordering = ['order']
+        verbose_name = 'مواصفة'
+        verbose_name_plural = 'مواصفات المنتجات'
 
     def __str__(self):
         return f"{self.key}: {self.value}"

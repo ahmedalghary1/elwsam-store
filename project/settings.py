@@ -139,6 +139,20 @@ AUTH_USER_MODEL = 'accounts.User'
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Email Configuration
+#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # للتطوير - يطبع في Console
+# للإنتاج استخدم SMTP:
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'ahmedalghary1@gmail.com'
+EMAIL_HOST_PASSWORD ='owzw fltf veow mwiu'
+DEFAULT_FROM_EMAIL = 'متجر الوسام <ahmedalghary1@gmail.com>'
+
+# OTP Settings
+OTP_EXPIRY_MINUTES = 10  # مدة صلاحية OTP بالدقائق
+
 # Security Settings
 if not DEBUG:
     SECURE_SSL_REDIRECT = True

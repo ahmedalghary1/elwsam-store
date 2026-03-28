@@ -5,6 +5,7 @@ from django.views.generic import ListView
 from django.contrib import messages
 from .models import User, UserProfile, Address, UserOTP
 from .forms import UserRegisterForm, UserLoginForm, UserProfileForm, AddressForm
+from .utils import create_otp, verify_otp, mark_otp_as_used
 
 # =========================
 #  Register View
@@ -19,11 +20,21 @@ class RegisterView(View):
     def post(self, request):
         form = UserRegisterForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            # يمكن إنشاء Profile تلقائيًا
+            user = form.save(commit=False)
+            user.is_active = False  # تعطيل الحساب حتى يتم التحقق من البريد
+            user.save()
+            
+            # إنشاء Profile تلقائياً
             UserProfile.objects.create(user=user)
-            messages.success(request, "تم إنشاء الحساب بنجاح، يمكنك تسجيل الدخول الآن.")
-            return redirect('accounts:login')
+            
+            # إرسال OTP للتحقق من البريد
+            create_otp(user.email, purpose='email_verification', user=user)
+            
+            # حفظ البريد في الجلسة للتحقق
+            request.session['pending_verification_email'] = user.email
+            
+            messages.success(request, "تم إنشاء الحساب بنجاح! تم إرسال كود التحقق إلى بريدك الإلكتروني.")
+            return redirect('accounts:verify_email')
         return render(request, self.template_name, {'form': form})
 
 
@@ -181,34 +192,183 @@ def set_default_address(request, pk):
 
 
 # =========================
-#  Wishlist View
+#  Email Verification View
 # =========================
-# class WishlistView(ListView):
-#     model = Wishlist
-#     template_name = "accounts/wishlist.html"
-#     context_object_name = "wishlist_items"
+class VerifyEmailView(View):
+    template_name = "accounts/verify_email.html"
 
-#     def get_queryset(self):
-#         return Wishlist.objects.filter(user=self.request.user).select_related('product').order_by('-added_at')
+    def get(self, request):
+        email = request.session.get('pending_verification_email')
+        if not email:
+            messages.error(request, "لا يوجد حساب في انتظار التحقق")
+            return redirect('accounts:register')
+        return render(request, self.template_name, {'email': email})
+
+    def post(self, request):
+        email = request.session.get('pending_verification_email')
+        code = request.POST.get('code', '').strip()
+        
+        if not email:
+            messages.error(request, "انتهت صلاحية الجلسة، يرجى التسجيل مرة أخرى")
+            return redirect('accounts:register')
+        
+        # التحقق من الكود
+        is_valid, result = verify_otp(email, code, 'email_verification')
+        
+        if is_valid:
+            # تفعيل الحساب
+            try:
+                user = User.objects.get(email=email)
+                user.is_active = True
+                user.save()
+                
+                # تعليم OTP كمستخدم
+                mark_otp_as_used(result)
+                
+                # حذف البريد من الجلسة
+                del request.session['pending_verification_email']
+                
+                messages.success(request, "تم تفعيل حسابك بنجاح! يمكنك الآن تسجيل الدخول")
+                return redirect('accounts:login')
+            except User.DoesNotExist:
+                messages.error(request, "حدث خطأ، يرجى المحاولة مرة أخرى")
+        else:
+            messages.error(request, result)
+        
+        return render(request, self.template_name, {'email': email})
 
 
 # =========================
-#  OTP Verification (اختياري)
+#  Resend OTP View
 # =========================
-class OTPVerifyView(View):
-    template_name = "accounts/otp_verify.html"
+class ResendOTPView(View):
+    def post(self, request):
+        email = request.session.get('pending_verification_email')
+        if not email:
+            messages.error(request, "لا يوجد حساب في انتظار التحقق")
+            return redirect('accounts:register')
+        
+        try:
+            user = User.objects.get(email=email)
+            create_otp(email, purpose='email_verification', user=user)
+            messages.success(request, "تم إرسال كود جديد إلى بريدك الإلكتروني")
+        except User.DoesNotExist:
+            messages.error(request, "حدث خطأ، يرجى المحاولة مرة أخرى")
+        
+        return redirect('accounts:verify_email')
+
+
+# =========================
+#  Forgot Password View
+# =========================
+class ForgotPasswordView(View):
+    template_name = "accounts/forgot_password.html"
 
     def get(self, request):
         return render(request, self.template_name)
 
     def post(self, request):
-        code = request.POST.get('code')
-        otp = UserOTP.objects.filter(user=request.user, code=code, is_used=False).first()
-        if otp:
-            otp.is_used = True
-            otp.save()
-            messages.success(request, "تم التحقق بنجاح")
-            return redirect('core:home')
+        email = request.POST.get('email', '').strip()
+        
+        try:
+            user = User.objects.get(email=email)
+            
+            # إنشاء وإرسال OTP
+            create_otp(email, purpose='password_reset', user=user)
+            
+            # حفظ البريد في الجلسة
+            request.session['password_reset_email'] = email
+            
+            messages.success(request, "تم إرسال كود التحقق إلى بريدك الإلكتروني")
+            return redirect('accounts:verify_reset_code')
+            
+        except User.DoesNotExist:
+            messages.error(request, "لا يوجد حساب مسجل بهذا البريد الإلكتروني")
+        
+        return render(request, self.template_name)
+
+
+# =========================
+#  Verify Reset Code View
+# =========================
+class VerifyResetCodeView(View):
+    template_name = "accounts/verify_reset_code.html"
+
+    def get(self, request):
+        email = request.session.get('password_reset_email')
+        if not email:
+            messages.error(request, "يرجى إدخال بريدك الإلكتروني أولاً")
+            return redirect('accounts:forgot_password')
+        return render(request, self.template_name, {'email': email})
+
+    def post(self, request):
+        email = request.session.get('password_reset_email')
+        code = request.POST.get('code', '').strip()
+        
+        if not email:
+            messages.error(request, "انتهت صلاحية الجلسة")
+            return redirect('accounts:forgot_password')
+        
+        # التحقق من الكود
+        is_valid, result = verify_otp(email, code, 'password_reset')
+        
+        if is_valid:
+            # تعليم OTP كمستخدم
+            mark_otp_as_used(result)
+            
+            # حفظ حالة التحقق في الجلسة
+            request.session['reset_code_verified'] = True
+            
+            messages.success(request, "تم التحقق من الكود بنجاح")
+            return redirect('accounts:reset_password')
         else:
-            messages.error(request, "رمز التحقق غير صحيح")
+            messages.error(request, result)
+        
+        return render(request, self.template_name, {'email': email})
+
+
+# =========================
+#  Reset Password View
+# =========================
+class ResetPasswordView(View):
+    template_name = "accounts/reset_password.html"
+
+    def get(self, request):
+        if not request.session.get('reset_code_verified'):
+            messages.error(request, "يرجى التحقق من الكود أولاً")
+            return redirect('accounts:forgot_password')
+        return render(request, self.template_name)
+
+    def post(self, request):
+        if not request.session.get('reset_code_verified'):
+            messages.error(request, "يرجى التحقق من الكود أولاً")
+            return redirect('accounts:forgot_password')
+        
+        email = request.session.get('password_reset_email')
+        password1 = request.POST.get('password1', '')
+        password2 = request.POST.get('password2', '')
+        
+        if password1 != password2:
+            messages.error(request, "كلمتا المرور غير متطابقتين")
             return render(request, self.template_name)
+        
+        if len(password1) < 8:
+            messages.error(request, "كلمة المرور يجب أن تكون 8 أحرف على الأقل")
+            return render(request, self.template_name)
+        
+        try:
+            user = User.objects.get(email=email)
+            user.set_password(password1)
+            user.save()
+            
+            # حذف بيانات الجلسة
+            del request.session['password_reset_email']
+            del request.session['reset_code_verified']
+            
+            messages.success(request, "تم تغيير كلمة المرور بنجاح! يمكنك الآن تسجيل الدخول")
+            return redirect('accounts:login')
+            
+        except User.DoesNotExist:
+            messages.error(request, "حدث خطأ، يرجى المحاولة مرة أخرى")
+        
+        return render(request, self.template_name)

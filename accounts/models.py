@@ -64,6 +64,8 @@ class Address(models.Model):
 
     class Meta:
         ordering = ['order']
+        verbose_name = 'عنوان'
+        verbose_name_plural = 'العناوين'
 
     def __str__(self):
         return f"{self.user.email} - {self.city}, {self.street}"
@@ -82,22 +84,42 @@ class Address(models.Model):
 
 #     class Meta:
 #         unique_together = ('user', 'product')  # لا يمكن إضافة نفس المنتج مرتين
+#         verbose_name = 'قائمة الرغبات'
+#         verbose_name_plural = 'قوائم الرغبات'
 
 #     def __str__(self):
 #         return f"{self.user.email} → {self.product.name}"
 
 
 # =========================
-# 5️⃣ User OTP / Verification (اختياري للمستقبل)
+# 5️⃣ User OTP / Verification
 # =========================
 class UserOTP(models.Model):
     """
-    لتخزين رموز التحقق المؤقتة (SMS / Email) لكل مستخدم
+    لتخزين رموز التحقق المؤقتة (Email) لكل مستخدم
     """
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="otps")
+    PURPOSE_CHOICES = [
+        ('email_verification', 'التحقق من البريد الإلكتروني'),
+        ('password_reset', 'إعادة تعيين كلمة المرور'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="otps", null=True, blank=True)
+    email = models.EmailField(blank=True,null=True) 
     code = models.CharField(max_length=6)
+    purpose = models.CharField(max_length=20, choices=PURPOSE_CHOICES, default='email_verification')
     created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(blank=True,null=True)
     is_used = models.BooleanField(default=False)
 
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'رمز تحقق OTP'
+        verbose_name_plural = 'رموز التحقق'
+
     def __str__(self):
-        return f"OTP for {self.user.email}: {self.code}"
+        return f"OTP for {self.email}: {self.code} ({self.purpose})"
+    
+    def is_valid(self):
+        """التحقق من صلاحية OTP"""
+        from django.utils import timezone
+        return not self.is_used and timezone.now() < self.expires_at

@@ -12,6 +12,7 @@ urlpatterns = [
     
     # Checkout
     path('checkout/', views.CheckoutView.as_view(), name='checkout'),
+    path('order-success/<int:order_id>/', views.order_success, name='order_success'),
     path('guest-order-success/<int:order_id>/', views.guest_order_success, name='guest_order_success'),
 
     # Orders

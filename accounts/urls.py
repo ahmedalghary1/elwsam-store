@@ -9,6 +9,15 @@ urlpatterns = [
     path('register/', views.RegisterView.as_view(), name='register'),
     path('logout/', views.LogoutView.as_view(), name='logout'),
 
+    # Email Verification
+    path('verify-email/', views.VerifyEmailView.as_view(), name='verify_email'),
+    path('resend-otp/', views.ResendOTPView.as_view(), name='resend_otp'),
+
+    # Password Reset
+    path('forgot-password/', views.ForgotPasswordView.as_view(), name='forgot_password'),
+    path('verify-reset-code/', views.VerifyResetCodeView.as_view(), name='verify_reset_code'),
+    path('reset-password/', views.ResetPasswordView.as_view(), name='reset_password'),
+
     # Profile
     path('profile/', views.ProfileView.as_view(), name='profile'),
 

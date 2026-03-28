@@ -1,3 +1,8 @@
 from django.contrib import admin
 
-# Register your models here.
+# ================================================
+# تخصيص لوحة الإدارة - متجر الوسام
+# ================================================
+admin.site.site_header  = '🛍️ لوحة تحكم متجر الوسام'
+admin.site.site_title   = 'متجر الوسام | الإدارة'
+admin.site.index_title  = 'مرحباً بك في لوحة التحكم'

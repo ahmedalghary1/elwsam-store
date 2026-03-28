@@ -14,8 +14,12 @@ class Cart(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        verbose_name = 'سلة تسوق'
+        verbose_name_plural = 'سلات التسوق'
+
     def __str__(self):
-        return f"Cart of {self.user.email}"
+        return f'سلة {self.user.email}'
 
     def get_total_price(self):
         """حساب إجمالي السعر"""
@@ -47,6 +51,8 @@ class CartItem(models.Model):
 
     class Meta:
         unique_together = ('cart', 'product', 'variant')
+        verbose_name = 'عنصر سلة'
+        verbose_name_plural = 'عناصر السلات'
 
     def __str__(self):
         return f"{self.quantity} x {self.product.name}"
@@ -74,6 +80,11 @@ class Order(models.Model):
         ('cancelled', 'ملغي'),
     ]
 
+    class Meta:
+        verbose_name = 'طلب'
+        verbose_name_plural = 'الطلبات'
+        ordering = ['-created_at']
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="orders", null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -97,8 +108,8 @@ class Order(models.Model):
 
     def __str__(self):
         if self.user:
-            return f"Order #{self.id} - {self.user.email}"
-        return f"Order #{self.id} - Guest ({self.shipping_name})"
+            return f'طلب #{self.id} - {self.user.email}'
+        return f'طلب #{self.id} - ضيف ({self.shipping_name})'
 
     def get_total_items(self):
         """حساب عدد العناصر في الطلب"""
@@ -123,6 +134,10 @@ class OrderItem(models.Model):
     variant = models.ForeignKey(ProductVariant, on_delete=models.SET_NULL, null=True, blank=True)
     quantity = models.PositiveIntegerField(default=1)
     price = models.DecimalField(max_digits=10, decimal_places=2)  # السعر وقت الشراء
+
+    class Meta:
+        verbose_name = 'عنصر طلب'
+        verbose_name_plural = 'عناصر الطلبات'
 
     def __str__(self):
         return f"{self.quantity} x {self.product.name}"

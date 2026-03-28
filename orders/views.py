@@ -229,10 +229,13 @@ class CheckoutView(View):
                 cart_items.delete()
 
             messages.success(request, f"تم إنشاء الطلب بنجاح. رقم الطلب: #{order.id}")
-            return redirect('orders:order_detail', order_id=order.id)
+            return redirect('orders:order_success', order_id=order.id)
 
         except Exception as e:
-            messages.error(request, "حدث خطأ أثناء إنشاء الطلب")
+            import traceback
+            print(f"Checkout Error: {str(e)}")
+            print(traceback.format_exc())
+            messages.error(request, f"حدث خطأ أثناء إنشاء الطلب: {str(e)}")
             return redirect('orders:checkout')
 
     def _guest_checkout(self, request):
@@ -327,6 +330,23 @@ class CheckoutView(View):
         except Exception as e:
             messages.error(request, "حدث خطأ أثناء إنشاء الطلب")
             return redirect('orders:checkout')
+
+
+# =========================
+# Order Success View (للمستخدمين المسجلين)
+# =========================
+def order_success(request, order_id):
+    if not request.user.is_authenticated:
+        messages.warning(request, "يرجى تسجيل الدخول لعرض تفاصيل الطلب")
+        return redirect('accounts:login')
+    
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    order_items = order.items.all().select_related('product', 'variant')
+
+    return render(request, 'orders/order_success.html', {
+        'order': order,
+        'order_items': order_items,
+    })
 
 
 # =========================
