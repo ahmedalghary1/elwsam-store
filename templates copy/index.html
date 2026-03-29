@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %} متجر الوسام | الصفحة الرئيسية{% endblock title %}
+
+{% block content %}
+  <main>
+
+    <section class="hero" aria-label="العرض الرئيسي">
+      <div class="hero-bg-pattern" aria-hidden="true"></div>
+      <div class="hero-grid-overlay" aria-hidden="true"></div>
+      <div class="hero-inner">
+        <div class="hero-content container">
+          <div class="hero-badge">
+            <span>تخفيضات الموسم — حتى 70% خصم</span>
+          </div>
+          <h1 class="hero-title">
+            كل ما تحتاجه<br />
+            <span class="highlight">في مكان واحد</span>
+          </h1>
+          <p class="hero-subtitle">
+            اكتشف آلاف المنتجات المختارة بعناية بأفضل الأسعار وجودة لا مثيل لها.
+            شحن سريع وإرجاع مجاني خلال 30 يومًا.
+          </p>
+          <div class="hero-actions">
+            <a href="{% url 'category_list' %}" class="btn btn-primary btn-lg">
+               تسوق الآن
+            </a>
+
+          </div>
+        </div>
+
+        <div class="hero-image-side" style="display:none;">
+          <!-- يظهر على ديسكتوب -->
+        </div>
+
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <span class="stat-num">+500</span>
+            <span class="stat-label">منتج متاح</span>
+          </div>
+          <div class="hero-stat">
+            <span class="stat-num">+20K</span>
+            <span class="stat-label">عميل سعيد</span>
+          </div>
+          <div class="hero-stat">
+            <span class="stat-num">4.9★</span>
+            <span class="stat-label">تقييم المتجر</span>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- ============================
+         BANNER STRIP
+         ============================ -->
+    <div class="banner-strip">
+      <div class="banner-strip-inner">
+        <div class="strip-item">
+          <div class="strip-icon"><i class="fas fa-truck-fast"></i></div>
+          <div class="strip-text">
+            <strong>شحن مجاني</strong>
+            <span>على الطلبات فوق 1000 جنيه</span>
+          </div>
+        </div>
+        <div class="strip-item">
+          <div class="strip-icon"><i class="fas fa-rotate-left"></i></div>
+          <div class="strip-text">
+            <strong>إرجاع مجاني</strong>
+            <span>خلال 30 يوم بلا شروط</span>
+          </div>
+        </div>
+        <div class="strip-item">
+          <div class="strip-icon">	<i class="fas fa-lock"></i></div>
+          <div class="strip-text">
+            <strong>دفع آمن 100%</strong>
+            <span>تشفير SSL محمي</span>
+          </div>
+        </div>
+        <div class="strip-item">
+          <div class="strip-icon">	<i class="fas fa-headset"></i></div>
+          <div class="strip-text">
+            <strong>دعم 24/7</strong>
+            <span>نحن دائمًا هنا لمساعدتك</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================
+         CATEGORIES SECTION
+         ============================ -->
+    <section class="categories-section page-section" aria-labelledby="categories-heading">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-title">
+            <h2 id="categories-heading">تسوق حسب الفئة</h2>
+            <p>استكشف مجموعاتنا الواسعة</p>
+          </div>
+          <a href="{% url 'category_list' %}" class="view-all-btn">كل الفئات ←</a>
+        </div>
+
+        <div class="categories-grid">
+          {% for category in categories %}
+          <a href="{% url 'category_products' category.slug %}" class="category-card" aria-label="{{ category.name }}">
+            <div class="cat-icon">
+              {% if category.image %}
+                <img src="{{ category.image.url }}" alt="{{ category.name }}">
+              {% else %}
+                <span style="font-size: 2rem;">{{ category.icon }}</span>
+              {% endif %}
+            </div>
+            <span class="cat-name">{{ category.name }}</span>
+            <span class="cat-count">{{ category.get_product_count }} منتج</span>
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ============================
+         OFFERS SECTION
+         ============================ -->
+    <section class="offers-section page-section" aria-labelledby="offers-heading">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-title">
+            <h2 id="offers-heading">العروض الحصرية</h2>
+            <p>عروض محدودة الوقت لا تفوتها</p>
+          </div>
+        </div>
+
+        <div class="offers-grid">
+          <div class="offer-card offer-dark">
+            <span class="offer-emoji" aria-hidden="true"><img src="{% static 'image/3.png' %}" style="width:200px; height:200px; object-fit:contain;" alt=""></span>
+            <div class="offer-tag">المشتركات</div>
+            <div class="offer-title">أحدث المشتركات<br />بأسعار حصرية</div>
+            <div class="offer-discount">حتى 60%</div>
+            <a href="products.html" class="btn btn-primary btn-sm" style="width:fit-content">تسوق الآن</a>
+          </div>
+
+          <div class="offer-card offer-yellow">
+            <span class="offer-emoji" aria-hidden="true"><img src="{% static 'image/21-2.png' %}" style="width:200px; height:200px; object-fit:contain;" alt=""></span>
+            <div class="offer-tag">الكشاف والإضاءة</div>
+            <div class="offer-title">أحدث التصاميم<br />لإضاءة مثالية</div>
+            <div class="offer-discount">خصم 40%</div>
+            <a href="products.html" class="btn btn-black btn-sm" style="width:fit-content">اكتشف الآن</a>
+          </div>
+
+          <div class="offer-card offer-light">
+            <span class="offer-emoji" aria-hidden="true"><img src="{% static 'image/15.png' %}" style="width:200px; height:200px; object-fit:contain;" alt=""></span>
+            <div class="offer-tag">دواية ديكور</div>
+            <div class="offer-title"> ديكورات<br />دوايات مميزة</div>
+            <div class="offer-discount">من 100 ج.م</div>
+            <a href="products.html" class="btn btn-black btn-sm" style="width:fit-content">تصفح الآن</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+
+  </main>
+{% endblock content %}

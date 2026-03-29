@@ -1,0 +1,188 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="متجر الوسام - أفضل تجربة تسوق إلكتروني في العالم العربي" />
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <title>{% block title %} متجر الوسام | الصفحة الرئيسية{% endblock title %}</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet" />
+
+  <!-- icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/responsive-fixes.css' %}" />
+</head>
+<body data-auth="{% if user.is_authenticated %}true{% else %}false{% endif %}">
+  <!-- NAVBAR -->
+  <nav class="navbar" role="navigation" aria-label="التنقل الرئيسي">
+    <div class="navbar-inner">
+      <div class="navbar-row1">
+        <button class="hamburger-btn" aria-label="فتح القائمة" aria-expanded="false"><span></span><span></span><span></span></button>
+        <a href="/" class="navbar-logo"><div class="logo-icon">
+          <img src="{% static 'image/ELWSAM-LOGO2020.png' %}" alt="">
+        </div><span class="logo-text">متجر <span>الوسام</span></span></a>
+        <div class="navbar-links">
+          <a href="/">الرئيسية</a>
+          <a href="/categories/">المنتجات</a>
+        </div>
+        <div class="navbar-actions">
+          <!-- <a href="{% url 'orders:wishlist' %}" class="nav-icon-btn" aria-label="المفضلة"><i class="far fa-heart"></i><span class="nav-badge wishlist-count" style="display:{% if wishlist_count > 0 %}flex{% else %}none{% endif %}">{{ wishlist_count }}</span></a> -->
+          <a href="{% url 'orders:cart' %}" class="nav-icon-btn" aria-label="السلة"><i class="fas fa-shopping-cart"></i><span class="nav-badge cart-count" style="display:{% if cart_count > 0 %}flex{% else %}none{% endif %}">{{ cart_count }}</span></a>
+          <a href="{% if user.is_authenticated %}{% url 'accounts:profile' %}{% else %}{% url 'accounts:login' %}{% endif %}" 
+             class="nav-icon-btn profile-btn" 
+             aria-label="{% if user.is_authenticated %}البروفايل{% else %}تسجيل الدخول{% endif %}" 
+             data-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}">
+             <i class="{% if user.is_authenticated %}fas fa-user{% else %}fas fa-sign-in-alt{% endif %}"></i>
+          </a>
+        </div>
+      </div>
+      
+    </div>
+  </nav>
+
+  <!-- Mobile Overlay & Menu -->
+  <div class="mobile-menu-overlay" aria-hidden="true"></div>
+  <aside class="mobile-menu" role="dialog" aria-label="القائمة الجانبية">
+    <button class="mobile-menu-close" aria-label="إغلاق القائمة">✕</button>
+    <nav class="mobile-menu-links">
+      <a href="/" class="active"><span class="link-icon"><i class="fas fa-home"></i></span>الرئيسية</a>
+      <a href="/categories/"><span class="link-icon"><i class="fas fa-store"></i></span>جميع المنتجات</a>
+      <!-- <a href="#"><span class="link-icon"><i class="fas fa-tags"></i></span>العروض والخصومات</a> -->
+      <!-- <a href="#"><span class="link-icon"><i class="fas fa-box"></i></span>طلباتي</a> -->
+      <div class="mobile-menu-divider"></div>
+      <!-- <a href="{% url 'orders:wishlist' %}"><span class="link-icon"><i class="fas fa-heart"></i></span>المفضلة</a> -->
+      <a href="{% url 'orders:cart' %}"><span class="link-icon"><i class="fas fa-shopping-cart"></i></span>سلة التسوق</a>
+      <div class="mobile-menu-divider"></div>
+      {% if user.is_authenticated %}
+        <a href="{% url 'accounts:profile' %}" class="profile-link-mobile" data-authenticated="{{ user.is_authenticated|yesno:'true,false' }}"><span class="link-icon"><i class="fas fa-user"></i></span>البروفايل</a>
+        <a href="{% url 'orders:order_list' %}"><span class="link-icon"><i class="fas fa-box"></i></span>طلباتي</a>
+        <a href="{% url 'accounts:logout' %}"><span class="link-icon"><i class="fas fa-sign-out-alt"></i></span>تسجيل الخروج</a>
+      {% else %}
+        <a href="{% url 'accounts:login' %}" class="profile-link-mobile" data-authenticated="{{ user.is_authenticated|yesno:'true,false' }}"><span class="link-icon"><i class="fas fa-user"></i></span>البروفايل</a>
+        <a href="{% url 'accounts:register' %}"><span class="link-icon"><i class="fas fa-user-plus"></i></span>إنشاء حساب</a>
+      {% endif %}
+      <a href="#"><span class="link-icon"><i class="fas fa-phone"></i></span>تواصل معنا</a>
+    </nav>
+  </aside>
+
+    {% block content %}{% endblock content %}
+
+
+  <!-- ============================
+       FOOTER
+       ============================ -->
+  <footer class="footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-grid">
+        <!-- Brand -->
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <div class="logo-icon"><img src="{% static 'image/ELWSAM-LOGO2020.png' %}" alt="Logo"></div>
+            <span class="logo-text">متجر <span>الوسام</span></span>
+          </div>
+          <p class="footer-desc">
+            متجرك الإلكتروني الأول في العالم العربي. نوفر لك أفضل المنتجات بأسعار تنافسية وتجربة تسوق لا تُنسى.
+          </p>
+          <div class="footer-socials">
+            <a href="#" class="social-btn" aria-label="تويتر"><i class="fab fa-twitter"></i> </a>
+            <a href="#" class="social-btn" aria-label="انستغرام"><i class="fab fa-instagram"></i> </a>
+            <a href="#" class="social-btn" aria-label="فيسبوك"><i class="fab fa-facebook"></i> </a>
+            <a href="#" class="social-btn" aria-label="يوتيوب"><i class="fab fa-youtube"></i> </a>
+            <a href="#" class="social-btn" aria-label="تيك توك"><i class="fab fa-tiktok"></i> </a>
+          </div>
+        </div>
+
+        <!-- Links 1 -->
+        <div>
+          <h3 class="footer-col-title">روابط سريعة</h3>
+          <ul class="footer-links">
+            <li><a href="/">الصفحة الرئيسية</a></li>
+            <li><a href="/categories/">جميع الأقسام</a></li>
+            <!-- <li><a href="/wishlist/">المفضلة</a></li> -->
+            <li><a href="/cart/">سلة التسوق</a></li>
+            <!-- <li><a href="/product/1/">منتج مميز</a></li> -->
+          </ul>
+        </div>
+
+        <!-- Links 2 -->
+        <div>
+          <h3 class="footer-col-title">حسابي</h3>
+          <ul class="footer-links">
+            <li><a href="/login/">تسجيل الدخول</a></li>
+            <li><a href="/register/">إنشاء حساب</a></li>
+            <li><a href="/profile/">طلباتي</a></li>
+            <li><a href="/checkout/">إتمام الشراء</a></li>
+            <li><a href="/profile/">بياناتي</a></li>
+          </ul>
+        </div>
+
+        <!-- Newsletter -->
+        <div>
+          <h3 class="footer-col-title">النشرة البريدية</h3>
+          <p style="font-size:0.82rem;color:rgba(255,255,255,0.5);margin-bottom:14px;line-height:1.7;">
+            اشترك ليصلك آخر العروض والتخفيضات الحصرية أولاً.
+          </p>
+          <div class="footer-newsletter">
+            <input type="email" placeholder="بريدك الإلكتروني" aria-label="البريد الإلكتروني" />
+            <button type="button" aria-label="اشتراك">اشترك</button>
+          </div>
+          <p style="font-size:0.75rem;color:rgba(255,255,255,0.3);margin-top:10px;">
+            🔒 لن نشارك بريدك الإلكتروني مع أي طرف ثالث
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>© 2026 متجر الوسام. جميع الحقوق محفوظة.</p>
+
+    </div>
+  </footer>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav" aria-label="التنقل السفلي">
+    <a href="{% url 'index' %}" aria-label="الرئيسية"><span class="icon"><i class="fas fa-home"></i></span>الرئيسية</a>
+    <a href="{% url 'category_list' %}" aria-label="الأقسام"><span class="icon"><i class="fas fa-store"></i></span>الأقسام</a>
+    <a href="#" aria-label="بحث" onclick="openSearch();return false"><span class="icon"><i class="fas fa-search"></i></span>بحث</a>
+    <!-- <a href="{% url 'orders:wishlist' %}" aria-label="المفضلة"><span class="icon"><i class="fas fa-heart"></i></span>المفضلة</a> -->
+    <a href="{% url 'orders:cart' %}" aria-label="السلة">
+      <span class="icon"><i class="fas fa-shopping-cart"></i></span>السلة
+      <span class="bnav-badge cart-count" style="display:none">0</span>
+    </a>
+  </nav>
+
+  <!-- Scripts -->
+  <script src="{% static 'js/cart.js' %}"></script>
+  <script src="{% static 'js/main.js' %}"></script>
+  <script src="{% static 'js/wishlist.js' %}"></script>
+
+  <!-- Profile Button Handler -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const profileLinks = document.querySelectorAll('.profile-btn, .profile-link-mobile');
+
+      profileLinks.forEach(function(link) {
+        link.addEventListener('click', function(e) {
+          const isAuthenticated = this.dataset.authenticated === 'true';
+
+          if (!isAuthenticated) {
+            e.preventDefault();
+            // توجيه المستخدم إلى صفحة تسجيل الدخول
+            window.location.href = '{% url "accounts:login" %}';
+          }
+          // إذا كان مسجل دخول، يتابع الرابط الطبيعي إلى صفحة البروفايل
+        });
+      });
+    });
+  </script>
+</body>
+</html>
