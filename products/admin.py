@@ -1,4 +1,5 @@
 from django.contrib import admin
+import nested_admin
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.db.models import Count, Avg, Sum
@@ -13,13 +14,76 @@ from .models import (
 # Inlines
 # ================================================
 
-class PatternInline(admin.StackedInline):
+class PatternSizeInline(nested_admin.NestedTabularInline):
+    model = PatternSize
+    extra = 1
+    fields = ['size', 'price', 'stock', 'stock_badge', 'order']
+    readonly_fields = ['stock_badge']
+    ordering = ['order']
+    verbose_name = 'مقاس النمط'
+    verbose_name_plural = 'مقاسات النمط'
+    autocomplete_fields = ['size']
+    
+    classes = ['collapse']
+    
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super().get_formset(request, obj, **kwargs)
+        formset.help_texts = {
+            'size': 'اختر المقاس من القائمة',
+            'price': 'السعر لهذا المقاس في هذا النمط',
+            'stock': 'المخزون المتاح لهذا المقاس',
+            'order': 'ترتيب العرض (الأصغر يظهر أولاً)'
+        }
+        return formset
+    
+    def save_formset(self, request, form, formset, change):
+        """Override to create variants when PatternSize is saved via inline"""
+        instances = formset.save(commit=False)
+        
+        for instance in instances:
+            is_new = instance.pk is None
+            instance.save()
+            
+            # If new PatternSize, create variants
+            if is_new:
+                instance.create_variants_for_colors()
+        
+        # Delete removed instances
+        for obj in formset.deleted_objects:
+            obj.delete()
+    
+    def stock_badge(self, obj):
+        if not obj.pk:
+            return '—'
+        if obj.stock > 10:
+            color = '#28a745'
+            icon = '✓'
+            text = 'متوفر'
+        elif obj.stock > 0:
+            color = '#ffc107'
+            icon = '⚠'
+            text = 'قليل'
+        else:
+            color = '#dc3545'
+            icon = '✗'
+            text = 'نفذ'
+        return format_html(
+            '<span style="color:{};font-weight:bold;padding:4px 8px;background:rgba({},0.1);border-radius:4px;">{} {} ({})</span>',
+            color, 
+            '40,167,69' if obj.stock > 10 else '255,193,7' if obj.stock > 0 else '220,53,69',
+            icon, obj.stock, text
+        )
+    stock_badge.short_description = 'حالة المخزون'
+
+
+class PatternInline(nested_admin.NestedStackedInline):
     model = Pattern
     extra = 0
     fields = ['name', 'has_sizes', 'base_price', 'order']
     ordering = ['order']
     verbose_name = 'نمط'
     verbose_name_plural = 'الأنماط'
+    inlines = [PatternSizeInline]
     
     def get_formset(self, request, obj=None, **kwargs):
         formset = super().get_formset(request, obj, **kwargs)
@@ -27,7 +91,7 @@ class PatternInline(admin.StackedInline):
         return formset
 
 
-class ProductColorInline(admin.TabularInline):
+class ProductColorInline(nested_admin.NestedTabularInline):
     model = ProductColor
     extra = 0
     fields = ['color', 'color_preview', 'order']
@@ -48,7 +112,7 @@ class ProductColorInline(admin.TabularInline):
     color_preview.short_description = 'معاينة'
 
 
-class ProductSizeInline(admin.TabularInline):
+class ProductSizeInline(nested_admin.NestedTabularInline):
     model = ProductSize
     extra = 0
     fields = ['size', 'price', 'order']
@@ -58,7 +122,7 @@ class ProductSizeInline(admin.TabularInline):
     autocomplete_fields = ['size']
 
 
-class ProductImageInline(admin.TabularInline):
+class ProductImageInline(nested_admin.NestedTabularInline):
     model = ProductImage
     extra = 0
     fields = ['color', 'image', 'preview', 'order']
@@ -75,7 +139,7 @@ class ProductImageInline(admin.TabularInline):
     preview.short_description = 'معاينة'
 
 
-class ProductSpecificationInline(admin.TabularInline):
+class ProductSpecificationInline(nested_admin.NestedTabularInline):
     model = ProductSpecification
     extra = 0
     fields = ['key', 'value', 'order']
@@ -84,40 +148,7 @@ class ProductSpecificationInline(admin.TabularInline):
     verbose_name_plural = 'المواصفات'
 
 
-# ================================================
-# PatternSize Inline (for Pattern admin)
-# ================================================
-
-class PatternSizeInline(admin.TabularInline):
-    model = PatternSize
-    extra = 0
-    fields = ['size', 'price', 'stock', 'stock_badge', 'order']
-    readonly_fields = ['stock_badge']
-    ordering = ['order']
-    verbose_name = 'مقاس النمط'
-    verbose_name_plural = 'مقاسات النمط'
-    autocomplete_fields = ['size']
-    
-    def stock_badge(self, obj):
-        if not obj.pk:
-            return '—'
-        if obj.stock > 10:
-            color = '#28a745'
-            icon = '✓'
-        elif obj.stock > 0:
-            color = '#ffc107'
-            icon = '⚠'
-        else:
-            color = '#dc3545'
-            icon = '✗'
-        return format_html(
-            '<span style="color:{};font-weight:bold;">{} {}</span>',
-            color, icon, obj.stock
-        )
-    stock_badge.short_description = 'المخزون'
-
-
-class ProductVariantInline(admin.TabularInline):
+class ProductVariantInline(nested_admin.NestedTabularInline):
     model = ProductVariant
     extra = 0
     fields = ['pattern', 'color', 'size', 'price', 'stock', 'sku', 'stock_status_badge', 'order']
@@ -150,8 +181,8 @@ class CategoryAdmin(admin.ModelAdmin):
     list_filter = ['is_hot', 'created_at']
     search_fields = ['name', 'description']
     ordering = ['order']
-    readonly_fields = ['slug', 'created_at', 'updated_at', 'category_image_preview']
-    prepopulated_fields = {}
+    readonly_fields = ['created_at', 'updated_at', 'category_image_preview']
+    prepopulated_fields = {'slug': ('name',)}
     list_per_page = 20
     date_hierarchy = 'created_at'
     
@@ -211,7 +242,7 @@ class CategoryAdmin(admin.ModelAdmin):
 # ================================================
 
 @admin.register(Product)
-class ProductAdmin(admin.ModelAdmin):
+class ProductAdmin(nested_admin.NestedModelAdmin):
     list_display = [
         'product_thumbnail', 'name', 'category', 'price_display',
         'discount_badge', 'stock_status', 'is_active', 'is_hot', 'is_new',
@@ -222,7 +253,8 @@ class ProductAdmin(admin.ModelAdmin):
     list_filter = ['category', 'is_active', 'is_hot', 'is_new', 'created_at']
     search_fields = ['name', 'description', 'category__name']
     ordering = ['order']
-    readonly_fields = ['slug', 'created_at', 'updated_at', 'main_image_preview', 'discount_percent_display']
+    readonly_fields = ['created_at', 'updated_at', 'main_image_preview', 'discount_percent_display']
+    prepopulated_fields = {'slug': ('name',)}
     date_hierarchy = 'created_at'
     list_per_page = 25
 
@@ -302,6 +334,25 @@ class ProductAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('category').prefetch_related('variants', 'images')
+    
+    def save_formset(self, request, form, formset, change):
+        """Override to create variants when ProductColor is saved via inline"""
+        if formset.model == ProductColor:
+            instances = formset.save(commit=False)
+            
+            for instance in instances:
+                is_new = instance.pk is None
+                instance.save()
+                
+                # If new ProductColor, create variants
+                if is_new:
+                    instance.create_variants_for_pattern_sizes()
+            
+            # Delete removed instances
+            for obj in formset.deleted_objects:
+                obj.delete()
+        else:
+            formset.save()
     
     actions = ['mark_as_active', 'mark_as_inactive', 'mark_as_hot', 'mark_as_new', 'duplicate_product']
     
@@ -424,6 +475,61 @@ class PatternAdmin(admin.ModelAdmin):
     )
     
     inlines = [PatternSizeInline]
+    
+    actions = ['generate_variants_for_patterns']
+    
+    def save_formset(self, request, form, formset, change):
+        """Override to create variants when PatternSize is saved via inline"""
+        if formset.model == PatternSize:
+            instances = formset.save(commit=False)
+            
+            for instance in instances:
+                is_new = instance.pk is None
+                instance.save()
+                
+                # If new PatternSize, create variants
+                if is_new:
+                    instance.create_variants_for_colors()
+            
+            # Delete removed instances
+            for obj in formset.deleted_objects:
+                obj.delete()
+        else:
+            formset.save()
+    
+    def generate_variants_for_patterns(self, request, queryset):
+        """إنشاء المتغيرات تلقائياً لكل الأنماط المحددة"""
+        total_created = 0
+        
+        for pattern in queryset:
+            product = pattern.product
+            
+            # Get all pattern sizes
+            pattern_sizes = PatternSize.objects.filter(pattern=pattern)
+            
+            # Get all colors
+            product_colors = ProductColor.objects.filter(product=product)
+            
+            for ps in pattern_sizes:
+                for pc in product_colors:
+                    # Check if variant exists
+                    variant, created = ProductVariant.objects.get_or_create(
+                        product=product,
+                        pattern=pattern,
+                        color=pc.color,
+                        size=ps.size,
+                        defaults={
+                            'price': ps.price,
+                            'stock': ps.stock,
+                            'order': 0
+                        }
+                    )
+                    if created:
+                        total_created += 1
+        
+        self.message_user(request, f'✅ تم إنشاء {total_created} متغير جديد', messages.SUCCESS)
+    
+    generate_variants_for_patterns.short_description = '🔄 إنشاء المتغيرات تلقائياً'
     
     def base_price_display(self, obj):
         if obj.base_price:

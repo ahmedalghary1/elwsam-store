@@ -19,6 +19,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     # Admin Panel
+    path('_nested_admin/', include('nested_admin.urls')),
     path('admin/', admin.site.urls),
     
     # Core Routes

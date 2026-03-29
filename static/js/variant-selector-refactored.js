@@ -114,19 +114,23 @@ class VariantSelector {
         switch (this.config.configuration_type) {
             case 'pattern_based':
                 this.renderPatternBasedUI();
+                // Don't render colors initially - they will be loaded after pattern selection
                 break;
             case 'size_based':
                 this.renderSizeBasedUI();
+                // Render colors for size-based products
+                if (this.config.has_colors) {
+                    this.renderColorGroup(this.config.colors);
+                }
                 break;
             case 'simple':
                 // No selectors needed
                 this.updateUI({ available: true, price: this.config.base_price });
+                // Render colors for simple products
+                if (this.config.has_colors) {
+                    this.renderColorGroup(this.config.colors);
+                }
                 break;
-        }
-        
-        // Render colors if available
-        if (this.config.has_colors) {
-            this.renderColorGroup(this.config.colors);
         }
     }
     
@@ -169,33 +173,37 @@ class VariantSelector {
         const groupId = 'group-color';
         let group = document.getElementById(groupId);
         
-        const html = `
-            <div class="variant-group" id="${groupId}">
-                <div class="variant-label">
-                    <i class="fas fa-palette"></i> اللون
-                    <span class="required-indicator" aria-label="مطلوب">*</span>
-                </div>
-                <div class="variant-options" role="radiogroup" aria-label="اختر اللون" aria-required="true">
-                    ${colors.map(color => `
-                        <button class="variant-btn color-btn ${color.available === false ? 'disabled' : ''}" 
-                                data-variant-type="color" 
-                                data-value="${color.id}"
-                                ${color.available === false ? 'disabled' : ''}
-                                role="radio"
-                                aria-checked="false"
-                                aria-label="${color.name}${color.available === false ? ' - غير متوفر' : ''}">
-                            <span class="color-swatch" style="background-color: ${color.code}"></span>
-                            <span>${color.name}</span>
-                            ${color.available === false ? '<span class="out-of-stock-label">غير متوفر</span>' : ''}
-                        </button>
-                    `).join('')}
-                </div>
+        const innerContent = `
+            <div class="variant-label">
+                <i class="fas fa-palette"></i> اللون
+                <span class="required-indicator" aria-label="مطلوب">*</span>
+            </div>
+            <div class="variant-options" role="radiogroup" aria-label="اختر اللون" aria-required="true">
+                ${colors.map(color => `
+                    <button class="variant-btn color-btn ${color.available === false ? 'disabled' : ''}" 
+                            data-variant-type="color" 
+                            data-value="${color.id}"
+                            ${color.available === false ? 'disabled' : ''}
+                            role="radio"
+                            aria-checked="false"
+                            aria-label="${color.name}${color.available === false ? ' - غير متوفر' : ''}">
+                        <span class="color-swatch" style="background-color: ${color.code}"></span>
+                        <span>${color.name}</span>
+                        ${color.available === false ? '<span class="out-of-stock-label">غير متوفر</span>' : ''}
+                    </button>
+                `).join('')}
             </div>`;
         
         if (group) {
-            group.outerHTML = html;
+            // Update existing group content
+            group.innerHTML = innerContent;
         } else {
-            this.container.insertAdjacentHTML('beforeend', html);
+            // Create new group
+            const newGroup = document.createElement('div');
+            newGroup.className = 'variant-group';
+            newGroup.id = groupId;
+            newGroup.innerHTML = innerContent;
+            this.container.appendChild(newGroup);
         }
     }
     
@@ -203,32 +211,36 @@ class VariantSelector {
         const groupId = 'group-size';
         let group = document.getElementById(groupId);
         
-        const html = `
-            <div class="variant-group" id="${groupId}">
-                <div class="variant-label">
-                    <i class="fas fa-ruler"></i> المقاس
-                    ${required ? '<span class="required-indicator" aria-label="مطلوب">*</span>' : ''}
-                </div>
-                <div class="variant-options" role="radiogroup" aria-label="اختر المقاس" ${required ? 'aria-required="true"' : ''}>
-                    ${sizes.map(size => `
-                        <button class="variant-btn ${size.available === false ? 'disabled' : ''}" 
-                                data-variant-type="size" 
-                                data-value="${size.id}"
-                                ${size.available === false ? 'disabled' : ''}
-                                role="radio"
-                                aria-checked="false"
-                                aria-label="${size.name}${size.available === false ? ' - غير متوفر' : ''}">
-                            <span>${size.name}</span>
-                            ${size.available === false ? '<span class="out-of-stock-label">غير متوفر</span>' : ''}
-                        </button>
-                    `).join('')}
-                </div>
+        const innerContent = `
+            <div class="variant-label">
+                <i class="fas fa-ruler"></i> المقاس
+                ${required ? '<span class="required-indicator" aria-label="مطلوب">*</span>' : ''}
+            </div>
+            <div class="variant-options" role="radiogroup" aria-label="اختر المقاس" ${required ? 'aria-required="true"' : ''}>
+                ${sizes.map(size => `
+                    <button class="variant-btn ${size.available === false ? 'disabled' : ''}" 
+                            data-variant-type="size" 
+                            data-value="${size.id}"
+                            ${size.available === false ? 'disabled' : ''}
+                            role="radio"
+                            aria-checked="false"
+                            aria-label="${size.name}${size.available === false ? ' - غير متوفر' : ''}">
+                        <span>${size.name}</span>
+                        ${size.available === false ? '<span class="out-of-stock-label">غير متوفر</span>' : ''}
+                    </button>
+                `).join('')}
             </div>`;
         
         if (group) {
-            group.outerHTML = html;
+            // Update existing group content
+            group.innerHTML = innerContent;
         } else {
-            this.container.insertAdjacentHTML('beforeend', html);
+            // Create new group
+            const newGroup = document.createElement('div');
+            newGroup.className = 'variant-group';
+            newGroup.id = groupId;
+            newGroup.innerHTML = innerContent;
+            this.container.appendChild(newGroup);
         }
     }
     
@@ -269,19 +281,32 @@ class VariantSelector {
             this.selectedOptions.size = null;
             this.resetImages();
             
-            // Show/hide size selector based on pattern configuration
-            const hasSize = btn.dataset.hasSizes === 'true';
-            if (hasSize) {
-                await this.loadPatternSizes(value);
+            // Load colors and sizes for the selected pattern
+            if (this.selectedOptions.pattern) {
+                await this.loadPatternOptions(value);
             } else {
+                // Pattern deselected - remove colors and sizes
+                this.removeColorGroup();
                 this.removeSizeGroup();
             }
         } else if (type === 'color') {
+            // Clear size selection when color changes
             this.selectedOptions.size = null;
+            this.clearActiveState('size');
+            
             if (this.selectedOptions.color) {
                 this.updateImages(this.selectedOptions.color);
+                // Update sizes based on color selection if pattern is selected
+                if (this.selectedOptions.pattern) {
+                    console.log('Updating sizes for pattern:', this.selectedOptions.pattern, 'and color:', this.selectedOptions.color);
+                    await this.updateSizesForColor(this.selectedOptions.pattern, this.selectedOptions.color);
+                }
             } else {
                 this.resetImages();
+                // Reload pattern options if pattern is selected
+                if (this.selectedOptions.pattern) {
+                    await this.loadPatternOptions(this.selectedOptions.pattern);
+                }
             }
         }
         
@@ -289,21 +314,64 @@ class VariantSelector {
         this.debouncedValidateAndUpdate();
     }
     
-    async loadPatternSizes(patternId) {
+    async loadPatternOptions(patternId) {
         try {
             const response = await fetch(`/api/variant-options/${this.productId}/?pattern_id=${patternId}`);
             const data = await response.json();
             
-            if (data.success && data.sizes && data.sizes.length > 0) {
-                this.renderSizeGroup(data.sizes, data.requires_size);
+            if (data.success) {
+                // Load colors if available
+                if (data.colors && data.colors.length > 0) {
+                    this.renderColorGroup(data.colors);
+                } else {
+                    this.removeColorGroup();
+                }
+                
+                // DON'T show sizes yet - wait for color selection
+                // Sizes will be loaded by updateSizesForColor() when a color is selected
+                this.removeSizeGroup();
             }
         } catch (error) {
-            console.error('Error loading pattern sizes:', error);
+            console.error('Error loading pattern options:', error);
+        }
+    }
+    
+    async updateSizesForColor(patternId, colorId) {
+        try {
+            const url = `/api/variant-options/${this.productId}/?pattern_id=${patternId}&color_id=${colorId}`;
+            console.log('Fetching sizes from:', url);
+            
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            console.log('Received data:', data);
+            console.log('Sizes:', data.sizes);
+            console.log('Requires size:', data.requires_size);
+            
+            if (data.success) {
+                // Update sizes based on color selection
+                if (data.sizes && data.sizes.length > 0) {
+                    console.log('Rendering', data.sizes.length, 'sizes');
+                    this.renderSizeGroup(data.sizes, data.requires_size);
+                } else {
+                    console.log('No sizes available, removing size group');
+                    this.removeSizeGroup();
+                }
+            } else {
+                console.error('API returned success: false');
+            }
+        } catch (error) {
+            console.error('Error updating sizes for color:', error);
         }
     }
     
     removeSizeGroup() {
         const group = document.getElementById('group-size');
+        if (group) group.remove();
+    }
+    
+    removeColorGroup() {
+        const group = document.getElementById('group-color');
         if (group) group.remove();
     }
     

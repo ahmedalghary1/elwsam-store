@@ -226,6 +226,52 @@ class ProductColor(models.Model):
 
     def __str__(self):
         return f"{self.product.name} - {self.color.name}"
+    
+    def save(self, *args, **kwargs):
+        """Override save to create ProductVariant automatically"""
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+        
+        if is_new:
+            # Create ProductVariant for all pattern-size combinations
+            self.create_variants_for_pattern_sizes()
+    
+    def create_variants_for_pattern_sizes(self):
+        """Create ProductVariant for all pattern-size combinations"""
+        from .models import Pattern, PatternSize, ProductVariant
+        
+        product = self.product
+        color = self.color
+        
+        # Get all patterns with sizes
+        patterns = Pattern.objects.filter(product=product, has_sizes=True)
+        
+        created_count = 0
+        for pattern in patterns:
+            # Get all sizes for this pattern
+            pattern_sizes = PatternSize.objects.filter(pattern=pattern).select_related('size')
+            
+            for ps in pattern_sizes:
+                # Check if variant already exists
+                if not ProductVariant.objects.filter(
+                    product=product,
+                    pattern=pattern,
+                    color=color,
+                    size=ps.size
+                ).exists():
+                    # Create variant
+                    ProductVariant.objects.create(
+                        product=product,
+                        pattern=pattern,
+                        color=color,
+                        size=ps.size,
+                        price=ps.price,
+                        stock=ps.stock,
+                        order=0
+                    )
+                    created_count += 1
+        
+        return created_count
 
 
 # =========================
@@ -304,6 +350,49 @@ class PatternSize(models.Model):
     def is_available(self):
         """Check if this pattern-size combination is in stock"""
         return self.stock > 0
+    
+    def save(self, *args, **kwargs):
+        """Override save to create ProductVariant automatically"""
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+        
+        if is_new:
+            # Create ProductVariant for each color
+            self.create_variants_for_colors()
+    
+    def create_variants_for_colors(self):
+        """Create ProductVariant for all colors of this product"""
+        from .models import ProductColor, ProductVariant
+        
+        product = self.pattern.product
+        pattern = self.pattern
+        size = self.size
+        
+        # Get all colors for this product
+        product_colors = ProductColor.objects.filter(product=product).select_related('color')
+        
+        created_count = 0
+        for pc in product_colors:
+            # Check if variant already exists
+            if not ProductVariant.objects.filter(
+                product=product,
+                pattern=pattern,
+                color=pc.color,
+                size=size
+            ).exists():
+                # Create variant
+                ProductVariant.objects.create(
+                    product=product,
+                    pattern=pattern,
+                    color=pc.color,
+                    size=size,
+                    price=self.price,
+                    stock=self.stock,
+                    order=0
+                )
+                created_count += 1
+        
+        return created_count
 
 
 # =========================

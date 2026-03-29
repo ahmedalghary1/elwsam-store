@@ -25,9 +25,7 @@
         <!-- معرض الصور -->
         <div class="product-gallery">
           <div class="gallery-main" aria-label="صورة المنتج الرئيسية">
-            {% if images.first %}
-              <img src="{{ images.first.image.url }}" alt="{{ product.name }}" id="main-product-image">
-            {% elif product.image %}
+            {% if product.image %}
               <img src="{{ product.image.url }}" alt="{{ product.name }}" id="main-product-image">
             {% else %}
               <img src="{% static 'image/placeholder.png' %}" alt="{{ product.name }}" id="main-product-image">
@@ -356,5 +354,5 @@
   });
 </script>
 
-<script src="{% static 'js/variant-selector.js' %}" defer></script>
+<script src="{% static 'js/variant-selector-refactored.js' %}" defer></script>
 {% endblock %}

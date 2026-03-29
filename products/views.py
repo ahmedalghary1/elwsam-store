@@ -267,19 +267,21 @@ def get_product_config(request, product_id):
                 for ps in product_sizes
             ]
         
-        # Get colors
+        # Get colors - only for non-pattern-based products
         colors_data = []
-        product_colors = ProductColor.objects.filter(
-            product=product
-        ).select_related('color').order_by('order')
-        colors_data = [
-            {
-                'id': pc.color.id,
-                'name': pc.color.name,
-                'code': pc.color.code or '#ccc'
-            }
-            for pc in product_colors
-        ]
+        if not has_patterns:
+            # Only return colors for size_based or simple products
+            product_colors = ProductColor.objects.filter(
+                product=product
+            ).select_related('color').order_by('order')
+            colors_data = [
+                {
+                    'id': pc.color.id,
+                    'name': pc.color.name,
+                    'code': pc.color.code or '#ccc'
+                }
+                for pc in product_colors
+            ]
         
         config = {
             'success': True,
@@ -396,11 +398,14 @@ def get_variant_options(request, product_id):
                         if color_id:
                             filter_kwargs['color_id'] = color_id
                         
+                        # Check if ProductVariant exists and has stock
+                        variant_exists = ProductVariant.objects.filter(**filter_kwargs).exists()
                         has_stock = ProductVariant.objects.filter(
                             **filter_kwargs,
                             stock__gt=0
-                        ).exists()
+                        ).exists() if variant_exists else (ps.stock > 0)
                         
+                        # Always show the size, mark as available based on stock
                         sizes_data.append({
                             'id': ps.size.id,
                             'name': ps.size.name,

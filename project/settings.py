@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # third-party apps
-
+    'nested_admin',
 
     # local apps
     'core',
