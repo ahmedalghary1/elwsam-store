@@ -55,6 +55,9 @@ class CartItem(models.Model):
         verbose_name_plural = 'عناصر السلات'
 
     def __str__(self):
+        variant_info = self.get_variant_display()
+        if variant_info:
+            return f"{self.quantity} x {self.product.name} ({variant_info})"
         return f"{self.quantity} x {self.product.name}"
 
     def get_total_price(self):
@@ -62,6 +65,67 @@ class CartItem(models.Model):
         if self.variant and self.variant.price:
             return self.variant.price * self.quantity
         return self.product.price * self.quantity
+    
+    def get_variant_display(self):
+        """
+        Get formatted variant details from the linked variant
+        Returns: "Pattern: X | Color: Y | Size: Z" or empty string
+        """
+        if not self.variant:
+            return ""
+        
+        parts = []
+        if self.variant.pattern:
+            parts.append(f"النمط: {self.variant.pattern.name}")
+        if self.variant.color:
+            parts.append(f"اللون: {self.variant.color.name}")
+        if self.variant.size:
+            parts.append(f"المقاس: {self.variant.size.name}")
+        return " | ".join(parts)
+    
+    def get_variant_display_short(self):
+        """
+        Get short variant display (values only)
+        Returns: "X, Y, Z" or empty string
+        """
+        if not self.variant:
+            return ""
+        
+        parts = []
+        if self.variant.pattern:
+            parts.append(self.variant.pattern.name)
+        if self.variant.color:
+            parts.append(self.variant.color.name)
+        if self.variant.size:
+            parts.append(self.variant.size.name)
+        return ", ".join(parts)
+    
+    def get_variant_details_dict(self):
+        """
+        Get variant details as dictionary for JSON serialization
+        Returns: dict with pattern, color, size info
+        """
+        if not self.variant:
+            return {}
+        
+        details = {}
+        if self.variant.pattern:
+            details['pattern'] = {
+                'id': self.variant.pattern.id,
+                'name': self.variant.pattern.name
+            }
+        if self.variant.color:
+            details['color'] = {
+                'id': self.variant.color.id,
+                'name': self.variant.color.name,
+                'code': self.variant.color.code
+            }
+        if self.variant.size:
+            details['size'] = {
+                'id': self.variant.size.id,
+                'name': self.variant.size.name
+            }
+        return details
 
 
 # =========================
@@ -134,14 +198,51 @@ class OrderItem(models.Model):
     variant = models.ForeignKey(ProductVariant, on_delete=models.SET_NULL, null=True, blank=True)
     quantity = models.PositiveIntegerField(default=1)
     price = models.DecimalField(max_digits=10, decimal_places=2)  # السعر وقت الشراء
+    
+    # Variant details stored as text for permanent record (even if variant is deleted)
+    pattern_name = models.CharField(max_length=255, blank=True, null=True, verbose_name='النمط')
+    color_name = models.CharField(max_length=100, blank=True, null=True, verbose_name='اللون')
+    color_code = models.CharField(max_length=20, blank=True, null=True, verbose_name='كود اللون')
+    size_name = models.CharField(max_length=50, blank=True, null=True, verbose_name='المقاس')
 
     class Meta:
         verbose_name = 'عنصر طلب'
         verbose_name_plural = 'عناصر الطلبات'
 
     def __str__(self):
+        variant_info = self.get_variant_display()
+        if variant_info:
+            return f"{self.quantity} x {self.product.name} ({variant_info})"
         return f"{self.quantity} x {self.product.name}"
 
     def get_total_price(self):
         """حساب السعر الإجمالي"""
         return self.price * self.quantity
+    
+    def get_variant_display(self):
+        """
+        Get formatted variant details for display
+        Returns: "Pattern: X | Color: Y | Size: Z" or empty string
+        """
+        parts = []
+        if self.pattern_name:
+            parts.append(f"النمط: {self.pattern_name}")
+        if self.color_name:
+            parts.append(f"اللون: {self.color_name}")
+        if self.size_name:
+            parts.append(f"المقاس: {self.size_name}")
+        return " | ".join(parts)
+    
+    def get_variant_display_short(self):
+        """
+        Get short variant display (values only)
+        Returns: "X, Y, Z" or empty string
+        """
+        parts = []
+        if self.pattern_name:
+            parts.append(self.pattern_name)
+        if self.color_name:
+            parts.append(self.color_name)
+        if self.size_name:
+            parts.append(self.size_name)
+        return ", ".join(parts)

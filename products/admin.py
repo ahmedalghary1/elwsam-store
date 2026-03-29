@@ -1,10 +1,11 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
-from django.db.models import Count, Avg
+from django.db.models import Count, Avg, Sum
+from django.contrib import messages
 from .models import (
     Category, Product, Pattern, Color, ProductColor, Size, ProductSize,
-    ProductImage, ProductVariant, ProductSpecification
+    ProductImage, ProductVariant, ProductSpecification, PatternSize
 )
 
 
@@ -12,65 +13,129 @@ from .models import (
 # Inlines
 # ================================================
 
-class PatternInline(admin.TabularInline):
+class PatternInline(admin.StackedInline):
     model = Pattern
-    extra = 1
-    fields = ['name', 'order']
+    extra = 0
+    fields = ['name', 'has_sizes', 'base_price', 'order']
     ordering = ['order']
     verbose_name = 'نمط'
     verbose_name_plural = 'الأنماط'
+    
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super().get_formset(request, obj, **kwargs)
+        formset.validate_min = True
+        return formset
 
 
 class ProductColorInline(admin.TabularInline):
     model = ProductColor
-    extra = 1
-    fields = ['color', 'order']
+    extra = 0
+    fields = ['color', 'color_preview', 'order']
+    readonly_fields = ['color_preview']
     ordering = ['order']
     verbose_name = 'لون'
     verbose_name_plural = 'الألوان'
+    autocomplete_fields = ['color']
+    
+    def color_preview(self, obj):
+        if obj.color and obj.color.code:
+            return format_html(
+                '<span style="display:inline-block;width:24px;height:24px;background:{};'
+                'border-radius:50%;border:2px solid #ddd;"></span>',
+                obj.color.code
+            )
+        return '—'
+    color_preview.short_description = 'معاينة'
 
 
 class ProductSizeInline(admin.TabularInline):
     model = ProductSize
-    extra = 1
-    fields = ['size', 'order']
+    extra = 0
+    fields = ['size', 'price', 'order']
     ordering = ['order']
     verbose_name = 'مقاس'
     verbose_name_plural = 'المقاسات'
+    autocomplete_fields = ['size']
 
 
 class ProductImageInline(admin.TabularInline):
     model = ProductImage
-    extra = 1
+    extra = 0
     fields = ['color', 'image', 'preview', 'order']
     readonly_fields = ['preview']
     ordering = ['order']
     verbose_name = 'صورة'
     verbose_name_plural = 'الصور'
+    autocomplete_fields = ['color']
 
     def preview(self, obj):
         if obj.image:
-            return format_html('<img src="{}" style="width:60px;height:60px;object-fit:cover;border-radius:6px;" />', obj.image.url)
+            return format_html('<img src="{}" style="width:60px;height:60px;object-fit:cover;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.1);" />', obj.image.url)
         return '—'
     preview.short_description = 'معاينة'
 
 
 class ProductSpecificationInline(admin.TabularInline):
     model = ProductSpecification
-    extra = 1
+    extra = 0
     fields = ['key', 'value', 'order']
     ordering = ['order']
     verbose_name = 'مواصفة'
     verbose_name_plural = 'المواصفات'
 
 
+# ================================================
+# PatternSize Inline (for Pattern admin)
+# ================================================
+
+class PatternSizeInline(admin.TabularInline):
+    model = PatternSize
+    extra = 0
+    fields = ['size', 'price', 'stock', 'stock_badge', 'order']
+    readonly_fields = ['stock_badge']
+    ordering = ['order']
+    verbose_name = 'مقاس النمط'
+    verbose_name_plural = 'مقاسات النمط'
+    autocomplete_fields = ['size']
+    
+    def stock_badge(self, obj):
+        if not obj.pk:
+            return '—'
+        if obj.stock > 10:
+            color = '#28a745'
+            icon = '✓'
+        elif obj.stock > 0:
+            color = '#ffc107'
+            icon = '⚠'
+        else:
+            color = '#dc3545'
+            icon = '✗'
+        return format_html(
+            '<span style="color:{};font-weight:bold;">{} {}</span>',
+            color, icon, obj.stock
+        )
+    stock_badge.short_description = 'المخزون'
+
+
 class ProductVariantInline(admin.TabularInline):
     model = ProductVariant
-    extra = 1
-    fields = ['pattern', 'color', 'size', 'price', 'stock', 'sku', 'order']
+    extra = 0
+    fields = ['pattern', 'color', 'size', 'price', 'stock', 'sku', 'stock_status_badge', 'order']
+    readonly_fields = ['stock_status_badge']
     ordering = ['order']
     verbose_name = 'متغير'
     verbose_name_plural = 'المتغيرات (اللون/المقاس/النمط)'
+    autocomplete_fields = ['pattern', 'color', 'size']
+    
+    def stock_status_badge(self, obj):
+        if not obj.pk:
+            return '—'
+        if obj.stock > 10:
+            return format_html('<span style="background:#28a745;color:white;padding:2px 8px;border-radius:4px;font-size:0.8em;">{}</span>', '✓ متوفر')
+        elif obj.stock > 0:
+            return format_html('<span style="background:#ffc107;color:black;padding:2px 8px;border-radius:4px;font-size:0.8em;">{}</span>', '⚠ محدود')
+        return format_html('<span style="background:#dc3545;color:white;padding:2px 8px;border-radius:4px;font-size:0.8em;">{}</span>', '✗ نفد')
+    stock_status_badge.short_description = 'الحالة'
 
 
 # ================================================
@@ -87,6 +152,20 @@ class CategoryAdmin(admin.ModelAdmin):
     ordering = ['order']
     readonly_fields = ['slug', 'created_at', 'updated_at', 'category_image_preview']
     prepopulated_fields = {}
+    list_per_page = 20
+    date_hierarchy = 'created_at'
+    
+    actions = ['mark_as_hot', 'mark_as_not_hot']
+    
+    def mark_as_hot(self, request, queryset):
+        updated = queryset.update(is_hot=True)
+        self.message_user(request, f'تم تحديد {updated} قسم كمشهور', messages.SUCCESS)
+    mark_as_hot.short_description = 'تحديد كمشهور'
+    
+    def mark_as_not_hot(self, request, queryset):
+        updated = queryset.update(is_hot=False)
+        self.message_user(request, f'تم إلغاء {updated} قسم من المشهورة', messages.SUCCESS)
+    mark_as_not_hot.short_description = 'إلغاء من المشهورة'
 
     fieldsets = (
         ('📁 معلومات القسم', {
@@ -222,7 +301,38 @@ class ProductAdmin(admin.ModelAdmin):
     discount_percent_display.short_description = 'نسبة الخصم'
 
     def get_queryset(self, request):
-        return super().get_queryset(request).select_related('category')
+        return super().get_queryset(request).select_related('category').prefetch_related('variants', 'images')
+    
+    actions = ['mark_as_active', 'mark_as_inactive', 'mark_as_hot', 'mark_as_new', 'duplicate_product']
+    
+    def mark_as_active(self, request, queryset):
+        updated = queryset.update(is_active=True)
+        self.message_user(request, f'تم تفعيل {updated} منتج', messages.SUCCESS)
+    mark_as_active.short_description = 'تفعيل المنتجات'
+    
+    def mark_as_inactive(self, request, queryset):
+        updated = queryset.update(is_active=False)
+        self.message_user(request, f'تم إلغاء تفعيل {updated} منتج', messages.SUCCESS)
+    mark_as_inactive.short_description = 'إلغاء تفعيل المنتجات'
+    
+    def mark_as_hot(self, request, queryset):
+        updated = queryset.update(is_hot=True)
+        self.message_user(request, f'تم تحديد {updated} منتج كمشهور', messages.SUCCESS)
+    mark_as_hot.short_description = 'تحديد كمشهور'
+    
+    def mark_as_new(self, request, queryset):
+        updated = queryset.update(is_new=True)
+        self.message_user(request, f'تم تحديد {updated} منتج كجديد', messages.SUCCESS)
+    mark_as_new.short_description = 'تحديد كجديد'
+    
+    def duplicate_product(self, request, queryset):
+        for product in queryset:
+            product.pk = None
+            product.name = f'{product.name} (نسخة)'
+            product.slug = None
+            product.save()
+        self.message_user(request, f'تم نسخ {queryset.count()} منتج', messages.SUCCESS)
+    duplicate_product.short_description = 'نسخ المنتجات'
 
     class Meta:
         verbose_name = 'منتج'
@@ -235,22 +345,27 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(Color)
 class ColorAdmin(admin.ModelAdmin):
-    list_display = ['color_swatch', 'name', 'code']
+    list_display = ['color_swatch', 'name', 'code', 'usage_count']
+    list_display_links = ['name']
     search_fields = ['name', 'code']
+    list_per_page = 30
+    
+    def usage_count(self, obj):
+        count = obj.productcolor_set.count()
+        if count > 0:
+            return format_html('<span style="color:#007bff;font-weight:bold;">{} منتج</span>', count)
+        return '—'
+    usage_count.short_description = 'الاستخدام'
 
     def color_swatch(self, obj):
         if obj.code:
             return format_html(
-                '<span style="display:inline-block;width:24px;height:24px;'
-                'background:{};border-radius:50%;border:2px solid #ddd;vertical-align:middle;"></span>',
+                '<span style="display:inline-block;width:24px;height:24px;background:{};'
+                'border-radius:50%;border:2px solid #ddd;"></span>',
                 obj.code
             )
         return '—'
     color_swatch.short_description = 'اللون'
-
-    class Meta:
-        verbose_name = 'لون'
-        verbose_name_plural = 'الألوان'
 
 
 # ================================================
@@ -259,8 +374,24 @@ class ColorAdmin(admin.ModelAdmin):
 
 @admin.register(Size)
 class SizeAdmin(admin.ModelAdmin):
-    list_display = ['name']
+    list_display = ['name', 'product_usage', 'pattern_usage']
+    list_display_links = ['name']
     search_fields = ['name']
+    list_per_page = 30
+    
+    def product_usage(self, obj):
+        count = obj.productsize_set.count()
+        if count > 0:
+            return format_html('<span style="color:#28a745;font-weight:bold;">{} منتج</span>', count)
+        return '—'
+    product_usage.short_description = 'استخدام المنتجات'
+    
+    def pattern_usage(self, obj):
+        count = obj.patternsize_set.count()
+        if count > 0:
+            return format_html('<span style="color:#007bff;font-weight:bold;">{} نمط</span>', count)
+        return '—'
+    pattern_usage.short_description = 'استخدام الأنماط'
 
     class Meta:
         verbose_name = 'مقاس'
@@ -273,12 +404,40 @@ class SizeAdmin(admin.ModelAdmin):
 
 @admin.register(Pattern)
 class PatternAdmin(admin.ModelAdmin):
-    list_display = ['product', 'name', 'order']
+    list_display = ['product', 'name', 'has_sizes', 'base_price_display', 'pattern_sizes_count', 'order']
+    list_display_links = ['name']
     list_editable = ['order']
-    list_filter = ['product']
+    list_filter = ['has_sizes', 'product__category']
     search_fields = ['name', 'product__name']
-    ordering = ['order']
+    ordering = ['product', 'order']
     autocomplete_fields = ['product']
+    list_per_page = 30
+    
+    fieldsets = (
+        ('معلومات النمط', {
+            'fields': ('product', 'name', 'order')
+        }),
+        ('إعدادات التسعير', {
+            'fields': ('has_sizes', 'base_price'),
+            'description': 'إذا كان النمط له مقاسات، حدد "له مقاسات" وأضف المقاسات أدناه. وإلا، حدد السعر الأساسي.'
+        }),
+    )
+    
+    inlines = [PatternSizeInline]
+    
+    def base_price_display(self, obj):
+        if obj.base_price:
+            return format_html('<span style="font-weight:bold;color:#28a745;">{} ج.م</span>', obj.base_price)
+        return '—'
+    base_price_display.short_description = 'السعر الأساسي'
+    base_price_display.admin_order_field = 'base_price'
+    
+    def pattern_sizes_count(self, obj):
+        count = obj.pattern_sizes.count()
+        if count > 0:
+            return format_html('<span style="color:#007bff;font-weight:bold;">{} مقاس</span>', count)
+        return '—'
+    pattern_sizes_count.short_description = 'عدد المقاسات'
 
     class Meta:
         verbose_name = 'نمط'
@@ -291,14 +450,59 @@ class PatternAdmin(admin.ModelAdmin):
 
 @admin.register(ProductVariant)
 class ProductVariantAdmin(admin.ModelAdmin):
-    list_display = ['product', 'color_display', 'size', 'pattern', 'price', 'stock_display', 'sku', 'order']
-    list_editable = ['price', 'order']
-    list_filter = ['product__category', 'color', 'size', 'pattern']
-    search_fields = ['product__name', 'sku']
+    list_display = ['product', 'pattern', 'color_display', 'size', 'dynamic_price_display', 'stock_display', 'sku', 'order']
+    list_display_links = ['product']
+    list_editable = ['order']
+    list_filter = ['product__category', 'color', 'size', 'pattern', 'stock']
+    search_fields = ['product__name', 'sku', 'pattern__name', 'color__name', 'size__name']
     ordering = ['product', 'order']
-    autocomplete_fields = ['product']
-    list_per_page = 30
-
+    autocomplete_fields = ['product', 'pattern', 'color', 'size']
+    list_per_page = 50
+    list_select_related = ['product', 'pattern', 'color', 'size']
+    
+    fieldsets = (
+        ('معلومات المتغير', {
+            'fields': ('product', 'pattern', 'color', 'size', 'sku', 'order')
+        }),
+        ('المخزون والسعر', {
+            'fields': ('stock', 'price', 'dynamic_price_display'),
+            'description': 'ملاحظة: حقل السعر قديم. السعر الفعلي يُحسب ديناميكياً من التسلسل الهرمي للأسعار.'
+        }),
+    )
+    
+    readonly_fields = ['dynamic_price_display']
+    
+    actions = ['update_stock_to_zero', 'update_stock_to_ten', 'mark_as_available']
+    
+    def dynamic_price_display(self, obj):
+        if obj.pk:
+            dynamic_price = obj.get_price()
+            if dynamic_price != obj.price:
+                return format_html(
+                    '<span style="font-weight:bold;color:#28a745;">{} ج.م</span> '
+                    '<span style="color:#999;font-size:0.85em;">(محسوب ديناميكياً)</span><br>'
+                    '<span style="color:#dc3545;font-size:0.85em;">السعر القديم: {} ج.م</span>',
+                    dynamic_price, obj.price
+                )
+            return format_html('<span style="font-weight:bold;">{} ج.م</span>', dynamic_price)
+        return '—'
+    dynamic_price_display.short_description = 'السعر الديناميكي'
+    
+    def update_stock_to_zero(self, request, queryset):
+        updated = queryset.update(stock=0)
+        self.message_user(request, f'تم تحديث المخزون إلى 0 لـ {updated} متغير', messages.SUCCESS)
+    update_stock_to_zero.short_description = 'تحديث المخزون إلى 0'
+    
+    def update_stock_to_ten(self, request, queryset):
+        updated = queryset.update(stock=10)
+        self.message_user(request, f'تم تحديث المخزون إلى 10 لـ {updated} متغير', messages.SUCCESS)
+    update_stock_to_ten.short_description = 'تحديث المخزون إلى 10'
+    
+    def mark_as_available(self, request, queryset):
+        updated = queryset.filter(stock=0).update(stock=5)
+        self.message_user(request, f'تم تحديث {updated} متغير إلى متوفر', messages.SUCCESS)
+    mark_as_available.short_description = 'تحديد كمتوفر (5 قطع)'
+    
     def color_display(self, obj):
         if obj.color and obj.color.code:
             return format_html(
@@ -308,7 +512,7 @@ class ProductVariantAdmin(admin.ModelAdmin):
             )
         return obj.color.name if obj.color else '—'
     color_display.short_description = 'اللون'
-
+    
     def stock_display(self, obj):
         if obj.stock > 10:
             color = '#28a745'
@@ -320,10 +524,6 @@ class ProductVariantAdmin(admin.ModelAdmin):
     stock_display.short_description = 'المخزون'
     stock_display.admin_order_field = 'stock'
 
-    class Meta:
-        verbose_name = 'متغير منتج'
-        verbose_name_plural = 'متغيرات المنتجات'
-
 
 # ================================================
 # ProductImage Admin
@@ -331,20 +531,33 @@ class ProductVariantAdmin(admin.ModelAdmin):
 
 @admin.register(ProductImage)
 class ProductImageAdmin(admin.ModelAdmin):
-    list_display = ['image_preview', 'product', 'color', 'order']
+    list_display = ['image_preview', 'product', 'color_display', 'order']
+    list_display_links = ['product']
     list_editable = ['order']
-    list_filter = ['product', 'color']
+    list_filter = ['product__category', 'color']
+    search_fields = ['product__name', 'color__name']
     ordering = ['product', 'order']
+    autocomplete_fields = ['product', 'color']
+    list_per_page = 40
+    list_select_related = ['product', 'color']
+    
+    def color_display(self, obj):
+        if obj.color:
+            if obj.color.code:
+                return format_html(
+                    '<span style="display:inline-block;width:16px;height:16px;background:{};'
+                    'border-radius:50%;border:1px solid #ccc;margin-left:6px;vertical-align:middle;"></span> {}',
+                    obj.color.code, obj.color.name
+                )
+            return obj.color.name
+        return '—'
+    color_display.short_description = 'اللون'
 
     def image_preview(self, obj):
         if obj.image:
             return format_html('<img src="{}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;" />', obj.image.url)
         return '—'
     image_preview.short_description = 'معاينة'
-
-    class Meta:
-        verbose_name = 'صورة منتج'
-        verbose_name_plural = 'صور المنتجات'
 
 
 # ================================================
@@ -354,10 +567,14 @@ class ProductImageAdmin(admin.ModelAdmin):
 @admin.register(ProductSpecification)
 class ProductSpecificationAdmin(admin.ModelAdmin):
     list_display = ['product', 'key', 'value', 'order']
+    list_display_links = ['product']
     list_editable = ['order']
-    list_filter = ['product']
+    list_filter = ['product__category', 'key']
     search_fields = ['key', 'value', 'product__name']
     ordering = ['product', 'order']
+    autocomplete_fields = ['product']
+    list_per_page = 40
+    list_select_related = ['product']
 
     class Meta:
         verbose_name = 'مواصفة'
@@ -371,10 +588,14 @@ class ProductSpecificationAdmin(admin.ModelAdmin):
 @admin.register(ProductColor)
 class ProductColorAdmin(admin.ModelAdmin):
     list_display = ['product', 'color_display', 'order']
+    list_display_links = ['product']
     list_editable = ['order']
-    list_filter = ['color']
+    list_filter = ['color', 'product__category']
     search_fields = ['product__name', 'color__name']
-    ordering = ['order']
+    ordering = ['product', 'order']
+    autocomplete_fields = ['product', 'color']
+    list_per_page = 30
+    list_select_related = ['product', 'color']
 
     def color_display(self, obj):
         if obj.color.code:
@@ -393,12 +614,91 @@ class ProductColorAdmin(admin.ModelAdmin):
 
 @admin.register(ProductSize)
 class ProductSizeAdmin(admin.ModelAdmin):
-    list_display = ['product', 'size', 'order']
+    list_display = ['product', 'size', 'price_display', 'order']
+    list_display_links = ['product']
     list_editable = ['order']
-    list_filter = ['size']
+    list_filter = ['size', 'product__category']
     search_fields = ['product__name', 'size__name']
-    ordering = ['order']
+    ordering = ['product', 'order']
+    autocomplete_fields = ['product', 'size']
+    list_per_page = 30
+    list_select_related = ['product', 'size']
+    
+    def price_display(self, obj):
+        return format_html('<span style="font-weight:bold;color:#28a745;">{} ج.م</span>', obj.price)
+    price_display.short_description = 'السعر'
+    price_display.admin_order_field = 'price'
 
     class Meta:
         verbose_name = 'مقاس منتج'
         verbose_name_plural = 'مقاسات المنتجات'
+
+
+# ================================================
+# PatternSize Admin (NEW - Multi-level Pricing)
+# ================================================
+
+@admin.register(PatternSize)
+class PatternSizeAdmin(admin.ModelAdmin):
+    list_display = ['pattern', 'size', 'price_display', 'stock_display', 'availability_badge', 'order']
+    list_display_links = ['pattern']
+    list_editable = ['order']
+    list_filter = ['pattern__product__category', 'size', 'stock']
+    search_fields = ['pattern__name', 'pattern__product__name', 'size__name']
+    ordering = ['pattern', 'order']
+    autocomplete_fields = ['pattern', 'size']
+    list_per_page = 40
+    list_select_related = ['pattern', 'pattern__product', 'size']
+    
+    fieldsets = (
+        ('معلومات المقاس', {
+            'fields': ('pattern', 'size', 'order')
+        }),
+        ('السعر والمخزون', {
+            'fields': ('price', 'stock'),
+            'description': 'هذا السعر له الأولوية القصوى في التسلسل الهرمي للأسعار.'
+        }),
+    )
+    
+    actions = ['update_stock_to_zero', 'update_stock_to_ten', 'mark_as_available']
+    
+    def price_display(self, obj):
+        return format_html('<span style="font-weight:bold;color:#28a745;">{} ج.م</span>', obj.price)
+    price_display.short_description = 'السعر'
+    price_display.admin_order_field = 'price'
+    
+    def stock_display(self, obj):
+        if obj.stock > 10:
+            color = '#28a745'
+        elif obj.stock > 0:
+            color = '#ffc107'
+        else:
+            color = '#dc3545'
+        return format_html('<span style="color:{};font-weight:bold;">{}</span>', color, obj.stock)
+    stock_display.short_description = 'المخزون'
+    stock_display.admin_order_field = 'stock'
+    
+    def availability_badge(self, obj):
+        if obj.is_available():
+            return format_html('<span style="background:#28a745;color:white;padding:2px 8px;border-radius:4px;font-size:0.8em;">✓ متوفر</span>')
+        return format_html('<span style="background:#dc3545;color:white;padding:2px 8px;border-radius:4px;font-size:0.8em;">✗ نفد</span>')
+    availability_badge.short_description = 'الحالة'
+    
+    def update_stock_to_zero(self, request, queryset):
+        updated = queryset.update(stock=0)
+        self.message_user(request, f'تم تحديث المخزون إلى 0 لـ {updated} مقاس نمط', messages.SUCCESS)
+    update_stock_to_zero.short_description = 'تحديث المخزون إلى 0'
+    
+    def update_stock_to_ten(self, request, queryset):
+        updated = queryset.update(stock=10)
+        self.message_user(request, f'تم تحديث المخزون إلى 10 لـ {updated} مقاس نمط', messages.SUCCESS)
+    update_stock_to_ten.short_description = 'تحديث المخزون إلى 10'
+    
+    def mark_as_available(self, request, queryset):
+        updated = queryset.filter(stock=0).update(stock=5)
+        self.message_user(request, f'تم تحديث {updated} مقاس نمط إلى متوفر', messages.SUCCESS)
+    mark_as_available.short_description = 'تحديد كمتوفر (5 قطع)'
+    
+    class Meta:
+        verbose_name = 'مقاس نمط'
+        verbose_name_plural = 'مقاسات الأنماط'

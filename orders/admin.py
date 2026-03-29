@@ -11,11 +11,27 @@ from .models import Cart, CartItem, Order, OrderItem
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
     extra = 0
-    readonly_fields = ('product', 'variant', 'quantity', 'price', 'item_total')
-    fields = ('product', 'variant', 'quantity', 'price', 'item_total')
+    readonly_fields = ('product', 'variant_details_display', 'quantity', 'price', 'item_total')
+    fields = ('product', 'variant_details_display', 'quantity', 'price', 'item_total')
     can_delete = False
     verbose_name = 'منتج'
     verbose_name_plural = 'المنتجات في الطلب'
+
+    def variant_details_display(self, obj):
+        """Display variant details with color coding"""
+        variant_info = obj.get_variant_display()
+        if variant_info:
+            parts = []
+            if obj.pattern_name:
+                parts.append(format_html('<span style="background:#e3f2fd;padding:2px 6px;border-radius:3px;margin:2px;">📐 {}</span>', obj.pattern_name))
+            if obj.color_name:
+                color_style = f'background:{obj.color_code};' if obj.color_code else 'background:#f5f5f5;'
+                parts.append(format_html('<span style="{}padding:2px 6px;border-radius:3px;margin:2px;border:1px solid #ddd;">🎨 {}</span>', color_style, obj.color_name))
+            if obj.size_name:
+                parts.append(format_html('<span style="background:#fff3e0;padding:2px 6px;border-radius:3px;margin:2px;">📏 {}</span>', obj.size_name))
+            return format_html('<div style="display:flex;flex-wrap:wrap;gap:4px;">{}</div>', format_html(''.join(str(p) for p in parts)))
+        return '—'
+    variant_details_display.short_description = 'تفاصيل المتغير'
 
     def item_total(self, obj):
         total = obj.get_total_price()
@@ -216,23 +232,47 @@ class OrderAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('user').prefetch_related('items')
-
-
 # ================================================
 # OrderItem Admin
 # ================================================
 @admin.register(OrderItem)
 class OrderItemAdmin(admin.ModelAdmin):
-    list_display = ['order_link', 'product', 'variant', 'quantity', 'price', 'total_display']
-    list_filter = ['product__category', 'order__status']
-    search_fields = ['product__name', 'order__id', 'order__user__email']
-    readonly_fields = ['order', 'product', 'variant', 'quantity', 'price']
+    list_display = ['order_link', 'product', 'variant_details_display', 'quantity', 'price', 'total_display']
+    list_filter = ['product__category', 'order__status', 'pattern_name', 'color_name', 'size_name']
+    search_fields = ['product__name', 'order__id', 'order__user__email', 'pattern_name', 'color_name', 'size_name']
+    readonly_fields = ['order', 'product', 'variant', 'quantity', 'price', 'pattern_name', 'color_name', 'size_name']
     ordering = ['-order__created_at']
+    
+    fieldsets = (
+        ('معلومات الطلب', {
+            'fields': ('order', 'product', 'quantity', 'price')
+        }),
+        ('تفاصيل المتغير', {
+            'fields': ('variant', 'pattern_name', 'color_name', 'color_code', 'size_name'),
+            'classes': ('collapse',)
+        }),
+    )
 
     def order_link(self, obj):
         return format_html('<strong>#{}</strong>', obj.order.id)
     order_link.short_description = 'رقم الطلب'
     order_link.admin_order_field = 'order__id'
+    
+    def variant_details_display(self, obj):
+        """Display variant details with badges"""
+        variant_info = obj.get_variant_display()
+        if variant_info:
+            parts = []
+            if obj.pattern_name:
+                parts.append(format_html('<span style="background:#e3f2fd;padding:2px 6px;border-radius:3px;font-size:0.85em;">📐 {}</span>', obj.pattern_name))
+            if obj.color_name:
+                color_style = f'background:{obj.color_code};color:white;' if obj.color_code else 'background:#f5f5f5;'
+                parts.append(format_html('<span style="{}padding:2px 6px;border-radius:3px;font-size:0.85em;border:1px solid #ddd;">🎨 {}</span>', color_style, obj.color_name))
+            if obj.size_name:
+                parts.append(format_html('<span style="background:#fff3e0;padding:2px 6px;border-radius:3px;font-size:0.85em;">📏 {}</span>', obj.size_name))
+            return format_html(' '.join(str(p) for p in parts))
+        return '—'
+    variant_details_display.short_description = 'المتغير'
 
     def total_display(self, obj):
         return format_html('<strong>{} ج.م</strong>', obj.get_total_price())
@@ -240,11 +280,6 @@ class OrderItemAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return False
-
-
-# ================================================
-# Cart Admin
-# ================================================
 @admin.register(Cart)
 class CartAdmin(admin.ModelAdmin):
     list_display = ['user', 'items_count', 'cart_total', 'created_at', 'updated_at']

@@ -1,0 +1,480 @@
+/**
+ * Validation System CSS
+ * Visual feedback for validation errors, warnings, and success messages
+ */
+
+/* ========================================
+   Validation Error Container
+   ======================================== */
+
+.validation-errors-container {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 600px;
+    width: 90%;
+    padding: 16px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 9999;
+    animation: slideDown 0.3s ease-out;
+    font-family: 'Cairo', sans-serif;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+.validation-errors-container.error {
+    background: #fff5f5;
+    border: 2px solid #fc8181;
+    color: #742a2a;
+}
+
+.validation-errors-container.warning {
+    background: #fffaf0;
+    border: 2px solid #f6ad55;
+    color: #7c2d12;
+}
+
+.validation-errors-container.success {
+    background: #f0fff4;
+    border: 2px solid #68d391;
+    color: #22543d;
+}
+
+/* Error Messages */
+.validation-error-general {
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+}
+
+.validation-error-general::before {
+    content: '⚠';
+    font-size: 20px;
+    margin-left: 8px;
+}
+
+.validation-success::before {
+    content: '✓';
+    font-size: 20px;
+    margin-left: 8px;
+    color: #38a169;
+}
+
+.validation-warning::before {
+    content: '⚠';
+    font-size: 20px;
+    margin-left: 8px;
+    color: #dd6b20;
+}
+
+.validation-error-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.validation-error-list li {
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 4px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+}
+
+.validation-error-list li::before {
+    content: '•';
+    margin-left: 8px;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+/* ========================================
+   Field Validation States
+   ======================================== */
+
+.validation-error-field {
+    border: 2px solid #fc8181 !important;
+    background-color: #fff5f5 !important;
+    animation: shake 0.3s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.validation-error-field:focus {
+    border-color: #f56565 !important;
+    box-shadow: 0 0 0 3px rgba(252, 129, 129, 0.2) !important;
+    outline: none;
+}
+
+.validation-error-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #fc8181;
+    font-size: 18px;
+    pointer-events: none;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Valid field state */
+.validation-valid-field {
+    border: 2px solid #68d391 !important;
+    background-color: #f0fff4 !important;
+}
+
+.validation-valid-field:focus {
+    border-color: #48bb78 !important;
+    box-shadow: 0 0 0 3px rgba(104, 211, 145, 0.2) !important;
+}
+
+/* ========================================
+   Loading States
+   ======================================== */
+
+.loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ========================================
+   Variant Selector Validation
+   ======================================== */
+
+.variant-message {
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.variant-message-error {
+    background: #fff5f5;
+    border: 1px solid #fc8181;
+    color: #742a2a;
+}
+
+.variant-message-warning {
+    background: #fffaf0;
+    border: 1px solid #f6ad55;
+    color: #7c2d12;
+}
+
+.variant-message-info {
+    background: #ebf8ff;
+    border: 1px solid #90cdf4;
+    color: #2c5282;
+}
+
+.variant-message::before {
+    font-size: 18px;
+    margin-left: 8px;
+}
+
+.variant-message-error::before {
+    content: '✗';
+}
+
+.variant-message-warning::before {
+    content: '⚠';
+}
+
+.variant-message-info::before {
+    content: 'ℹ';
+}
+
+/* Required indicator */
+.required-indicator {
+    color: #fc8181;
+    font-weight: bold;
+    margin-right: 4px;
+    font-size: 16px;
+}
+
+/* Out of stock label */
+.out-of-stock-label {
+    display: inline-block;
+    background: #fc8181;
+    color: white;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-right: 6px;
+    font-weight: 600;
+}
+
+/* Disabled variant button */
+.variant-btn.disabled,
+.variant-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    position: relative;
+}
+
+.variant-btn.disabled::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(0, 0, 0, 0.05) 10px,
+        rgba(0, 0, 0, 0.05) 20px
+    );
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+/* ========================================
+   Form Validation
+   ======================================== */
+
+.form-group.has-error input,
+.form-group.has-error select,
+.form-group.has-error textarea {
+    border-color: #fc8181;
+    background-color: #fff5f5;
+}
+
+.form-group.has-error label {
+    color: #742a2a;
+}
+
+.form-error-message {
+    color: #742a2a;
+    font-size: 13px;
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+}
+
+.form-error-message::before {
+    content: '⚠';
+    margin-left: 6px;
+}
+
+/* ========================================
+   Toast Notifications
+   ======================================== */
+
+.toast-notification {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    max-width: 400px;
+    padding: 16px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 10000;
+    animation: slideUp 0.3s ease-out;
+    font-family: 'Cairo', sans-serif;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.toast-notification.success {
+    background: #f0fff4;
+    border: 2px solid #68d391;
+    color: #22543d;
+}
+
+.toast-notification.error {
+    background: #fff5f5;
+    border: 2px solid #fc8181;
+    color: #742a2a;
+}
+
+.toast-notification.warning {
+    background: #fffaf0;
+    border: 2px solid #f6ad55;
+    color: #7c2d12;
+}
+
+/* ========================================
+   Cart Validation
+   ======================================== */
+
+.cart-error-message {
+    background: #fff5f5;
+    border: 1px solid #fc8181;
+    color: #742a2a;
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin: 16px 0;
+    font-size: 14px;
+}
+
+.cart-success-message {
+    background: #f0fff4;
+    border: 1px solid #68d391;
+    color: #22543d;
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin: 16px 0;
+    font-size: 14px;
+}
+
+/* ========================================
+   Accessibility
+   ======================================== */
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Focus visible for keyboard navigation */
+.validation-error-field:focus-visible {
+    outline: 3px solid #fc8181;
+    outline-offset: 2px;
+}
+
+/* ========================================
+   Responsive Design
+   ======================================== */
+
+@media (max-width: 768px) {
+    .validation-errors-container {
+        top: 60px;
+        width: 95%;
+        padding: 12px 16px;
+    }
+    
+    .validation-error-general {
+        font-size: 14px;
+    }
+    
+    .validation-error-list li {
+        font-size: 13px;
+        padding: 6px 10px;
+    }
+    
+    .toast-notification {
+        bottom: 16px;
+        right: 16px;
+        left: 16px;
+        max-width: none;
+    }
+}
+
+/* ========================================
+   Print Styles
+   ======================================== */
+
+@media print {
+    .validation-errors-container,
+    .toast-notification,
+    .validation-error-icon {
+        display: none !important;
+    }
+}
+
+/* ========================================
+   RTL Support
+   ======================================== */
+
+[dir="rtl"] .validation-error-icon {
+    left: auto;
+    right: 12px;
+}
+
+[dir="rtl"] .validation-error-general::before,
+[dir="rtl"] .validation-success::before,
+[dir="rtl"] .validation-warning::before {
+    margin-left: 0;
+    margin-right: 8px;
+}
+
+[dir="rtl"] .validation-error-list li::before {
+    margin-left: 0;
+    margin-right: 8px;
+}
+
+[dir="rtl"] .spinner {
+    margin-left: 0;
+    margin-right: 8px;
+}
+
+[dir="rtl"] .variant-message::before {
+    margin-left: 0;
+    margin-right: 8px;
+}
+
+[dir="rtl"] .out-of-stock-label {
+    margin-right: 0;
+    margin-left: 6px;
+}
+
+[dir="rtl"] .form-error-message::before {
+    margin-left: 0;
+    margin-right: 6px;
+}

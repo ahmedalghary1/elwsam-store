@@ -89,6 +89,68 @@ class Product(models.Model):
     def get_first_image(self):
         """الحصول على أول صورة للمنتج"""
         return self.images.first()
+    
+    def get_price(self, pattern_id=None, size_id=None, color_id=None):
+        """
+        Dynamic price resolution using hierarchy:
+        1. PatternSize (pattern + size) - highest priority
+        2. ProductSize (product + size)
+        3. Pattern.base_price
+        4. Product.price (base price) - fallback
+        
+        Args:
+            pattern_id: Optional pattern ID
+            size_id: Optional size ID
+            color_id: Optional color ID (for future use)
+        
+        Returns:
+            Decimal: Calculated price based on hierarchy
+        """
+        # Priority 1: PatternSize (pattern + size)
+        if pattern_id and size_id:
+            try:
+                pattern_size = PatternSize.objects.get(
+                    pattern_id=pattern_id,
+                    size_id=size_id
+                )
+                return pattern_size.price
+            except PatternSize.DoesNotExist:
+                pass
+        
+        # Priority 2: ProductSize (product + size)
+        if size_id:
+            try:
+                product_size = ProductSize.objects.get(
+                    product=self,
+                    size_id=size_id
+                )
+                return product_size.price
+            except ProductSize.DoesNotExist:
+                pass
+        
+        # Priority 3: Pattern base price
+        if pattern_id:
+            try:
+                pattern = Pattern.objects.get(id=pattern_id)
+                if pattern.base_price:
+                    return pattern.base_price
+            except Pattern.DoesNotExist:
+                pass
+        
+        # Priority 4: Product base price (fallback)
+        return self.price
+    
+    def has_variants(self):
+        """Check if product has any variants"""
+        return self.variants.exists()
+    
+    def has_patterns(self):
+        """Check if product has patterns"""
+        return self.patterns.exists()
+    
+    def has_product_level_sizes(self):
+        """Check if product has product-level sizes"""
+        return self.product_sizes.exists()
 
     
 # =========================
@@ -98,6 +160,19 @@ class Pattern(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="patterns")
     name = models.CharField(max_length=100)
     order = models.PositiveIntegerField(default=0)
+    
+    # Multi-level pricing support
+    has_sizes = models.BooleanField(
+        default=False,
+        help_text='هل هذا النمط يتطلب اختيار مقاس؟'
+    )
+    base_price = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        null=True, 
+        blank=True,
+        help_text='السعر الأساسي للنمط (إذا لم يكن له مقاسات)'
+    )
 
     class Meta:
         ordering = ['order']
@@ -106,6 +181,18 @@ class Pattern(models.Model):
 
     def __str__(self):
         return f"{self.product.name} - {self.name}"
+    
+    def requires_size_selection(self):
+        """Check if this pattern requires size selection"""
+        return self.has_sizes
+    
+    def clean(self):
+        """Validate that pattern has either sizes or base_price"""
+        from django.core.exceptions import ValidationError
+        if not self.has_sizes and not self.base_price:
+            raise ValidationError(
+                'يجب تحديد سعر أساسي للنمط إذا لم يكن له مقاسات'
+            )
 
 
 # =========================
@@ -162,15 +249,61 @@ class ProductSize(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="product_sizes")
     size = models.ForeignKey(Size, on_delete=models.CASCADE)
     order = models.PositiveIntegerField(default=0)
+    
+    # Multi-level pricing: product-level size pricing
+    price = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        help_text='السعر لهذا المقاس على مستوى المنتج'
+    )
 
     class Meta:
         ordering = ['order']
         unique_together = ('product', 'size')
         verbose_name = 'مقاس منتج'
         verbose_name_plural = 'مقاسات المنتجات'
+        indexes = [
+            models.Index(fields=['product', 'size']),
+        ]
 
     def __str__(self):
-        return f"{self.product.name} - {self.size.name}"
+        return f"{self.product.name} - {self.size.name} ({self.price} ج.م)"
+
+
+# =========================
+# PatternSize (مقاسات النمط مع الأسعار)
+# =========================
+class PatternSize(models.Model):
+    """Pattern-specific size pricing (highest priority in price hierarchy)"""
+    pattern = models.ForeignKey(Pattern, on_delete=models.CASCADE, related_name="pattern_sizes")
+    size = models.ForeignKey(Size, on_delete=models.CASCADE)
+    price = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        help_text='السعر لهذا المقاس في هذا النمط'
+    )
+    stock = models.IntegerField(
+        default=0,
+        help_text='المخزون المتاح لهذا المقاس في هذا النمط'
+    )
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+        unique_together = ('pattern', 'size')
+        verbose_name = 'مقاس نمط'
+        verbose_name_plural = 'مقاسات الأنماط'
+        indexes = [
+            models.Index(fields=['pattern', 'size']),
+            models.Index(fields=['pattern', 'stock']),
+        ]
+
+    def __str__(self):
+        return f"{self.pattern.name} - {self.size.name} ({self.price} ج.م)"
+    
+    def is_available(self):
+        """Check if this pattern-size combination is in stock"""
+        return self.stock > 0
 
 
 # =========================
@@ -195,13 +328,25 @@ class ProductImage(models.Model):
 # Variant (التركيبة النهائية)
 # =========================
 class ProductVariant(models.Model):
+    """
+    Product variant for stock tracking only.
+    Price is calculated dynamically using Product.get_price() method.
+    """
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="variants")
 
     pattern = models.ForeignKey(Pattern, on_delete=models.SET_NULL, null=True, blank=True)
     color = models.ForeignKey(Color, on_delete=models.SET_NULL, null=True, blank=True)
     size = models.ForeignKey(Size, on_delete=models.SET_NULL, null=True, blank=True)
     order = models.PositiveIntegerField(default=0)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    # DEPRECATED: Will be removed in future migration
+    # Price is now calculated dynamically via Product.get_price()
+    price = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        help_text='DEPRECATED: Use Product.get_price() instead'
+    )
+    
     stock = models.IntegerField(default=0)
     sku = models.CharField(max_length=100, blank=True, null=True)
 
@@ -210,9 +355,43 @@ class ProductVariant(models.Model):
         ordering = ['order']
         verbose_name = 'متغير منتج'
         verbose_name_plural = 'متغيرات المنتجات'
+        indexes = [
+            models.Index(fields=['product', 'pattern', 'size']),
+            models.Index(fields=['product', 'stock']),
+            models.Index(fields=['product', 'pattern', 'color', 'size']),
+        ]
 
     def __str__(self):
-        return f"{self.product.name} Variant"
+        parts = [self.product.name]
+        if self.pattern:
+            parts.append(self.pattern.name)
+        if self.color:
+            parts.append(self.color.name)
+        if self.size:
+            parts.append(self.size.name)
+        return ' - '.join(parts)
+    
+    def get_price(self):
+        """Get dynamic price using Product.get_price() hierarchy"""
+        return self.product.get_price(
+            pattern_id=self.pattern_id,
+            size_id=self.size_id,
+            color_id=self.color_id
+        )
+    
+    def is_available(self):
+        """Check if variant is in stock"""
+        return self.stock > 0
+    
+    def clean(self):
+        """Validate variant configuration"""
+        from django.core.exceptions import ValidationError
+        
+        # If pattern has sizes, size must be selected
+        if self.pattern and self.pattern.has_sizes and not self.size:
+            raise ValidationError(
+                'يجب اختيار مقاس لهذا النمط'
+            )
 
 
 # =========================

@@ -1,0 +1,405 @@
+/**
+ * Variant Display Styles
+ * Consistent styling for variant badges across all pages
+ */
+
+/* ========================================
+   Variant Badges Container
+   ======================================== */
+
+.variant-badges {
+    display: flex;
+    gap: 8px;
+    margin: 8px 0;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.variant-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.variant-badge i {
+    font-size: 0.9em;
+}
+
+/* Pattern Badge */
+.variant-badge-pattern {
+    background: #e3f2fd;
+    color: #1976d2;
+    border: 1px solid #bbdefb;
+}
+
+.variant-badge-pattern:hover {
+    background: #bbdefb;
+}
+
+/* Color Badge */
+.variant-badge-color {
+    background: #f5f5f5;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+/* When color code is provided, background will be inline styled */
+.variant-badge-color[style*="background-color"] {
+    border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+/* Size Badge */
+.variant-badge-size {
+    background: #fff3e0;
+    color: #e65100;
+    border: 1px solid #ffe0b2;
+}
+
+.variant-badge-size:hover {
+    background: #ffe0b2;
+}
+
+/* ========================================
+   Variant Display Text
+   ======================================== */
+
+.variant-display {
+    color: #666;
+    font-size: 0.9em;
+    margin: 4px 0;
+    line-height: 1.5;
+}
+
+.variant-display-short {
+    color: #888;
+    font-size: 0.85em;
+    font-style: italic;
+}
+
+/* ========================================
+   Cart Item Variant Display
+   ======================================== */
+
+.cart-item .variant-badges {
+    margin: 6px 0 10px 0;
+}
+
+.cart-item .variant-display {
+    padding: 6px 0;
+    border-top: 1px solid #f0f0f0;
+    margin-top: 8px;
+}
+
+/* ========================================
+   Order Item Variant Display
+   ======================================== */
+
+.order-item .variant-badges {
+    margin: 8px 0;
+}
+
+.order-item-details .variant-info {
+    background: #f8f9fa;
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin: 8px 0;
+}
+
+/* ========================================
+   Checkout Variant Display
+   ======================================== */
+
+.checkout-item .variant-badges {
+    margin: 6px 0;
+}
+
+.order-summary .variant-display {
+    font-size: 0.85em;
+    color: #777;
+    margin: 4px 0;
+}
+
+/* ========================================
+   Order History Variant Display
+   ======================================== */
+
+.order-history-item .variant-badges {
+    margin: 6px 0 8px 0;
+}
+
+.order-details-table .variant-cell {
+    padding: 8px;
+}
+
+.order-details-table .variant-badges {
+    justify-content: flex-start;
+}
+
+/* ========================================
+   Responsive Design
+   ======================================== */
+
+@media (max-width: 768px) {
+    .variant-badges {
+        gap: 6px;
+    }
+    
+    .variant-badge {
+        padding: 3px 8px;
+        font-size: 0.8em;
+    }
+    
+    .variant-badge i {
+        font-size: 0.85em;
+    }
+}
+
+@media (max-width: 480px) {
+    .variant-badges {
+        gap: 4px;
+    }
+    
+    .variant-badge {
+        padding: 2px 6px;
+        font-size: 0.75em;
+    }
+}
+
+/* ========================================
+   Print Styles
+   ======================================== */
+
+@media print {
+    .variant-badge {
+        border: 1px solid #333 !important;
+        background: white !important;
+        color: #333 !important;
+    }
+    
+    .variant-badge i {
+        display: none;
+    }
+}
+
+/* ========================================
+   RTL Support
+   ======================================== */
+
+[dir="rtl"] .variant-badges {
+    direction: rtl;
+}
+
+[dir="rtl"] .variant-badge {
+    flex-direction: row-reverse;
+}
+
+/* ========================================
+   Email Template Styles (Inline)
+   ======================================== */
+
+.email-variant-info {
+    font-size: 14px;
+    color: #666;
+    margin: 8px 0;
+    padding: 8px;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.email-variant-item {
+    display: inline-block;
+    margin-right: 12px;
+    padding: 4px 8px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 13px;
+}
+
+/* ========================================
+   Admin Panel Styles
+   ======================================== */
+
+.admin-variant-display {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.admin-variant-badge {
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 0.85em;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* ========================================
+   Tooltip Variant Info
+   ======================================== */
+
+.variant-tooltip {
+    position: relative;
+    cursor: help;
+}
+
+.variant-tooltip:hover::after {
+    content: attr(data-variant-info);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    white-space: nowrap;
+    z-index: 1000;
+    margin-bottom: 5px;
+}
+
+.variant-tooltip:hover::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #333;
+    z-index: 1000;
+}
+
+/* ========================================
+   Compact Variant Display
+   ======================================== */
+
+.variant-compact {
+    font-size: 0.8em;
+    color: #888;
+    margin: 2px 0;
+}
+
+.variant-compact .variant-badge {
+    padding: 2px 6px;
+    font-size: 0.75em;
+    gap: 3px;
+}
+
+/* ========================================
+   Variant List (Vertical)
+   ======================================== */
+
+.variant-list {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0;
+}
+
+.variant-list-item {
+    padding: 4px 0;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.variant-list-item::before {
+    content: '•';
+    margin-right: 8px;
+    color: #999;
+}
+
+/* ========================================
+   Variant Separator
+   ======================================== */
+
+.variant-separator {
+    display: inline-block;
+    margin: 0 8px;
+    color: #ccc;
+}
+
+.variant-separator::before {
+    content: '|';
+}
+
+/* ========================================
+   No Variant Message
+   ======================================== */
+
+.no-variant {
+    color: #999;
+    font-size: 0.85em;
+    font-style: italic;
+}
+
+/* ========================================
+   Variant Icon Only (Mobile)
+   ======================================== */
+
+@media (max-width: 480px) {
+    .variant-badge-text {
+        display: none;
+    }
+    
+    .variant-badge-icon-only .variant-badge {
+        padding: 4px;
+        min-width: 28px;
+        justify-content: center;
+    }
+}
+
+/* ========================================
+   Accessibility
+   ======================================== */
+
+.variant-badge:focus {
+    outline: 2px solid #1976d2;
+    outline-offset: 2px;
+}
+
+.sr-only-variant {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* ========================================
+   Dark Mode Support
+   ======================================== */
+
+@media (prefers-color-scheme: dark) {
+    .variant-badge-pattern {
+        background: #1e3a5f;
+        color: #90caf9;
+        border-color: #2c5282;
+    }
+    
+    .variant-badge-color {
+        background: #2d2d2d;
+        color: #e0e0e0;
+        border-color: #444;
+    }
+    
+    .variant-badge-size {
+        background: #3e2723;
+        color: #ffb74d;
+        border-color: #5d4037;
+    }
+    
+    .variant-display {
+        color: #b0b0b0;
+    }
+}

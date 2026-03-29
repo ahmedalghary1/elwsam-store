@@ -1,4 +1,3 @@
-
 from django.contrib import admin
 from django.urls import path, include
 from core import views as core_views
@@ -8,6 +7,9 @@ from products.views import (
     ProductDetailView,
     ProductListView,
     product_images_by_color,
+    get_product_config,
+    get_variant_options,
+    get_variant_info,
     search_products
 )
 
@@ -35,6 +37,9 @@ urlpatterns = [
     path('orders/', include('orders.urls')),
     
     # API Routes
+    path('api/product-config/<int:product_id>/', get_product_config, name='get_product_config'),
+    path('api/variant-options/<int:product_id>/', get_variant_options, name='get_variant_options'),
+    path('api/variant-info/<int:product_id>/', get_variant_info, name='get_variant_info'),
     path('api/product-images/<int:product_id>/<int:color_id>/', product_images_by_color, name='product_images_by_color'),
     path('search/', search_products, name='search_products'),
     

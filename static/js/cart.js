@@ -332,6 +332,9 @@
                     }
                 }
 
+                // Get variant ID if available (from new variant selector)
+                const variantId = btn.dataset.variantId || null;
+
                 const productData = {
                     name: btn.dataset.productName || 'منتج',
                     price: parseFloat(btn.dataset.productPrice) || 0,
@@ -341,16 +344,16 @@
                 let promise;
                 if (this.isAuthenticated()) {
                     // محاولة AJAX أولاً، مع fallback إلى localStorage عند الفشل
-                    promise = this.addToCartAjax(productId, null, quantity).then(result => {
+                    promise = this.addToCartAjax(productId, variantId, quantity).then(result => {
                         // إذا كان هناك خطأ أو فشل، استخدم localStorage
                         if (!result || result === false || (result && result.error)) {
                             console.log('AJAX failed, using localStorage fallback');
-                            return this.addToCart(productId, null, quantity, productData);
+                            return this.addToCart(productId, variantId, quantity, productData);
                         }
                         return result;
                     });
                 } else {
-                    promise = this.addToCart(productId, null, quantity, productData);
+                    promise = this.addToCart(productId, variantId, quantity, productData);
                 }
 
                 promise.then(() => {
@@ -358,7 +361,7 @@
                 }).catch(err => {
                     console.error('Add to cart error:', err);
                     // fallback to localStorage on error
-                    this.addToCart(productId, null, quantity, productData);
+                    this.addToCart(productId, variantId, quantity, productData);
                     btn.disabled = false;
                 });
             });
