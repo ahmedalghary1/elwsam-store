@@ -71,9 +71,16 @@
               </div>
               <div class="item-info">
                 <span class="item-name">{{ item.product.name }}</span>
-                {% if item.variant %}
-                  <span class="item-variant">{{ item.variant.get_options_display }}</span>
-                {% endif %}
+                {% with vd=item.get_variant_display %}
+                  {% if vd %}
+                    <span class="item-variant">
+                      {% if item.color_code %}
+                        <span class="color-dot" style="background:{{ item.color_code }};"></span>
+                      {% endif %}
+                      {{ vd }}
+                    </span>
+                  {% endif %}
+                {% endwith %}
                 <span class="item-qty">الكمية: {{ item.quantity }}</span>
               </div>
               <span class="item-price">{{ item.get_total_price }} جنيه</span>
@@ -266,6 +273,19 @@
 .item-variant {
   color: var(--color-gray-500);
   font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.color-dot {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.15);
+  flex-shrink: 0;
 }
 
 .item-qty {

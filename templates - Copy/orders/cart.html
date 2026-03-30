@@ -36,10 +36,23 @@
 
                   <div class="item-details">
                     <h3>{{ item.product.name }}</h3>
+                    {% with vd=item.get_variant_display %}
+                      <!-- {% if vd %}
+                        <p class="variant-info">
+                          {% if item.variant.color and item.variant.color.code %}
+                            <span class="color-dot" style="background:{{ item.variant.color.code }};"></span>
+                          {% endif %}
+                          {{ vd }}
+                        </p>
+                      {% endif %} -->
+                    {% endwith %}
+                    <p class="item-price">{% if item.variant and item.variant.price %}{{ item.variant.price|floatformat:2 }}{% else %}{{ item.product.price|floatformat:2 }}{% endif %} جنيه / قطعة</p>
+                  </div>
+
+                  <div class="item-details-btn">
                     {% if item.variant %}
-                      <p class="variant-info">{{ item.variant.get_options_display }}</p>
+                      <button class="details-btn" onclick="showVariantDetails({{ item.id }})">التفاصيل</button>
                     {% endif %}
-                    <p class="item-price">{{ item.product.price }} جنيه</p>
                   </div>
 
                   <div class="item-quantity">
@@ -126,6 +139,19 @@
       {% endif %}
     </div>
   </div>
+
+  <!-- Variant Details Modal -->
+  <div id="variant-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>تفاصيل المنتج</h3>
+        <button class="modal-close" onclick="closeVariantModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-variant-details">
+        <!-- Variant details will be inserted here -->
+      </div>
+    </div>
+  </div>
 </main>
 
 <script>
@@ -139,6 +165,65 @@
       window.cartManager.updateGuestSummary();
     }
   });
+
+  // Variant details modal functions
+  const variantData = {
+    {% for item in cart_items %}
+    {{ item.id }}: {
+      product: "{{ item.product.name }}",
+      pattern: "{{ item.variant.pattern.name|default:'' }}",
+      color: "{{ item.variant.color.name|default:'' }}",
+      colorCode: "{{ item.variant.color.code|default:'' }}",
+      size: "{{ item.variant.size.name|default:'' }}",
+      price: "{{ item.variant.price|default:item.product.price|floatformat:2 }}",
+      sku: "{{ item.variant.sku|default:'' }}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  };
+
+  function showVariantDetails(itemId) {
+    const data = variantData[itemId];
+    if (!data) return;
+
+    let html = '<div class="variant-detail-item"><strong>المنتج:</strong> ' + data.product + '</div>';
+    
+    if (data.pattern) {
+      html += '<div class="variant-detail-item"><strong>النمط:</strong> ' + data.pattern + '</div>';
+    }
+    
+    if (data.color) {
+      html += '<div class="variant-detail-item"><strong>اللون:</strong> ';
+      if (data.colorCode) {
+        html += '<span class="color-dot" style="background:' + data.colorCode + ';"></span> ';
+      }
+      html += data.color + '</div>';
+    }
+    
+    if (data.size) {
+      html += '<div class="variant-detail-item"><strong>المقاس:</strong> ' + data.size + '</div>';
+    }
+    
+    html += '<div class="variant-detail-item"><strong>السعر:</strong> ' + data.price + ' جنيه</div>';
+    
+    if (data.sku) {
+      html += '<div class="variant-detail-item"><strong>رقم المنتج:</strong> ' + data.sku + '</div>';
+    }
+
+    document.getElementById('modal-variant-details').innerHTML = html;
+    document.getElementById('variant-modal').style.display = 'flex';
+  }
+
+  function closeVariantModal() {
+    document.getElementById('variant-modal').style.display = 'none';
+  }
+
+  // Close modal when clicking outside
+  window.onclick = function(event) {
+    const modal = document.getElementById('variant-modal');
+    if (event.target === modal) {
+      closeVariantModal();
+    }
+  };
 </script>
 
 <style>
@@ -180,7 +265,7 @@
 
   .cart-item {
     display: grid;
-    grid-template-columns: 100px 1fr 120px 100px 40px;
+    grid-template-columns: 100px 1fr 100px 120px 100px 40px;
     gap: 1rem;
     padding: 1.5rem;
     border-bottom: 1px solid var(--color-gray-200);
@@ -208,12 +293,31 @@
     color: var(--color-gray-600);
     font-size: 0.9rem;
     margin: 0.25rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  .color-dot {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.15);
+    flex-shrink: 0;
   }
 
   .item-price {
     font-weight: 600;
     color: var(--color-primary);
     margin: 0;
+  }
+
+  .item-details-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .item-quantity {
@@ -359,20 +463,23 @@
       gap: 0.75rem;
       padding: 1rem;
     }
-    .item-quantity, .item-total, .item-actions {
+    .item-details-btn, .item-quantity, .item-total, .item-actions {
       grid-column: span 2;
       justify-self: stretch;
       text-align: center;
     }
-    .item-quantity {
+    .item-details-btn {
       order: 3;
+    }
+    .item-quantity {
+      order: 4;
       justify-content: center;
     }
     .item-total {
-      order: 4;
+      order: 5;
     }
     .item-actions {
-      order: 5;
+      order: 6;
     }
     .checkout-actions {
       flex-direction: row;
@@ -401,6 +508,114 @@
     .summary-content {
       padding: 1.25rem;
     }
+  }
+
+  /* Details Button */
+  .details-btn {
+    margin-top: 0.5rem;
+    padding: 0.4rem 1rem;
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .details-btn:hover {
+    background: var(--color-primary-dark, #0056b3);
+  }
+
+  /* Modal Styles */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-content {
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    animation: modalFadeIn 0.3s ease;
+  }
+
+  @keyframes modalFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--color-gray-200);
+  }
+
+  .modal-header h3 {
+    margin: 0;
+    color: var(--color-gray-800);
+    font-size: 1.3rem;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: var(--color-gray-500);
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background 0.2s;
+  }
+
+  .modal-close:hover {
+    background: var(--color-gray-100);
+    color: var(--color-gray-700);
+  }
+
+  .modal-body {
+    padding: 1.5rem;
+  }
+
+  .variant-detail-item {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--color-gray-100);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .variant-detail-item:last-child {
+    border-bottom: none;
+  }
+
+  .variant-detail-item strong {
+    color: var(--color-gray-700);
+    min-width: 80px;
   }
 </style>
 {% endblock %}

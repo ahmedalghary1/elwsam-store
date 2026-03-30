@@ -53,7 +53,7 @@
             <span class="rating-num">{{ product.rating }}</span>
             <a href="#reviews" class="review-count"><i class="far fa-comments"></i> {{ product.rating }} تقييم</a>
             {% if product.is_active %}
-              <span style="color:var(--color-success);font-size:0.82rem;font-weight:700;"><i class="fas fa-check-circle"></i> متوفر في المخزون</span>
+              <span style="color:var(--color-success);font-size:0.82rem;font-weight:700;"><i class="fas fa-check-circle"></i> متوفر في المخزن</span>
             {% else %}
               <span style="color:#e74c3c;font-size:0.82rem;font-weight:700;"><i class="fas fa-times-circle"></i> غير متوفر حالياً</span>
             {% endif %}
@@ -110,27 +110,8 @@
             <i class="fas fa-bolt"></i> اشتر الآن
           </button>
 
-          <div class="product-divider"></div>
 
-          <!-- شارات الثقة -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            <div style="display:flex;align-items:center;gap:8px;font-size:0.78rem;color:var(--color-gray-600);background:var(--color-gray-100);padding:10px 12px;border-radius:var(--radius-sm);">
-              <i class="fas fa-truck-fast" style="font-size:1rem;"></i>
-              <span>شحن مجاني فوق 1000 ج.م</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;font-size:0.78rem;color:var(--color-gray-600);background:var(--color-gray-100);padding:10px 12px;border-radius:var(--radius-sm);">
-              <i class="fas fa-undo-alt" style="font-size:1rem;"></i>
-              <span>إرجاع مجاني 30 يوم</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;font-size:0.78rem;color:var(--color-gray-600);background:var(--color-gray-100);padding:10px 12px;border-radius:var(--radius-sm);">
-              <i class="fas fa-lock" style="font-size:1rem;"></i>
-              <span>دفع آمن ومشفر</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;font-size:0.78rem;color:var(--color-gray-600);background:var(--color-gray-100);padding:10px 12px;border-radius:var(--radius-sm);">
-              <i class="fas fa-shield-alt" style="font-size:1rem;"></i>
-              <span>ضمان سنة كاملة</span>
-            </div>
-          </div>
+
         </div><!-- /product-info-panel -->
       </div><!-- /product-detail-grid -->
 

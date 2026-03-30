@@ -68,6 +68,16 @@
             <div class="item-row">
               <div class="item-info">
                 <span class="item-name">{{ item.product.name }}</span>
+                {% with vd=item.get_variant_display %}
+                  {% if vd %}
+                    <span class="item-variant">
+                      {% if item.color_code %}
+                        <span class="color-dot" style="background:{{ item.color_code }};"></span>
+                      {% endif %}
+                      {{ vd }}
+                    </span>
+                  {% endif %}
+                {% endwith %}
                 <span class="item-qty">× {{ item.quantity }}</span>
               </div>
               <span class="item-price">{{ item.get_total_price }} جنيه</span>
