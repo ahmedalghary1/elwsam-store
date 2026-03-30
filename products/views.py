@@ -547,6 +547,38 @@ def get_variant_info(request, product_id):
 
 
 # =========================
+#  AJAX: Get Variant Details by ID
+# =========================
+def get_variant_detail(request, variant_id):
+    """
+    Get variant details by variant_id for displaying in cart modal.
+    Returns pattern, color, size, and price information.
+    """
+    try:
+        variant = get_object_or_404(ProductVariant, id=variant_id)
+        
+        return JsonResponse({
+            'success': True,
+            'variant': {
+                'id': variant.id,
+                'pattern_name': variant.pattern.name if variant.pattern else None,
+                'color_name': variant.color.name if variant.color else None,
+                'color_code': variant.color.code if variant.color else None,
+                'size_name': variant.size.name if variant.size else None,
+                'price': str(variant.price) if variant.price else None,
+                'sku': variant.sku,
+                'stock': variant.stock,
+                'available': variant.is_available()
+            }
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)
+
+
+# =========================
 #  AJAX: تغيير الصور حسب اللون 
 # =========================
 def product_images_by_color(request, product_id, color_id):

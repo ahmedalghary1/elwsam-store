@@ -181,6 +181,54 @@
     {% endfor %}
   };
 
+  // Function for guest users
+  async function showGuestVariantDetails(cartIndex) {
+    if (!window.cartManager) return;
+    
+    const cart = window.cartManager.getCart();
+    const item = cart[cartIndex];
+    
+    if (!item || !item.variant_id) return;
+    
+    try {
+      // Fetch variant details from API
+      const response = await fetch(`/api/variant-detail/${item.variant_id}/`);
+      const data = await response.json();
+      
+      if (data.success && data.variant) {
+        const v = data.variant;
+        let html = '<div class="variant-detail-item"><strong>المنتج:</strong> ' + (item.name || 'منتج') + '</div>';
+        
+        if (v.pattern_name) {
+          html += '<div class="variant-detail-item"><strong>النمط:</strong> ' + v.pattern_name + '</div>';
+        }
+        
+        if (v.color_name) {
+          html += '<div class="variant-detail-item"><strong>اللون:</strong> ';
+          if (v.color_code) {
+            html += '<span class="color-dot" style="background:' + v.color_code + ';"></span> ';
+          }
+          html += v.color_name + '</div>';
+        }
+        
+        if (v.size_name) {
+          html += '<div class="variant-detail-item"><strong>المقاس:</strong> ' + v.size_name + '</div>';
+        }
+        
+        html += '<div class="variant-detail-item"><strong>السعر:</strong> ' + (item.price || 0).toFixed(2) + ' جنيه</div>';
+        
+        if (v.sku) {
+          html += '<div class="variant-detail-item"><strong>رقم المنتج:</strong> ' + v.sku + '</div>';
+        }
+
+        document.getElementById('modal-variant-details').innerHTML = html;
+        document.getElementById('variant-modal').style.display = 'flex';
+      }
+    } catch (error) {
+      console.error('Error fetching variant details:', error);
+    }
+  }
+
   function showVariantDetails(itemId) {
     const data = variantData[itemId];
     if (!data) return;

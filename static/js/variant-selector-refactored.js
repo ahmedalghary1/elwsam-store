@@ -444,6 +444,8 @@ class VariantSelector {
             this.buyNowBtn.disabled = false;
             this.addToCartBtn.innerHTML = '<i class="fas fa-cart-plus"></i> أضف إلى السلة';
             this.addToCartBtn.dataset.variantId = variant.id;
+            // Update price for guest users
+            this.addToCartBtn.dataset.productPrice = price;
             
             // Announce price change to screen readers
             this.announcePriceChange(price);
@@ -459,6 +461,8 @@ class VariantSelector {
                 : '<i class="fas fa-check-square"></i> اختر الخيارات';
             
             delete this.addToCartBtn.dataset.variantId;
+            // Reset price to default
+            this.addToCartBtn.dataset.productPrice = this.defaultPrice;
         }
     }
     

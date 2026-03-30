@@ -493,21 +493,25 @@
             // SVG افتراضي (مستطيل مع أيقونة صورة)
             const defaultSvg = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="%23999" stroke-width="1.5"%3E%3Crect x="3" y="3" width="18" height="18" rx="2"%3E%3C/rect%3E%3Ccircle cx="8.5" cy="8.5" r="1.5"%3E%3C/circle%3E%3Cpolyline points="21 15 16 10 5 21"%3E%3C/polyline%3E%3C/svg%3E';
 
-            container.innerHTML = cart.map(item => {
+            container.innerHTML = cart.map((item, index) => {
                 const qty = item.quantity && !isNaN(item.quantity) ? item.quantity : 1;
                 const price = item.price && !isNaN(item.price) ? item.price : 0;
                 const name = escapeHtml(item.name) || 'منتج';
                 // استخدام الصورة المخزنة أو الافتراضية
                 const imgSrc = item.image && item.image.trim() !== '' ? item.image : defaultSvg;
                 const variantIdAttr = (item.variant_id !== null && item.variant_id !== undefined) ? item.variant_id : '';
+                const hasVariant = item.variant_id !== null && item.variant_id !== undefined;
                 return `
-                    <div class="cart-item" data-product-id="${item.product_id}" data-variant-id="${variantIdAttr}">
+                    <div class="cart-item" data-product-id="${item.product_id}" data-variant-id="${variantIdAttr}" data-cart-index="${index}">
                         <div class="item-image">
                             <img src="${imgSrc}" alt="${name}" onerror="this.onerror=null;this.src='${defaultSvg}';">
                         </div>
                         <div class="item-details">
                             <h3>${name}</h3>
-                            <p class="item-price">${price.toFixed(2)} جنيه</p>
+                            <p class="item-price">${price.toFixed(2)} جنيه / قطعة</p>
+                        </div>
+                        <div class="item-details-btn">
+                            ${hasVariant ? `<button class="details-btn" onclick="showGuestVariantDetails(${index})">التفاصيل</button>` : ''}
                         </div>
                         <div class="item-quantity">
                             <button class="quantity-btn minus">-</button>

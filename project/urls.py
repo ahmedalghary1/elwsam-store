@@ -10,6 +10,7 @@ from products.views import (
     get_product_config,
     get_variant_options,
     get_variant_info,
+    get_variant_detail,
     search_products
 )
 
@@ -41,6 +42,7 @@ urlpatterns = [
     path('api/product-config/<int:product_id>/', get_product_config, name='get_product_config'),
     path('api/variant-options/<int:product_id>/', get_variant_options, name='get_variant_options'),
     path('api/variant-info/<int:product_id>/', get_variant_info, name='get_variant_info'),
+    path('api/variant-detail/<int:variant_id>/', get_variant_detail, name='get_variant_detail'),
     path('api/product-images/<int:product_id>/<int:color_id>/', product_images_by_color, name='product_images_by_color'),
     path('search/', search_products, name='search_products'),
     
