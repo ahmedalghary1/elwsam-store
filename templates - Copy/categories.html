@@ -115,10 +115,72 @@
 
     </div>
   </main>
+
+<script>
+(function() {
+  // منع ربط المستمعات أكثر من مرة
+  if (window._categoriesSearchBound) return;
+  window._categoriesSearchBound = true;
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('catSearchInput');
+    const categoriesGrid = document.getElementById('categoriesGrid');
+    const categoryCards = document.querySelectorAll('.category-card');
+    const catsCount = document.getElementById('catsCount');
+    const noResults = document.getElementById('catsNoResults');
+    const heroStat = document.querySelector('.cats-hero-stat strong');
+
+    if (!searchInput || !categoriesGrid) {
+      console.log('Search elements not found');
+      return;
+    }
+
+    console.log('Categories search initialized', categoryCards.length, 'cards found');
+
+    function performSearch() {
+      const searchTerm = searchInput.value.trim().toLowerCase();
+      let visibleCount = 0;
+
+      console.log('Searching for:', searchTerm);
+
+      categoryCards.forEach(card => {
+        const catName = card.dataset.catName || '';
+        
+        if (searchTerm === '' || catName.includes(searchTerm)) {
+          card.style.display = '';
+          visibleCount++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+
+      console.log('Visible count:', visibleCount);
+
+      // Update count
+      if (catsCount) {
+        catsCount.textContent = `${visibleCount} قسم`;
+      }
+      if (heroStat) {
+        heroStat.textContent = visibleCount;
+      }
+
+      // Show/hide no results message
+      if (visibleCount === 0 && searchTerm !== '') {
+        if (noResults) noResults.style.display = 'flex';
+        if (categoriesGrid) categoriesGrid.style.display = 'none';
+      } else {
+        if (noResults) noResults.style.display = 'none';
+        if (categoriesGrid) categoriesGrid.style.display = 'grid';
+      }
+    }
+
+    // Search on every input
+    searchInput.addEventListener('input', performSearch);
+    searchInput.addEventListener('keyup', performSearch);
+    
+    console.log('Event listeners attached');
+  });
+})();
+</script>
+
 {% endblock content %}
- 
-
-  <script src="{% static 'js/main.js' %}"></script>
-
-</body>
-</html>

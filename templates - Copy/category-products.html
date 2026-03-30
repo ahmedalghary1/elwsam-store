@@ -49,6 +49,20 @@
 <!-- MAIN CONTENT -->
 <main class="products-page">
   <div class="products-container">
+    <!-- Search Bar -->
+    <div class="search-bar-wrapper">
+      <div class="search-bar">
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchInput" placeholder="ابحث عن منتج..." autocomplete="off">
+        <button id="clearSearch" style="display:none;">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="search-results-count" id="searchResultsCount" style="display:none;">
+        <span id="resultsText"></span>
+      </div>
+    </div>
+    
     <div class="products-layout">
       <div class="products-content">
         <div class="products-grid" id="productsGrid">
@@ -202,6 +216,77 @@
           btn.dataset.quantity = btn.dataset.quantity || '1';
         }
       });
+
+      // ========== Live Search Functionality ==========
+      const searchInput = document.getElementById('searchInput');
+      const clearBtn = document.getElementById('clearSearch');
+      const resultsCount = document.getElementById('searchResultsCount');
+      const resultsText = document.getElementById('resultsText');
+      const productCards = document.querySelectorAll('.product-card');
+      const heroCount = document.getElementById('heroProductCount');
+
+      function performSearch() {
+        const searchTerm = searchInput.value.trim().toLowerCase();
+        let visibleCount = 0;
+
+        productCards.forEach(card => {
+          const productName = card.dataset.name || '';
+          
+          if (searchTerm === '' || productName.includes(searchTerm)) {
+            card.style.display = '';
+            visibleCount++;
+          } else {
+            card.style.display = 'none';
+          }
+        });
+
+        // Update results count
+        if (searchTerm !== '') {
+          clearBtn.style.display = 'flex';
+          resultsCount.style.display = 'block';
+          resultsText.textContent = `تم العثور على ${visibleCount} منتج`;
+          if (heroCount) heroCount.textContent = visibleCount;
+        } else {
+          clearBtn.style.display = 'none';
+          resultsCount.style.display = 'none';
+          if (heroCount) heroCount.textContent = productCards.length;
+        }
+
+        // Show empty state if no results
+        const emptyState = document.querySelector('.empty-state');
+        if (visibleCount === 0 && searchTerm !== '') {
+          if (!emptyState) {
+            const grid = document.getElementById('productsGrid');
+            const noResults = document.createElement('div');
+            noResults.className = 'empty-state no-search-results';
+            noResults.style.gridColumn = '1/-1';
+            noResults.innerHTML = `
+              <div class="empty-icon">🔍</div>
+              <h3>لا توجد نتائج</h3>
+              <p>لم نجد أي منتجات تطابق "${searchInput.value}"</p>
+            `;
+            grid.appendChild(noResults);
+          }
+        } else {
+          const noResults = document.querySelector('.no-search-results');
+          if (noResults) noResults.remove();
+        }
+      }
+
+      // Search on every keyup
+      if (searchInput) {
+        searchInput.addEventListener('input', performSearch);
+        searchInput.addEventListener('keyup', performSearch);
+      }
+
+      // Clear search
+      if (clearBtn) {
+        clearBtn.addEventListener('click', function() {
+          searchInput.value = '';
+          performSearch();
+          searchInput.focus();
+        });
+      }
     });
   })();
 </script>
@@ -280,6 +365,95 @@
 
   .breadcrumb-inner a:hover {
     color: var(--color-primary);
+  }
+
+  /* SEARCH BAR */
+  .search-bar-wrapper {
+    margin-bottom: 32px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .search-bar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 2px solid var(--color-gray-200);
+    border-radius: var(--radius-lg);
+    padding: 12px 16px;
+    gap: 12px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+
+  .search-bar:focus-within {
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 16px rgba(255,215,0,0.2);
+  }
+
+  .search-bar i.fa-search {
+    color: var(--color-gray-400);
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  .search-bar input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 1rem;
+    color: var(--color-black);
+    background: transparent;
+    font-family: inherit;
+  }
+
+  .search-bar input::placeholder {
+    color: var(--color-gray-400);
+  }
+
+  .search-bar button {
+    background: var(--color-gray-200);
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .search-bar button:hover {
+    background: var(--color-danger);
+    color: white;
+    transform: scale(1.1);
+  }
+
+  .search-results-count {
+    text-align: center;
+    margin-top: 12px;
+    padding: 8px 16px;
+    background: var(--color-primary);
+    color: var(--color-black);
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    font-size: 0.9rem;
+    animation: slideDown 0.3s ease;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   /* HERO SECTION */
@@ -742,6 +916,29 @@
 
     .breadcrumb-inner {
       font-size: 0.75rem;
+    }
+
+    .search-bar-wrapper {
+      margin-bottom: 24px;
+    }
+
+    .search-bar {
+      padding: 10px 12px;
+      gap: 8px;
+    }
+
+    .search-bar input {
+      font-size: 0.9rem;
+    }
+
+    .search-bar button {
+      width: 28px;
+      height: 28px;
+    }
+
+    .search-results-count {
+      font-size: 0.85rem;
+      padding: 6px 12px;
     }
 
     .product-card {
