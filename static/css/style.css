@@ -1233,7 +1233,6 @@ h4 { font-size: 1rem; font-weight: 600; }
   top: 50%;
   transform: translateY(-50%);
   font-size: 4rem;
-  opacity: 0.25;
 }
 
 .offer-card .offer-tag {
