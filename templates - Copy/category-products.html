@@ -88,20 +88,7 @@
               <div class="product-category-tag">{{ product.category.name }}</div>
               <h3 class="product-name">{{ product.name }}</h3>
               
-              <div class="product-rating">
-                <div class="stars">
-                  {% with rating=product.rating|default:0|floatformat:0 %}
-                    {% for i in "12345"|make_list %}
-                      {% if forloop.counter <= rating|add:0 %}
-                        ★
-                      {% else %}
-                        ☆
-                      {% endif %}
-                    {% endfor %}
-                  {% endwith %}
-                </div>
-                <span class="rating-count">({{ product.reviews_count|default:0 }})</span>
-              </div>
+
               
               <div class="product-price-row">
                 <div class="price-group">

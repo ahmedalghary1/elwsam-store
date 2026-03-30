@@ -143,50 +143,9 @@
           {% endif %}
         </div>
 
-        <div class="tab-content" id="tab-reviews" role="tabpanel">
-          <div style="display:flex;gap:24px;align-items:center;padding:20px;background:var(--color-gray-100);border-radius:var(--radius-md);margin-bottom:24px;flex-wrap:wrap;">
-            <div style="text-align:center;min-width:80px;">
-              <div style="font-size:2.5rem;font-weight:900;line-height:1;">{{ product.rating }}</div>
-              <div class="stars" style="justify-content:center;margin:6px 0;">
-                {% for i in "12345" %}
-                  {% if forloop.counter <= product.rating %}★{% else %}☆{% endif %}
-                {% endfor %}
-              </div>
-              <div style="font-size:0.78rem;color:var(--color-gray-500);"><i class="far fa-comment"></i> تقييمات المستخدمين</div>
-            </div>
-          </div>
-          <div class="reviews-list">
-            <div class="review-item"> 
-              <p style="color:var(--color-gray-500); text-align: center; padding: 20px;">لم يتم إضافة تقييمات بعد</p>
-            </div>
-          </div>
-        </div>
 
-        <div class="tab-content" id="tab-shipping" role="tabpanel">
-          <div style="display:flex;flex-direction:column;gap:16px;margin-top:8px;">
-            <div style="display:flex;gap:14px;align-items:flex-start;padding:16px;background:var(--color-gray-100);border-radius:var(--radius-md);">
-              <i class="fas fa-truck" style="font-size:1.5rem;"></i>
-              <div>
-                <strong style="display:block;margin-bottom:4px;font-size:0.9rem;">الشحن العادي</strong>
-                <p style="font-size:0.85rem;color:var(--color-gray-600);line-height:1.6;">3-5 أيام عمل — مجاني على الطلبات فوق 200 جنيه — 25 جنيه للطلبات الأقل</p>
-              </div>
-            </div>
-            <div style="display:flex;gap:14px;align-items:flex-start;padding:16px;background:var(--color-gray-100);border-radius:var(--radius-md);">
-              <i class="fas fa-rocket" style="font-size:1.5rem;"></i>
-              <div>
-                <strong style="display:block;margin-bottom:4px;font-size:0.9rem;">الشحن السريع</strong>
-                <p style="font-size:0.85rem;color:var(--color-gray-600);line-height:1.6;">1-2 أيام عمل — 45 جنيه — متاح في المدن الكبرى فقط</p>
-              </div>
-            </div>
-            <div style="display:flex;gap:14px;align-items:flex-start;padding:16px;background:var(--color-gray-100);border-radius:var(--radius-md);">
-              <i class="fas fa-undo-alt" style="font-size:1.5rem;"></i>
-              <div>
-                <strong style="display:block;margin-bottom:4px;font-size:0.9rem;">سياسة الإرجاع</strong>
-                <p style="font-size:0.85rem;color:var(--color-gray-600);line-height:1.6;">يمكنك إرجاع المنتج خلال 30 يوماً من تاريخ الاستلام بشرط أن يكون في حالته الأصلية ومعه الفاتورة. الإرجاع مجاني تماماً.</p>
-              </div>
-            </div>
-          </div>
-        </div>
+
+
       </div>
 
       <!-- منتجات مشابهة -->
