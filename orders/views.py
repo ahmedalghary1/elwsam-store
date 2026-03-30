@@ -217,12 +217,17 @@ class CheckoutView(View):
 
                 # إنشاء عناصر الطلب
                 for cart_item in cart_items:
+                    v = cart_item.variant
                     OrderItem.objects.create(
                         order=order,
                         product=cart_item.product,
-                        variant=cart_item.variant,
+                        variant=v,
                         quantity=cart_item.quantity,
-                        price=cart_item.get_total_price() / cart_item.quantity
+                        price=cart_item.get_total_price() / cart_item.quantity,
+                        pattern_name=v.pattern.name if v and v.pattern else None,
+                        color_name=v.color.name if v and v.color else None,
+                        color_code=v.color.code if v and v.color else None,
+                        size_name=v.size.name if v and v.size else None,
                     )
 
                 # حذف السلة بعد إنشاء الطلب
@@ -316,12 +321,17 @@ class CheckoutView(View):
 
                 # إنشاء عناصر الطلب
                 for item_data in order_items_data:
+                    v = item_data['variant']
                     OrderItem.objects.create(
                         order=order,
                         product=item_data['product'],
-                        variant=item_data['variant'],
+                        variant=v,
                         quantity=item_data['quantity'],
-                        price=item_data['price']
+                        price=item_data['price'],
+                        pattern_name=v.pattern.name if v and v.pattern else None,
+                        color_name=v.color.name if v and v.color else None,
+                        color_code=v.color.code if v and v.color else None,
+                        size_name=v.size.name if v and v.size else None,
                     )
 
             messages.success(request, f"تم إنشاء الطلب بنجاح. رقم الطلب: #{order.id}")

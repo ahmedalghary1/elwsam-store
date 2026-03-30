@@ -159,6 +159,8 @@ class VariantSelector {
                 </div>`;
             this.container.insertAdjacentHTML('beforeend', html);
         }
+        
+        // Don't render colors or sizes initially - they will appear after pattern selection
     }
     
     renderSizeBasedUI() {
@@ -296,17 +298,9 @@ class VariantSelector {
             
             if (this.selectedOptions.color) {
                 this.updateImages(this.selectedOptions.color);
-                // Update sizes based on color selection if pattern is selected
-                if (this.selectedOptions.pattern) {
-                    console.log('Updating sizes for pattern:', this.selectedOptions.pattern, 'and color:', this.selectedOptions.color);
-                    await this.updateSizesForColor(this.selectedOptions.pattern, this.selectedOptions.color);
-                }
+                // Don't update sizes - they are already displayed with the pattern
             } else {
                 this.resetImages();
-                // Reload pattern options if pattern is selected
-                if (this.selectedOptions.pattern) {
-                    await this.loadPatternOptions(this.selectedOptions.pattern);
-                }
             }
         }
         
@@ -327,9 +321,12 @@ class VariantSelector {
                     this.removeColorGroup();
                 }
                 
-                // DON'T show sizes yet - wait for color selection
-                // Sizes will be loaded by updateSizesForColor() when a color is selected
-                this.removeSizeGroup();
+                // Show sizes immediately along with colors
+                if (data.sizes && data.sizes.length > 0) {
+                    this.renderSizeGroup(data.sizes, data.requires_size);
+                } else {
+                    this.removeSizeGroup();
+                }
             }
         } catch (error) {
             console.error('Error loading pattern options:', error);
