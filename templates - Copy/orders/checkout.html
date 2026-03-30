@@ -169,6 +169,50 @@
               </div>
             </div> -->
 
+            <!-- Contact Method -->
+            <div class="checkout-section">
+              <h2>طريقة التواصل المفضلة</h2>
+              <p class="section-description">اختر الطريقة المفضلة للتواصل معك بخصوص الطلب</p>
+
+              <div class="contact-methods">
+                <label class="contact-option">
+                  <input type="radio" name="contact_method" value="whatsapp" checked required>
+                  <div class="contact-content">
+                    <div class="contact-icon">
+                      <i class="fab fa-whatsapp"></i>
+                    </div>
+                    <div class="contact-info">
+                      <span class="contact-name">واتساب</span>
+                      <p>التواصل عبر تطبيق واتساب</p>
+                    </div>
+                  </div>
+                </label>
+
+                <label class="contact-option">
+                  <input type="radio" name="contact_method" value="call" required>
+                  <div class="contact-content">
+                    <div class="contact-icon">
+                      <i class="fas fa-phone-alt"></i>
+                    </div>
+                    <div class="contact-info">
+                      <span class="contact-name">مكالمة هاتفية</span>
+                      <p>التواصل عبر المكالمات الهاتفية</p>
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Order Notes -->
+            <div class="checkout-section">
+              <h2>ملاحظات الطلب</h2>
+              <p class="section-description">أي ملاحظات أو طلبات خاصة بالطلب (اختياري)</p>
+              
+              <div class="form-group">
+                <textarea id="order_notes" name="order_notes" class="form-control" rows="4" placeholder="مثال: يرجى التوصيل بعد الساعة 5 مساءً، أو أي ملاحظات أخرى..."></textarea>
+              </div>
+            </div>
+
             <!-- Place Order -->
             <div class="checkout-actions">
               <a href="{% url 'orders:cart' %}" class="btn btn-outline">العودة للسلة</a>
@@ -466,6 +510,109 @@
 }
 
 .form-control:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.section-description {
+  color: var(--color-gray-600);
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  margin-top: -0.5rem;
+}
+
+/* Contact Methods Styles */
+.contact-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.contact-option {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  border: 2px solid var(--color-gray-200);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.contact-option:hover {
+  border-color: var(--color-primary);
+  background: var(--color-gray-50);
+}
+
+.contact-option input[type="radio"]:checked + .contact-content {
+  color: var(--color-primary);
+}
+
+.contact-option input[type="radio"] {
+  margin-top: 0.25rem;
+}
+
+.contact-content {
+  flex: 1;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.contact-icon {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-gray-100);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.contact-icon i {
+  font-size: 1.5rem;
+  color: var(--color-primary);
+}
+
+.contact-option input[type="radio"]:checked ~ .contact-content .contact-icon {
+  background: var(--color-primary);
+}
+
+.contact-option input[type="radio"]:checked ~ .contact-content .contact-icon i {
+  color: white;
+}
+
+.contact-info {
+  flex: 1;
+}
+
+.contact-name {
+  display: block;
+  font-weight: 600;
+  color: var(--color-gray-800);
+  margin-bottom: 0.25rem;
+}
+
+.contact-info p {
+  margin: 0;
+  color: var(--color-gray-600);
+  font-size: 0.85rem;
+}
+
+.order-notes {
+  margin-top: 2rem;
+}
+
+.order-notes textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--color-gray-300);
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.order-notes textarea:focus {
   outline: none;
   border-color: var(--color-primary);
 }

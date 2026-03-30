@@ -143,6 +143,11 @@ class Order(models.Model):
         ('delivered', 'تم التسليم'),
         ('cancelled', 'ملغي'),
     ]
+    
+    CONTACT_METHOD_CHOICES = [
+        ('whatsapp', 'واتساب'),
+        ('call', 'مكالمة هاتفية'),
+    ]
 
     class Meta:
         verbose_name = 'طلب'
@@ -162,6 +167,22 @@ class Order(models.Model):
 
     # معلومات الدفع
     payment_method = models.CharField(max_length=50, default='cash_on_delivery')
+
+    # طريقة التواصل المفضلة
+    contact_method = models.CharField(
+        max_length=20, 
+        choices=CONTACT_METHOD_CHOICES, 
+        default='whatsapp',
+        verbose_name='طريقة التواصل المفضلة'
+    )
+    
+    # ملاحظات الطلب
+    order_notes = models.TextField(
+        blank=True, 
+        null=True,
+        verbose_name='ملاحظات الطلب',
+        help_text='أي ملاحظات إضافية للطلب'
+    )
 
     # للضيوف - بريد إلكتروني اختياري
     guest_email = models.EmailField(blank=True, null=True)

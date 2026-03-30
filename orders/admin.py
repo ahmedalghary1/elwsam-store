@@ -29,7 +29,9 @@ class OrderItemInline(admin.TabularInline):
                 parts.append(format_html('<span style="{}padding:2px 6px;border-radius:3px;margin:2px;border:1px solid #ddd;">🎨 {}</span>', color_style, obj.color_name))
             if obj.size_name:
                 parts.append(format_html('<span style="background:#fff3e0;padding:2px 6px;border-radius:3px;margin:2px;">📏 {}</span>', obj.size_name))
-            return format_html('<div style="display:flex;flex-wrap:wrap;gap:4px;">{}</div>', format_html(''.join(str(p) for p in parts)))
+            if parts:
+                from django.utils.safestring import mark_safe
+                return format_html('<div style="display:flex;flex-wrap:wrap;gap:4px;">{}</div>', mark_safe(''.join(str(p) for p in parts)))
         return '—'
     variant_details_display.short_description = 'تفاصيل المتغير'
 
@@ -85,13 +87,13 @@ class OrderAdmin(admin.ModelAdmin):
     list_display = [
         'order_id', 'customer_display', 'status_badge',
         'payment_display', 'total_display', 'items_count',
-        'shipping_city', 'created_at'
+        'shipping_city', 'contact_method', 'created_at'
     ]
     list_display_links = ['order_id']
-    list_filter = ['status', 'payment_method', 'created_at', 'shipping_city']
+    list_filter = ['status', 'payment_method', 'contact_method', 'created_at', 'shipping_city']
     search_fields = [
         'id', 'user__email', 'shipping_name', 'shipping_phone',
-        'shipping_address', 'guest_email'
+        'shipping_address', 'guest_email', 'order_notes'
     ]
     ordering = ['-created_at']
     readonly_fields = [
@@ -104,7 +106,7 @@ class OrderAdmin(admin.ModelAdmin):
 
     fieldsets = (
         ('📋 معلومات الطلب', {
-            'fields': ('order_summary_display', 'status', 'payment_method')
+            'fields': ('order_summary_display', 'status', 'payment_method', 'contact_method')
         }),
         ('👤 بيانات العميل', {
             'fields': ('user', 'guest_email', 'customer_info_display')
@@ -114,6 +116,10 @@ class OrderAdmin(admin.ModelAdmin):
                 'shipping_name', 'shipping_phone',
                 'shipping_city', 'shipping_address', 'shipping_notes'
             )
+        }),
+        ('📝 ملاحظات الطلب', {
+            'fields': ('order_notes',),
+            'classes': ('collapse',)
         }),
         ('💰 المالية', {
             'fields': ('total_price',)

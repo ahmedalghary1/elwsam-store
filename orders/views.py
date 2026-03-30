@@ -195,6 +195,8 @@ class CheckoutView(View):
             # الحصول على بيانات الشحن
             address_id = request.POST.get('address_id')
             payment_method = request.POST.get('payment_method', 'cash_on_delivery')
+            contact_method = request.POST.get('contact_method', 'whatsapp')
+            order_notes = request.POST.get('order_notes', '').strip()
 
             if not address_id:
                 messages.error(request, "يرجى اختيار عنوان الشحن")
@@ -212,6 +214,8 @@ class CheckoutView(View):
                     shipping_name=address.full_name,
                     shipping_city=address.city,
                     payment_method=payment_method,
+                    contact_method=contact_method,
+                    order_notes=order_notes if order_notes else None,
                     status='pending' if payment_method == 'cash_on_delivery' else 'paid'
                 )
 
@@ -252,6 +256,8 @@ class CheckoutView(View):
             city = request.POST.get('city', '').strip()
             notes = request.POST.get('notes', '').strip()
             email = request.POST.get('email', '').strip()
+            contact_method = request.POST.get('contact_method', 'whatsapp')
+            order_notes = request.POST.get('order_notes', '').strip()
             cart_data = request.POST.get('cart_data', '[]')
 
             # التحقق من البيانات المطلوبة
@@ -316,6 +322,8 @@ class CheckoutView(View):
                     shipping_notes=notes,
                     guest_email=email if email else None,
                     payment_method='cash_on_delivery',
+                    contact_method=contact_method,
+                    order_notes=order_notes if order_notes else None,
                     status='pending'
                 )
 

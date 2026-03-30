@@ -51,6 +51,26 @@
             </span>
           </div>
           
+          <div class="detail-row">
+            <span class="detail-label">طريقة التواصل المفضلة:</span>
+            <span class="detail-value">
+              {% if order.contact_method == 'whatsapp' %}
+                <i class="fab fa-whatsapp" style="color: #25D366;"></i> واتساب
+              {% elif order.contact_method == 'call' %}
+                <i class="fas fa-phone-alt" style="color: var(--color-primary);"></i> مكالمة هاتفية
+              {% else %}
+                {{ order.get_contact_method_display }}
+              {% endif %}
+            </span>
+          </div>
+          
+          {% if order.order_notes %}
+          <div class="detail-row notes-row">
+            <span class="detail-label">ملاحظات الطلب:</span>
+            <span class="detail-value notes-content">{{ order.order_notes }}</span>
+          </div>
+          {% endif %}
+          
           <div class="detail-row total">
             <span class="detail-label">المجموع الكلي:</span>
             <span class="detail-value">{{ order.total_price }} جنيه</span>
@@ -205,6 +225,22 @@
 .detail-value {
   color: var(--color-gray-800);
   text-align: left;
+}
+
+.detail-row.notes-row {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.notes-content {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  width: 100%;
+  text-align: right;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 .order-items-section {
