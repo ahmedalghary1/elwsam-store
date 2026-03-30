@@ -1,8 +1,7 @@
 from django.contrib import admin
-import nested_admin
+from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
-from django.db.models import Count, Avg, Sum
 from django.contrib import messages
 from .models import (
     Category, Product, Pattern, Color, ProductColor, Size, ProductSize,
@@ -11,162 +10,146 @@ from .models import (
 
 
 # ================================================
-# Inlines
+# Inlines — used inside ProductAdmin
 # ================================================
 
-class PatternSizeInline(nested_admin.NestedTabularInline):
-    model = PatternSize
-    extra = 1
-    fields = ['size', 'price', 'stock', 'stock_badge', 'order']
-    readonly_fields = ['stock_badge']
-    ordering = ['order']
-    verbose_name = 'مقاس النمط'
-    verbose_name_plural = 'مقاسات النمط'
-    autocomplete_fields = ['size']
-    
-    classes = ['collapse']
-    
-    def get_formset(self, request, obj=None, **kwargs):
-        formset = super().get_formset(request, obj, **kwargs)
-        formset.help_texts = {
-            'size': 'اختر المقاس من القائمة',
-            'price': 'السعر لهذا المقاس في هذا النمط',
-            'stock': 'المخزون المتاح لهذا المقاس',
-            'order': 'ترتيب العرض (الأصغر يظهر أولاً)'
-        }
-        return formset
-    
-    def save_formset(self, request, form, formset, change):
-        """Override to create variants when PatternSize is saved via inline"""
-        instances = formset.save(commit=False)
-        
-        for instance in instances:
-            is_new = instance.pk is None
-            instance.save()
-            
-            # If new PatternSize, create variants
-            if is_new:
-                instance.create_variants_for_colors()
-        
-        # Delete removed instances
-        for obj in formset.deleted_objects:
-            obj.delete()
-    
-    def stock_badge(self, obj):
-        if not obj.pk:
-            return '—'
-        if obj.stock > 10:
-            color = '#28a745'
-            icon = '✓'
-            text = 'متوفر'
-        elif obj.stock > 0:
-            color = '#ffc107'
-            icon = '⚠'
-            text = 'قليل'
-        else:
-            color = '#dc3545'
-            icon = '✗'
-            text = 'نفذ'
-        return format_html(
-            '<span style="color:{};font-weight:bold;padding:4px 8px;background:rgba({},0.1);border-radius:4px;">{} {} ({})</span>',
-            color, 
-            '40,167,69' if obj.stock > 10 else '255,193,7' if obj.stock > 0 else '220,53,69',
-            icon, obj.stock, text
-        )
-    stock_badge.short_description = 'حالة المخزون'
-
-
-class PatternInline(nested_admin.NestedStackedInline):
+class PatternInline(admin.TabularInline):
     model = Pattern
     extra = 0
-    fields = ['name', 'has_sizes', 'base_price', 'order']
+    fields = ['name', 'has_sizes', 'base_price', 'order', 'edit_link']
+    readonly_fields = ['edit_link']
     ordering = ['order']
-    verbose_name = 'نمط'
-    verbose_name_plural = 'الأنماط'
-    inlines = [PatternSizeInline]
-    
-    def get_formset(self, request, obj=None, **kwargs):
-        formset = super().get_formset(request, obj, **kwargs)
-        formset.validate_min = True
-        return formset
+    verbose_name = '\u0646\u0645\u0637'
+    verbose_name_plural = '\u0627\u0644\u0623\u0646\u0645\u0627\u0637'
+    show_change_link = False
+
+    def edit_link(self, instance):
+        if instance.pk:
+            url = reverse('admin:products_pattern_change', args=[instance.pk])
+            return format_html(
+                '<a href="{}" style="background:#007bff;color:white;padding:3px 10px;'                'border-radius:4px;text-decoration:none;font-size:0.82em;">'                '\u2712 \u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u0645\u0642\u0627\u0633\u0627\u062a \u0648\u0627\u0644\u0645\u062a\u063a\u064a\u0631\u0627\u062a</a>',
+                url
+            )
+        return '\u2014'
+    edit_link.short_description = '\u0625\u062f\u0627\u0631\u0629'
 
 
-class ProductColorInline(nested_admin.NestedTabularInline):
+class ProductColorInline(admin.TabularInline):
     model = ProductColor
-    extra = 0
+    extra = 1
     fields = ['color', 'color_preview', 'order']
     readonly_fields = ['color_preview']
     ordering = ['order']
-    verbose_name = 'لون'
-    verbose_name_plural = 'الألوان'
+    verbose_name = '\u0644\u0648\u0646'
+    verbose_name_plural = '\u0627\u0644\u0623\u0644\u0648\u0627\u0646'
     autocomplete_fields = ['color']
-    
+
     def color_preview(self, obj):
-        if obj.color and obj.color.code:
+        if obj.pk and obj.color and obj.color.code:
             return format_html(
-                '<span style="display:inline-block;width:24px;height:24px;background:{};'
-                'border-radius:50%;border:2px solid #ddd;"></span>',
+                '<span style="display:inline-block;width:26px;height:26px;background:{};'                'border-radius:50%;border:2px solid #ddd;vertical-align:middle;"></span>',
                 obj.color.code
             )
-        return '—'
-    color_preview.short_description = 'معاينة'
+        return '\u2014'
+    color_preview.short_description = '\u0645\u0639\u0627\u064a\u0646\u0629'
 
 
-class ProductSizeInline(nested_admin.NestedTabularInline):
+class ProductSizeInline(admin.TabularInline):
     model = ProductSize
-    extra = 0
+    extra = 1
     fields = ['size', 'price', 'order']
     ordering = ['order']
-    verbose_name = 'مقاس'
-    verbose_name_plural = 'المقاسات'
+    verbose_name = '\u0645\u0642\u0627\u0633'
+    verbose_name_plural = '\u0627\u0644\u0645\u0642\u0627\u0633\u0627\u062a'
     autocomplete_fields = ['size']
 
 
-class ProductImageInline(nested_admin.NestedTabularInline):
+class ProductImageInline(admin.TabularInline):
     model = ProductImage
-    extra = 0
+    extra = 1
     fields = ['color', 'image', 'preview', 'order']
     readonly_fields = ['preview']
     ordering = ['order']
-    verbose_name = 'صورة'
-    verbose_name_plural = 'الصور'
+    verbose_name = '\u0635\u0648\u0631\u0629'
+    verbose_name_plural = '\u0627\u0644\u0635\u0648\u0631'
     autocomplete_fields = ['color']
 
     def preview(self, obj):
-        if obj.image:
-            return format_html('<img src="{}" style="width:60px;height:60px;object-fit:cover;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.1);" />', obj.image.url)
-        return '—'
-    preview.short_description = 'معاينة'
+        if obj.pk and obj.image:
+            return format_html(
+                '<img src="{}" style="width:60px;height:60px;object-fit:cover;border-radius:6px;" />',
+                obj.image.url
+            )
+        return '\u2014'
+    preview.short_description = '\u0645\u0639\u0627\u064a\u0646\u0629'
 
 
-class ProductSpecificationInline(nested_admin.NestedTabularInline):
+class ProductSpecificationInline(admin.TabularInline):
     model = ProductSpecification
-    extra = 0
+    extra = 1
     fields = ['key', 'value', 'order']
     ordering = ['order']
-    verbose_name = 'مواصفة'
-    verbose_name_plural = 'المواصفات'
+    verbose_name = '\u0645\u0648\u0627\u0635\u0641\u0629'
+    verbose_name_plural = '\u0627\u0644\u0645\u0648\u0627\u0635\u0641\u0627\u062a'
 
 
-class ProductVariantInline(nested_admin.NestedTabularInline):
-    model = ProductVariant
-    extra = 0
-    fields = ['pattern', 'color', 'size', 'price', 'stock', 'sku', 'stock_status_badge', 'order']
-    readonly_fields = ['stock_status_badge']
+# ================================================
+# Inlines — used inside PatternAdmin
+# ================================================
+
+class PatternSizeInline(admin.TabularInline):
+    model = PatternSize
+    extra = 1
+    fields = ['size', 'price', 'stock', 'order']
     ordering = ['order']
-    verbose_name = 'متغير'
-    verbose_name_plural = 'المتغيرات (اللون/المقاس/النمط)'
-    autocomplete_fields = ['pattern', 'color', 'size']
-    
-    def stock_status_badge(self, obj):
-        if not obj.pk:
-            return '—'
-        if obj.stock > 10:
-            return format_html('<span style="background:#28a745;color:white;padding:2px 8px;border-radius:4px;font-size:0.8em;">{}</span>', '✓ متوفر')
-        elif obj.stock > 0:
-            return format_html('<span style="background:#ffc107;color:black;padding:2px 8px;border-radius:4px;font-size:0.8em;">{}</span>', '⚠ محدود')
-        return format_html('<span style="background:#dc3545;color:white;padding:2px 8px;border-radius:4px;font-size:0.8em;">{}</span>', '✗ نفد')
-    stock_status_badge.short_description = 'الحالة'
+    verbose_name = '\u0645\u0642\u0627\u0633 \u0627\u0644\u0646\u0645\u0637'
+    verbose_name_plural = '\u0645\u0642\u0627\u0633\u0627\u062a \u0627\u0644\u0646\u0645\u0637 (\u0633\u0639\u0631 + \u0645\u062e\u0632\u0648\u0646 \u0644\u0643\u0644 \u0645\u0642\u0627\u0633)'
+    autocomplete_fields = ['size']
+
+
+class PatternVariantInline(admin.TabularInline):
+    model = ProductVariant
+    extra = 1
+    fields = ['color', 'size', 'price', 'stock', 'sku', 'order']
+    ordering = ['order']
+    verbose_name = '\u0645\u062a\u063a\u064a\u0631 (\u0644\u0648\u0646 + \u0645\u0642\u0627\u0633)'
+    verbose_name_plural = '\u0627\u0644\u0645\u062a\u063a\u064a\u0631\u0627\u062a \u2014 \u0627\u0631\u0628\u0637 \u0643\u0644 \u0644\u0648\u0646 \u0628\u0645\u0642\u0627\u0633'
+    # No autocomplete_fields here — using plain <select> to avoid AJAX/validation mismatch.
+    # Autocomplete shows ALL items via AJAX, but formfield_for_foreignkey restricts the
+    # queryset, causing submitted values to fail validation silently (cleared field + loop).
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        object_id = request.resolver_match.kwargs.get('object_id')
+        if object_id:
+            try:
+                pattern = Pattern.objects.get(pk=object_id)
+                return qs.filter(pattern=pattern)
+            except Pattern.DoesNotExist:
+                pass
+        return qs.none()
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        object_id = request.resolver_match.kwargs.get('object_id')
+        if object_id:
+            try:
+                pattern = Pattern.objects.select_related('product').get(pk=object_id)
+                product = pattern.product
+                if db_field.name == 'color':
+                    # Show only colors linked to this product via ProductColor
+                    kwargs['queryset'] = Color.objects.filter(
+                        productcolor__product=product
+                    ).distinct()
+                elif db_field.name == 'size':
+                    # FIX: show sizes from PatternSize (pattern-level), NOT ProductSize.
+                    # Pattern sizes are added via PatternSizeInline → stored in PatternSize.
+                    # productsize__product was wrong — it filtered product-level sizes only.
+                    kwargs['queryset'] = Size.objects.filter(
+                        patternsize__pattern=pattern
+                    ).distinct()
+            except Pattern.DoesNotExist:
+                pass
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 # ================================================
@@ -175,66 +158,35 @@ class ProductVariantInline(nested_admin.NestedTabularInline):
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ['category_icon', 'name', 'product_count', 'is_hot', 'order', 'created_at']
+    list_display = ['cat_icon', 'name', 'product_count', 'is_hot', 'order']
     list_display_links = ['name']
     list_editable = ['is_hot', 'order']
-    list_filter = ['is_hot', 'created_at']
-    search_fields = ['name', 'description']
-    ordering = ['order']
-    readonly_fields = ['created_at', 'updated_at', 'category_image_preview']
+    list_filter = ['is_hot']
+    search_fields = ['name']
     prepopulated_fields = {'slug': ('name',)}
-    list_per_page = 20
-    date_hierarchy = 'created_at'
-    
-    actions = ['mark_as_hot', 'mark_as_not_hot']
-    
-    def mark_as_hot(self, request, queryset):
-        updated = queryset.update(is_hot=True)
-        self.message_user(request, f'تم تحديد {updated} قسم كمشهور', messages.SUCCESS)
-    mark_as_hot.short_description = 'تحديد كمشهور'
-    
-    def mark_as_not_hot(self, request, queryset):
-        updated = queryset.update(is_hot=False)
-        self.message_user(request, f'تم إلغاء {updated} قسم من المشهورة', messages.SUCCESS)
-    mark_as_not_hot.short_description = 'إلغاء من المشهورة'
+    ordering = ['order']
+    list_per_page = 25
 
     fieldsets = (
-        ('📁 معلومات القسم', {
-            'fields': ('name', 'slug', 'description', 'icon')
-        }),
-        ('🖼️ الصورة', {
-            'fields': ('image', 'category_image_preview')
-        }),
-        ('⚙️ الإعدادات', {
-            'fields': ('is_hot', 'order')
-        }),
-        ('📅 التواريخ', {
-            'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
-        }),
+        ('\u0645\u0639\u0644\u0648\u0645\u0627\u062a \u0627\u0644\u0642\u0633\u0645', {'fields': ('name', 'slug', 'description', 'icon')}),
+        ('\u0627\u0644\u0635\u0648\u0631\u0629', {'fields': ('image',)}),
+        ('\u0627\u0644\u0625\u0639\u062f\u0627\u062f\u0627\u062a', {'fields': ('is_hot', 'order')}),
     )
 
-    def category_icon(self, obj):
+    def cat_icon(self, obj):
         if obj.image:
-            return format_html('<img src="{}" style="width:36px;height:36px;object-fit:cover;border-radius:6px;" />', obj.image.url)
-        return format_html('<span style="font-size:1.5rem;">{}</span>', obj.icon or '📁')
-    category_icon.short_description = ''
-
-    def category_image_preview(self, obj):
-        if obj.image:
-            return format_html('<img src="{}" style="max-width:200px;border-radius:8px;margin-top:8px;" />', obj.image.url)
-        return 'لا توجد صورة'
-    category_image_preview.short_description = 'معاينة الصورة'
+            return format_html(
+                '<img src="{}" style="width:34px;height:34px;object-fit:cover;border-radius:6px;" />',
+                obj.image.url
+            )
+        return format_html('<span style="font-size:1.4rem;">{}</span>', obj.icon or '\U0001f4c1')
+    cat_icon.short_description = ''
 
     def product_count(self, obj):
         count = obj.product_set.count()
-        color = '#28a745' if count > 0 else '#6c757d'
-        return format_html('<span style="color:{};font-weight:bold;">{} منتج</span>', color, count)
-    product_count.short_description = 'عدد المنتجات'
-
-    class Meta:
-        verbose_name = 'قسم'
-        verbose_name_plural = 'الأقسام'
+        color = '#28a745' if count > 0 else '#999'
+        return format_html('<span style="color:{};font-weight:bold;">{}</span>', color, count)
+    product_count.short_description = '\u0639\u062f\u062f \u0627\u0644\u0645\u0646\u062a\u062c\u0627\u062a'
 
 
 # ================================================
@@ -242,36 +194,36 @@ class CategoryAdmin(admin.ModelAdmin):
 # ================================================
 
 @admin.register(Product)
-class ProductAdmin(nested_admin.NestedModelAdmin):
+class ProductAdmin(admin.ModelAdmin):
     list_display = [
-        'product_thumbnail', 'name', 'category', 'price_display',
-        'discount_badge', 'stock_status', 'is_active', 'is_hot', 'is_new',
-        'rating', 'order'
+        'thumb', 'name', 'category', 'price_display',
+        'discount_badge', 'variants_count', 'is_active', 'is_hot', 'is_new', 'order'
     ]
     list_display_links = ['name']
     list_editable = ['is_active', 'is_hot', 'is_new', 'order']
-    list_filter = ['category', 'is_active', 'is_hot', 'is_new', 'created_at']
-    search_fields = ['name', 'description', 'category__name']
+    list_filter = ['category', 'is_active', 'is_hot', 'is_new']
+    search_fields = ['name', 'category__name']
     ordering = ['order']
-    readonly_fields = ['created_at', 'updated_at', 'main_image_preview', 'discount_percent_display']
     prepopulated_fields = {'slug': ('name',)}
-    date_hierarchy = 'created_at'
+    readonly_fields = ['created_at', 'updated_at', 'image_preview', 'discount_info']
     list_per_page = 25
+    list_select_related = ['category']
 
     fieldsets = (
-        ('📦 معلومات المنتج الأساسية', {
+        ('\u0645\u0639\u0644\u0648\u0645\u0627\u062a \u0627\u0644\u0645\u0646\u062a\u062c', {
             'fields': ('name', 'slug', 'category', 'description')
         }),
-        ('🖼️ الصورة الرئيسية', {
-            'fields': ('image', 'main_image_preview')
+        ('\u0627\u0644\u0635\u0648\u0631\u0629 \u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629', {
+            'fields': ('image', 'image_preview')
         }),
-        ('💰 الأسعار', {
-            'fields': ('price', 'old_price', 'discount_percent_display')
+        ('\u0627\u0644\u0623\u0633\u0639\u0627\u0631', {
+            'fields': ('price', 'old_price', 'discount_info'),
+            'description': '\u0633\u0639\u0631 \u0627\u0644\u0645\u0646\u062a\u062c \u0627\u0644\u0623\u0633\u0627\u0633\u064a. \u0633\u0639\u0631 \u0627\u0644\u0645\u062a\u063a\u064a\u0631\u0627\u062a \u064a\u064f\u062d\u062f\u062f \u0645\u0646 \u062e\u0644\u0627\u0644 \u0645\u0642\u0627\u0633\u0627\u062a \u0627\u0644\u0646\u0645\u0637.'
         }),
-        ('⭐ الحالة والتقييم', {
+        ('\u0627\u0644\u062d\u0627\u0644\u0629', {
             'fields': ('is_active', 'is_new', 'is_hot', 'rating', 'order')
         }),
-        ('📅 التواريخ', {
+        ('\u0627\u0644\u062a\u0648\u0627\u0631\u064a\u062e', {
             'fields': ('created_at', 'updated_at'),
             'classes': ('collapse',)
         }),
@@ -283,179 +235,141 @@ class ProductAdmin(nested_admin.NestedModelAdmin):
         ProductSizeInline,
         ProductImageInline,
         ProductSpecificationInline,
-        ProductVariantInline,
     ]
 
-    def product_thumbnail(self, obj):
+    def thumb(self, obj):
         if obj.image:
-            return format_html('<img src="{}" style="width:48px;height:48px;object-fit:cover;border-radius:8px;border:1px solid #ddd;" />', obj.image.url)
-        return mark_safe('<div style="width:48px;height:48px;background:#f0f0f0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;">📦</div>')
-    product_thumbnail.short_description = ''
+            return format_html(
+                '<img src="{}" style="width:44px;height:44px;object-fit:cover;'                'border-radius:6px;border:1px solid #eee;" />',
+                obj.image.url
+            )
+        return mark_safe('<span style="font-size:1.5rem;">\U0001f4e6</span>')
+    thumb.short_description = ''
 
     def price_display(self, obj):
         if obj.old_price and obj.old_price > obj.price:
             return format_html(
-                '<span style="font-weight:bold;color:#28a745;">{} ج.م</span> '
-                '<span style="text-decoration:line-through;color:#999;font-size:0.85em;">{} ج.م</span>',
+                '<b style="color:#28a745;">{} \u062c.\u0645</b> '                '<s style="color:#999;font-size:0.8em;">{} \u062c.\u0645</s>',
                 obj.price, obj.old_price
             )
-        return format_html('<span style="font-weight:bold;">{} ج.م</span>', obj.price)
-    price_display.short_description = 'السعر'
+        return format_html('<b>{} \u062c.\u0645</b>', obj.price)
+    price_display.short_description = '\u0627\u0644\u0633\u0639\u0631'
     price_display.admin_order_field = 'price'
 
     def discount_badge(self, obj):
         pct = obj.get_discount_percent()
         if pct > 0:
-            return format_html('<span style="background:#dc3545;color:white;padding:2px 8px;border-radius:12px;font-size:0.8em;font-weight:bold;">-%{}%</span>', pct)
-        return '—'
-    discount_badge.short_description = 'الخصم'
+            return format_html(
+                '<span style="background:#dc3545;color:#fff;padding:2px 7px;'                'border-radius:10px;font-size:0.8em;font-weight:bold;">-{}%</span>',
+                pct
+            )
+        return '\u2014'
+    discount_badge.short_description = '\u062e\u0635\u0645'
 
-    def stock_status(self, obj):
-        total_stock = sum(v.stock for v in obj.variants.all())
-        if total_stock > 10:
-            return format_html('<span style="color:#28a745;font-weight:bold;">✓ متوفر ({})</span>', total_stock)
-        elif total_stock > 0:
-            return format_html('<span style="color:#ffc107;font-weight:bold;">⚠ محدود ({})</span>', total_stock)
-        return mark_safe('<span style="color:#dc3545;font-weight:bold;">✗ نفد</span>')
-    stock_status.short_description = 'المخزون'
+    def variants_count(self, obj):
+        count = obj.variants.count()
+        if count > 0:
+            return format_html('<span style="color:#007bff;font-weight:bold;">{} \u0645\u062a\u063a\u064a\u0631</span>', count)
+        return format_html('<span style="color:#dc3545;">\u0644\u0627 \u064a\u0648\u062c\u062f</span>')
+    variants_count.short_description = '\u0627\u0644\u0645\u062a\u063a\u064a\u0631\u0627\u062a'
 
-    def main_image_preview(self, obj):
+    def image_preview(self, obj):
         if obj.image:
-            return format_html('<img src="{}" style="max-width:250px;border-radius:10px;margin-top:8px;" />', obj.image.url)
-        return 'لا توجد صورة'
-    main_image_preview.short_description = 'معاينة الصورة'
+            return format_html(
+                '<img src="{}" style="max-width:220px;border-radius:8px;margin-top:6px;" />',
+                obj.image.url
+            )
+        return '\u0644\u0627 \u062a\u0648\u062c\u062f \u0635\u0648\u0631\u0629'
+    image_preview.short_description = '\u0645\u0639\u0627\u064a\u0646\u0629'
 
-    def discount_percent_display(self, obj):
+    def discount_info(self, obj):
         pct = obj.get_discount_percent()
         if pct > 0:
-            return format_html('<strong style="color:#dc3545;">{}%</strong> خصم', pct)
-        return 'لا يوجد خصم'
-    discount_percent_display.short_description = 'نسبة الخصم'
+            return format_html('<b style="color:#dc3545;">{}% \u062e\u0635\u0645</b>', pct)
+        return '\u0644\u0627 \u064a\u0648\u062c\u062f \u062e\u0635\u0645'
+    discount_info.short_description = '\u0646\u0633\u0628\u0629 \u0627\u0644\u062e\u0635\u0645'
 
     def get_queryset(self, request):
-        return super().get_queryset(request).select_related('category').prefetch_related('variants', 'images')
-    
-    def save_formset(self, request, form, formset, change):
-        """Override to create variants when ProductColor is saved via inline"""
-        if formset.model == ProductColor:
-            instances = formset.save(commit=False)
-            
-            for instance in instances:
-                is_new = instance.pk is None
-                instance.save()
-                
-                # If new ProductColor, create variants
-                if is_new:
-                    instance.create_variants_for_pattern_sizes()
-            
-            # Delete removed instances
-            for obj in formset.deleted_objects:
-                obj.delete()
-        else:
-            formset.save()
-    
-    actions = ['mark_as_active', 'mark_as_inactive', 'mark_as_hot', 'mark_as_new', 'duplicate_product']
-    
-    def mark_as_active(self, request, queryset):
-        updated = queryset.update(is_active=True)
-        self.message_user(request, f'تم تفعيل {updated} منتج', messages.SUCCESS)
-    mark_as_active.short_description = 'تفعيل المنتجات'
-    
-    def mark_as_inactive(self, request, queryset):
-        updated = queryset.update(is_active=False)
-        self.message_user(request, f'تم إلغاء تفعيل {updated} منتج', messages.SUCCESS)
-    mark_as_inactive.short_description = 'إلغاء تفعيل المنتجات'
-    
-    def mark_as_hot(self, request, queryset):
-        updated = queryset.update(is_hot=True)
-        self.message_user(request, f'تم تحديد {updated} منتج كمشهور', messages.SUCCESS)
-    mark_as_hot.short_description = 'تحديد كمشهور'
-    
-    def mark_as_new(self, request, queryset):
-        updated = queryset.update(is_new=True)
-        self.message_user(request, f'تم تحديد {updated} منتج كجديد', messages.SUCCESS)
-    mark_as_new.short_description = 'تحديد كجديد'
-    
-    def duplicate_product(self, request, queryset):
-        for product in queryset:
-            product.pk = None
-            product.name = f'{product.name} (نسخة)'
-            product.slug = None
-            product.save()
-        self.message_user(request, f'تم نسخ {queryset.count()} منتج', messages.SUCCESS)
-    duplicate_product.short_description = 'نسخ المنتجات'
+        return super().get_queryset(request).prefetch_related('variants')
 
-    class Meta:
-        verbose_name = 'منتج'
-        verbose_name_plural = 'المنتجات'
+    actions = ['activate', 'deactivate', 'mark_hot', 'mark_new']
+
+    def activate(self, request, queryset):
+        queryset.update(is_active=True)
+        self.message_user(request, '\u062a\u0645 \u062a\u0641\u0639\u064a\u0644 \u0627\u0644\u0645\u0646\u062a\u062c\u0627\u062a', messages.SUCCESS)
+    activate.short_description = '\u062a\u0641\u0639\u064a\u0644'
+
+    def deactivate(self, request, queryset):
+        queryset.update(is_active=False)
+        self.message_user(request, '\u062a\u0645 \u0625\u064a\u0642\u0627\u0641 \u0627\u0644\u0645\u0646\u062a\u062c\u0627\u062a', messages.SUCCESS)
+    deactivate.short_description = '\u0625\u064a\u0642\u0627\u0641'
+
+    def mark_hot(self, request, queryset):
+        queryset.update(is_hot=True)
+        self.message_user(request, '\u062a\u0645 \u0627\u0644\u062a\u062d\u062f\u064a\u062f \u0643\u0645\u0634\u0647\u0648\u0631', messages.SUCCESS)
+    mark_hot.short_description = '\u062a\u062d\u062f\u064a\u062f \u0643\u0645\u0634\u0647\u0648\u0631'
+
+    def mark_new(self, request, queryset):
+        queryset.update(is_new=True)
+        self.message_user(request, '\u062a\u0645 \u0627\u0644\u062a\u062d\u062f\u064a\u062f \u0643\u062c\u062f\u064a\u062f', messages.SUCCESS)
+    mark_new.short_description = '\u062a\u062d\u062f\u064a\u062f \u0643\u062c\u062f\u064a\u062f'
 
 
 # ================================================
-# Color Admin
+# Color Admin  (required for autocomplete)
 # ================================================
 
 @admin.register(Color)
 class ColorAdmin(admin.ModelAdmin):
-    list_display = ['color_swatch', 'name', 'code', 'usage_count']
+    list_display = ['swatch', 'name', 'code', 'products_count']
     list_display_links = ['name']
     search_fields = ['name', 'code']
     list_per_page = 30
-    
-    def usage_count(self, obj):
-        count = obj.productcolor_set.count()
-        if count > 0:
-            return format_html('<span style="color:#007bff;font-weight:bold;">{} منتج</span>', count)
-        return '—'
-    usage_count.short_description = 'الاستخدام'
 
-    def color_swatch(self, obj):
+    def swatch(self, obj):
         if obj.code:
             return format_html(
-                '<span style="display:inline-block;width:24px;height:24px;background:{};'
-                'border-radius:50%;border:2px solid #ddd;"></span>',
+                '<span style="display:inline-block;width:22px;height:22px;'                'background:{};border-radius:50%;border:2px solid #ccc;"></span>',
                 obj.code
             )
-        return '—'
-    color_swatch.short_description = 'اللون'
+        return '\u2014'
+    swatch.short_description = ''
+
+    def products_count(self, obj):
+        count = obj.productcolor_set.count()
+        return format_html('<span style="color:#007bff;">{}</span>', count) if count else '\u2014'
+    products_count.short_description = '\u0627\u0644\u0645\u0646\u062a\u062c\u0627\u062a'
 
 
 # ================================================
-# Size Admin
+# Size Admin  (required for autocomplete)
 # ================================================
 
 @admin.register(Size)
 class SizeAdmin(admin.ModelAdmin):
-    list_display = ['name', 'product_usage', 'pattern_usage']
+    list_display = ['name', 'products_count', 'patterns_count']
     list_display_links = ['name']
     search_fields = ['name']
     list_per_page = 30
-    
-    def product_usage(self, obj):
-        count = obj.productsize_set.count()
-        if count > 0:
-            return format_html('<span style="color:#28a745;font-weight:bold;">{} منتج</span>', count)
-        return '—'
-    product_usage.short_description = 'استخدام المنتجات'
-    
-    def pattern_usage(self, obj):
-        count = obj.patternsize_set.count()
-        if count > 0:
-            return format_html('<span style="color:#007bff;font-weight:bold;">{} نمط</span>', count)
-        return '—'
-    pattern_usage.short_description = 'استخدام الأنماط'
 
-    class Meta:
-        verbose_name = 'مقاس'
-        verbose_name_plural = 'المقاسات'
+    def products_count(self, obj):
+        count = obj.productsize_set.count()
+        return format_html('<span style="color:#28a745;">{}</span>', count) if count else '\u2014'
+    products_count.short_description = '\u0627\u0644\u0645\u0646\u062a\u062c\u0627\u062a'
+
+    def patterns_count(self, obj):
+        count = obj.patternsize_set.count()
+        return format_html('<span style="color:#007bff;">{}</span>', count) if count else '\u2014'
+    patterns_count.short_description = '\u0627\u0644\u0623\u0646\u0645\u0627\u0637'
 
 
 # ================================================
-# Pattern Admin
+# Pattern Admin — central hub for variant management
 # ================================================
 
 @admin.register(Pattern)
 class PatternAdmin(admin.ModelAdmin):
-    list_display = ['product', 'name', 'has_sizes', 'base_price_display', 'pattern_sizes_count', 'order']
+    list_display = ['product', 'name', 'has_sizes', 'base_price_display', 'sizes_count', 'variants_count', 'order']
     list_display_links = ['name']
     list_editable = ['order']
     list_filter = ['has_sizes', 'product__category']
@@ -463,91 +377,93 @@ class PatternAdmin(admin.ModelAdmin):
     ordering = ['product', 'order']
     autocomplete_fields = ['product']
     list_per_page = 30
-    
+    list_select_related = ['product']
+
     fieldsets = (
-        ('معلومات النمط', {
-            'fields': ('product', 'name', 'order')
+        ('\u0645\u0639\u0644\u0648\u0645\u0627\u062a \u0627\u0644\u0646\u0645\u0637', {
+            'fields': ('product', 'name', 'order'),
+            'description': '\u0627\u062e\u062a\u0631 \u0627\u0644\u0645\u0646\u062a\u062c \u0623\u0648\u0644\u0627\u064b \u062b\u0645 \u0623\u062f\u062e\u0644 \u0627\u0633\u0645 \u0627\u0644\u0646\u0645\u0637.'
         }),
-        ('إعدادات التسعير', {
+        ('\u0627\u0644\u062a\u0633\u0639\u064a\u0631', {
             'fields': ('has_sizes', 'base_price'),
-            'description': 'إذا كان النمط له مقاسات، حدد "له مقاسات" وأضف المقاسات أدناه. وإلا، حدد السعر الأساسي.'
+            'description': (
+                '\u0625\u0630\u0627 \u0643\u0627\u0646 \u0644\u0644\u0646\u0645\u0637 \u0645\u0642\u0627\u0633\u0627\u062a: \u0641\u0639\u0651\u0644 "\u0644\u0647 \u0645\u0642\u0627\u0633\u0627\u062a" \u0648\u0623\u0636\u0641\u0647\u0627 \u0641\u064a \u062c\u062f\u0648\u0644 "\u0645\u0642\u0627\u0633\u0627\u062a \u0627\u0644\u0646\u0645\u0637" \u0623\u062f\u0646\u0627\u0647. '
+                '\u0648\u0625\u0644\u0627 \u0623\u062f\u062e\u0644 \u0627\u0644\u0633\u0639\u0631 \u0627\u0644\u0623\u0633\u0627\u0633\u064a \u0641\u0642\u0637.'
+            )
         }),
     )
-    
-    inlines = [PatternSizeInline]
-    
-    actions = ['generate_variants_for_patterns']
-    
-    def save_formset(self, request, form, formset, change):
-        """Override to create variants when PatternSize is saved via inline"""
-        if formset.model == PatternSize:
-            instances = formset.save(commit=False)
-            
-            for instance in instances:
-                is_new = instance.pk is None
-                instance.save()
-                
-                # If new PatternSize, create variants
-                if is_new:
-                    instance.create_variants_for_colors()
-            
-            # Delete removed instances
-            for obj in formset.deleted_objects:
-                obj.delete()
-        else:
-            formset.save()
-    
-    def generate_variants_for_patterns(self, request, queryset):
-        """إنشاء المتغيرات تلقائياً لكل الأنماط المحددة"""
-        total_created = 0
-        
-        for pattern in queryset:
-            product = pattern.product
-            
-            # Get all pattern sizes
-            pattern_sizes = PatternSize.objects.filter(pattern=pattern)
-            
-            # Get all colors
-            product_colors = ProductColor.objects.filter(product=product)
-            
-            for ps in pattern_sizes:
-                for pc in product_colors:
-                    # Check if variant exists
-                    variant, created = ProductVariant.objects.get_or_create(
-                        product=product,
-                        pattern=pattern,
-                        color=pc.color,
-                        size=ps.size,
-                        defaults={
-                            'price': ps.price,
-                            'stock': ps.stock,
-                            'order': 0
-                        }
-                    )
-                    if created:
-                        total_created += 1
-        
-        self.message_user(request, f'✅ تم إنشاء {total_created} متغير جديد', messages.SUCCESS)
-    
-    generate_variants_for_patterns.short_description = '🔄 إنشاء المتغيرات تلقائياً'
-    
+
+    inlines = [PatternSizeInline, PatternVariantInline]
+
     def base_price_display(self, obj):
         if obj.base_price:
-            return format_html('<span style="font-weight:bold;color:#28a745;">{} ج.م</span>', obj.base_price)
-        return '—'
-    base_price_display.short_description = 'السعر الأساسي'
+            return format_html('<b style="color:#28a745;">{} \u062c.\u0645</b>', obj.base_price)
+        return '\u2014'
+    base_price_display.short_description = '\u0627\u0644\u0633\u0639\u0631 \u0627\u0644\u0623\u0633\u0627\u0633\u064a'
     base_price_display.admin_order_field = 'base_price'
-    
-    def pattern_sizes_count(self, obj):
-        count = obj.pattern_sizes.count()
-        if count > 0:
-            return format_html('<span style="color:#007bff;font-weight:bold;">{} مقاس</span>', count)
-        return '—'
-    pattern_sizes_count.short_description = 'عدد المقاسات'
 
-    class Meta:
-        verbose_name = 'نمط'
-        verbose_name_plural = 'الأنماط'
+    def sizes_count(self, obj):
+        count = obj.pattern_sizes.count()
+        return format_html('<span style="color:#17a2b8;">{} \u0645\u0642\u0627\u0633</span>', count) if count else '\u2014'
+    sizes_count.short_description = '\u0627\u0644\u0645\u0642\u0627\u0633\u0627\u062a'
+
+    def variants_count(self, obj):
+        count = ProductVariant.objects.filter(pattern=obj).count()
+        if count > 0:
+            return format_html('<span style="color:#28a745;font-weight:bold;">{} \u0645\u062a\u063a\u064a\u0631</span>', count)
+        return format_html('<span style="color:#dc3545;">\u0644\u0627 \u064a\u0648\u062c\u062f</span>')
+    variants_count.short_description = '\u0627\u0644\u0645\u062a\u063a\u064a\u0631\u0627\u062a'
+
+    def save_formset(self, request, form, formset, change):
+        """
+        ROOT FIX for IntegrityError:
+        Use formset.save(commit=False) so we can set product_id and pattern_id
+        on every new ProductVariant BEFORE Django issues the DB INSERT.
+        """
+        if formset.model is not ProductVariant:
+            super().save_formset(request, form, formset, change)
+            return
+
+        pattern = form.instance
+        product_id = (
+            Pattern.objects
+            .filter(pk=pattern.pk)
+            .values_list('product_id', flat=True)
+            .first()
+        )
+
+        instances = formset.save(commit=False)
+        for instance in instances:
+            if not instance.product_id:
+                instance.product_id = product_id
+            if not instance.pattern_id:
+                instance.pattern_id = pattern.pk
+            instance.save()
+
+        for obj in formset.deleted_objects:
+            obj.delete()
+
+        formset.save_m2m()
+
+    actions = ['auto_generate_variants']
+
+    def auto_generate_variants(self, request, queryset):
+        total = 0
+        for pattern in queryset.select_related('product'):
+            product = pattern.product
+            colors = ProductColor.objects.filter(product=product).select_related('color')
+            sizes = PatternSize.objects.filter(pattern=pattern).select_related('size')
+            for pc in colors:
+                for ps in sizes:
+                    _, created = ProductVariant.objects.get_or_create(
+                        product=product, pattern=pattern,
+                        color=pc.color, size=ps.size,
+                        defaults={'price': ps.price, 'stock': ps.stock}
+                    )
+                    if created:
+                        total += 1
+        self.message_user(request, f'\u062a\u0645 \u0625\u0646\u0634\u0627\u0621 {total} \u0645\u062a\u063a\u064a\u0631 \u062c\u062f\u064a\u062f', messages.SUCCESS)
+    auto_generate_variants.short_description = '\u0625\u0646\u0634\u0627\u0621 \u0627\u0644\u0645\u062a\u063a\u064a\u0631\u0627\u062a \u062a\u0644\u0642\u0627\u0626\u064a\u0627\u064b \u0645\u0646 \u0627\u0644\u0645\u0642\u0627\u0633\u0627\u062a \u0648\u0627\u0644\u0623\u0644\u0648\u0627\u0646'
 
 
 # ================================================
@@ -556,166 +472,88 @@ class PatternAdmin(admin.ModelAdmin):
 
 @admin.register(ProductVariant)
 class ProductVariantAdmin(admin.ModelAdmin):
-    list_display = ['product', 'pattern', 'color_display', 'size', 'dynamic_price_display', 'stock_display', 'sku', 'order']
+    list_display = ['product', 'pattern', 'color_badge', 'size', 'price_display', 'stock_badge', 'sku', 'order']
     list_display_links = ['product']
     list_editable = ['order']
-    list_filter = ['product__category', 'color', 'size', 'pattern', 'stock']
-    search_fields = ['product__name', 'sku', 'pattern__name', 'color__name', 'size__name']
+    list_filter = ['product__category', 'pattern', 'color', 'size']
+    search_fields = ['product__name', 'pattern__name', 'color__name', 'size__name', 'sku']
     ordering = ['product', 'order']
     autocomplete_fields = ['product', 'pattern', 'color', 'size']
     list_per_page = 50
     list_select_related = ['product', 'pattern', 'color', 'size']
-    
+
     fieldsets = (
-        ('معلومات المتغير', {
-            'fields': ('product', 'pattern', 'color', 'size', 'sku', 'order')
+        ('\u0627\u0644\u0631\u0628\u0637', {
+            'fields': ('product', 'pattern', 'color', 'size', 'sku', 'order'),
+            'description': '\u0627\u0631\u0628\u0637 \u0647\u0630\u0627 \u0627\u0644\u0645\u062a\u063a\u064a\u0631 \u0628\u0645\u0646\u062a\u062c \u0648\u0646\u0645\u0637 \u0648\u0644\u0648\u0646 \u0648\u0645\u0642\u0627\u0633.'
         }),
-        ('المخزون والسعر', {
-            'fields': ('stock', 'price', 'dynamic_price_display'),
-            'description': 'ملاحظة: حقل السعر قديم. السعر الفعلي يُحسب ديناميكياً من التسلسل الهرمي للأسعار.'
+        ('\u0627\u0644\u0645\u062e\u0632\u0648\u0646 \u0648\u0627\u0644\u0633\u0639\u0631', {
+            'fields': ('stock', 'price'),
         }),
     )
-    
-    readonly_fields = ['dynamic_price_display']
-    
-    actions = ['update_stock_to_zero', 'update_stock_to_ten', 'mark_as_available']
-    
-    def dynamic_price_display(self, obj):
-        if obj.pk:
-            dynamic_price = obj.get_price()
-            if dynamic_price != obj.price:
-                return format_html(
-                    '<span style="font-weight:bold;color:#28a745;">{} ج.م</span> '
-                    '<span style="color:#999;font-size:0.85em;">(محسوب ديناميكياً)</span><br>'
-                    '<span style="color:#dc3545;font-size:0.85em;">السعر القديم: {} ج.م</span>',
-                    dynamic_price, obj.price
-                )
-            return format_html('<span style="font-weight:bold;">{} ج.م</span>', dynamic_price)
-        return '—'
-    dynamic_price_display.short_description = 'السعر الديناميكي'
-    
-    def update_stock_to_zero(self, request, queryset):
-        updated = queryset.update(stock=0)
-        self.message_user(request, f'تم تحديث المخزون إلى 0 لـ {updated} متغير', messages.SUCCESS)
-    update_stock_to_zero.short_description = 'تحديث المخزون إلى 0'
-    
-    def update_stock_to_ten(self, request, queryset):
-        updated = queryset.update(stock=10)
-        self.message_user(request, f'تم تحديث المخزون إلى 10 لـ {updated} متغير', messages.SUCCESS)
-    update_stock_to_ten.short_description = 'تحديث المخزون إلى 10'
-    
-    def mark_as_available(self, request, queryset):
-        updated = queryset.filter(stock=0).update(stock=5)
-        self.message_user(request, f'تم تحديث {updated} متغير إلى متوفر', messages.SUCCESS)
-    mark_as_available.short_description = 'تحديد كمتوفر (5 قطع)'
-    
-    def color_display(self, obj):
-        if obj.color and obj.color.code:
-            return format_html(
-                '<span style="display:inline-block;width:16px;height:16px;background:{};'
-                'border-radius:50%;border:1px solid #ccc;margin-left:6px;vertical-align:middle;"></span> {}',
-                obj.color.code, obj.color.name
-            )
-        return obj.color.name if obj.color else '—'
-    color_display.short_description = 'اللون'
-    
-    def stock_display(self, obj):
-        if obj.stock > 10:
-            color = '#28a745'
-        elif obj.stock > 0:
-            color = '#ffc107'
-        else:
-            color = '#dc3545'
-        return format_html('<span style="color:{};font-weight:bold;">{}</span>', color, obj.stock)
-    stock_display.short_description = 'المخزون'
-    stock_display.admin_order_field = 'stock'
 
-
-# ================================================
-# ProductImage Admin
-# ================================================
-
-@admin.register(ProductImage)
-class ProductImageAdmin(admin.ModelAdmin):
-    list_display = ['image_preview', 'product', 'color_display', 'order']
-    list_display_links = ['product']
-    list_editable = ['order']
-    list_filter = ['product__category', 'color']
-    search_fields = ['product__name', 'color__name']
-    ordering = ['product', 'order']
-    autocomplete_fields = ['product', 'color']
-    list_per_page = 40
-    list_select_related = ['product', 'color']
-    
-    def color_display(self, obj):
+    def color_badge(self, obj):
         if obj.color:
             if obj.color.code:
                 return format_html(
-                    '<span style="display:inline-block;width:16px;height:16px;background:{};'
-                    'border-radius:50%;border:1px solid #ccc;margin-left:6px;vertical-align:middle;"></span> {}',
+                    '<span style="display:inline-block;width:14px;height:14px;background:{};'                    'border-radius:50%;border:1px solid #ccc;margin-left:4px;vertical-align:middle;"></span> {}',
                     obj.color.code, obj.color.name
                 )
             return obj.color.name
-        return '—'
-    color_display.short_description = 'اللون'
+        return '\u2014'
+    color_badge.short_description = '\u0627\u0644\u0644\u0648\u0646'
 
-    def image_preview(self, obj):
-        if obj.image:
-            return format_html('<img src="{}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;" />', obj.image.url)
-        return '—'
-    image_preview.short_description = 'معاينة'
+    def price_display(self, obj):
+        price = obj.get_price()
+        return format_html('<b style="color:#28a745;">{} \u062c.\u0645</b>', price)
+    price_display.short_description = '\u0627\u0644\u0633\u0639\u0631'
+
+    def stock_badge(self, obj):
+        if obj.stock > 10:
+            color, label = '#28a745', f'\u2713 {obj.stock}'
+        elif obj.stock > 0:
+            color, label = '#ffc107', f'\u26a0 {obj.stock}'
+        else:
+            color, label = '#dc3545', '\u2717 \u0646\u0641\u062f'
+        return format_html('<span style="color:{};font-weight:bold;">{}</span>', color, label)
+    stock_badge.short_description = '\u0627\u0644\u0645\u062e\u0632\u0648\u0646'
+
+    actions = ['reset_stock', 'set_stock_ten']
+
+    def reset_stock(self, request, queryset):
+        queryset.update(stock=0)
+        self.message_user(request, '\u062a\u0645 \u062a\u0635\u0641\u064a\u0631 \u0627\u0644\u0645\u062e\u0632\u0648\u0646', messages.SUCCESS)
+    reset_stock.short_description = '\u062a\u0635\u0641\u064a\u0631 \u0627\u0644\u0645\u062e\u0632\u0648\u0646'
+
+    def set_stock_ten(self, request, queryset):
+        queryset.update(stock=10)
+        self.message_user(request, '\u062a\u0645 \u0636\u0628\u0637 \u0627\u0644\u0645\u062e\u0632\u0648\u0646 \u0639\u0644\u0649 10', messages.SUCCESS)
+    set_stock_ten.short_description = '\u0636\u0628\u0637 \u0627\u0644\u0645\u062e\u0632\u0648\u0646 \u0639\u0644\u0649 10'
 
 
 # ================================================
-# ProductSpecification Admin
-# ================================================
-
-@admin.register(ProductSpecification)
-class ProductSpecificationAdmin(admin.ModelAdmin):
-    list_display = ['product', 'key', 'value', 'order']
-    list_display_links = ['product']
-    list_editable = ['order']
-    list_filter = ['product__category', 'key']
-    search_fields = ['key', 'value', 'product__name']
-    ordering = ['product', 'order']
-    autocomplete_fields = ['product']
-    list_per_page = 40
-    list_select_related = ['product']
-
-    class Meta:
-        verbose_name = 'مواصفة'
-        verbose_name_plural = 'مواصفات المنتجات'
-
-
-# ================================================
-# ProductColor & ProductSize Admin (مدمجة)
+# Supporting standalone admins
 # ================================================
 
 @admin.register(ProductColor)
 class ProductColorAdmin(admin.ModelAdmin):
-    list_display = ['product', 'color_display', 'order']
+    list_display = ['product', 'color_badge', 'order']
     list_display_links = ['product']
     list_editable = ['order']
     list_filter = ['color', 'product__category']
     search_fields = ['product__name', 'color__name']
-    ordering = ['product', 'order']
     autocomplete_fields = ['product', 'color']
     list_per_page = 30
     list_select_related = ['product', 'color']
 
-    def color_display(self, obj):
+    def color_badge(self, obj):
         if obj.color.code:
             return format_html(
-                '<span style="display:inline-block;width:16px;height:16px;background:{};'
-                'border-radius:50%;border:1px solid #ccc;margin-left:6px;vertical-align:middle;"></span> {}',
+                '<span style="display:inline-block;width:16px;height:16px;background:{};'                'border-radius:50%;border:1px solid #ccc;margin-left:5px;vertical-align:middle;"></span> {}',
                 obj.color.code, obj.color.name
             )
         return obj.color.name
-    color_display.short_description = 'اللون'
-
-    class Meta:
-        verbose_name = 'لون منتج'
-        verbose_name_plural = 'ألوان المنتجات'
+    color_badge.short_description = '\u0627\u0644\u0644\u0648\u0646'
 
 
 @admin.register(ProductSize)
@@ -725,86 +563,78 @@ class ProductSizeAdmin(admin.ModelAdmin):
     list_editable = ['order']
     list_filter = ['size', 'product__category']
     search_fields = ['product__name', 'size__name']
-    ordering = ['product', 'order']
     autocomplete_fields = ['product', 'size']
     list_per_page = 30
     list_select_related = ['product', 'size']
-    
+
     def price_display(self, obj):
-        return format_html('<span style="font-weight:bold;color:#28a745;">{} ج.م</span>', obj.price)
-    price_display.short_description = 'السعر'
-    price_display.admin_order_field = 'price'
+        return format_html('<b style="color:#28a745;">{} \u062c.\u0645</b>', obj.price)
+    price_display.short_description = '\u0627\u0644\u0633\u0639\u0631'
 
-    class Meta:
-        verbose_name = 'مقاس منتج'
-        verbose_name_plural = 'مقاسات المنتجات'
-
-
-# ================================================
-# PatternSize Admin (NEW - Multi-level Pricing)
-# ================================================
 
 @admin.register(PatternSize)
 class PatternSizeAdmin(admin.ModelAdmin):
-    list_display = ['pattern', 'size', 'price_display', 'stock_display', 'availability_badge', 'order']
+    list_display = ['pattern', 'size', 'price_display', 'stock_badge', 'order']
     list_display_links = ['pattern']
     list_editable = ['order']
-    list_filter = ['pattern__product__category', 'size', 'stock']
+    list_filter = ['pattern__product__category', 'size']
     search_fields = ['pattern__name', 'pattern__product__name', 'size__name']
-    ordering = ['pattern', 'order']
     autocomplete_fields = ['pattern', 'size']
     list_per_page = 40
     list_select_related = ['pattern', 'pattern__product', 'size']
-    
+
     fieldsets = (
-        ('معلومات المقاس', {
-            'fields': ('pattern', 'size', 'order')
-        }),
-        ('السعر والمخزون', {
-            'fields': ('price', 'stock'),
-            'description': 'هذا السعر له الأولوية القصوى في التسلسل الهرمي للأسعار.'
-        }),
+        ('\u0627\u0644\u0631\u0628\u0637', {'fields': ('pattern', 'size', 'order')}),
+        ('\u0627\u0644\u0633\u0639\u0631 \u0648\u0627\u0644\u0645\u062e\u0632\u0648\u0646', {'fields': ('price', 'stock')}),
     )
-    
-    actions = ['update_stock_to_zero', 'update_stock_to_ten', 'mark_as_available']
-    
+
     def price_display(self, obj):
-        return format_html('<span style="font-weight:bold;color:#28a745;">{} ج.م</span>', obj.price)
-    price_display.short_description = 'السعر'
-    price_display.admin_order_field = 'price'
-    
-    def stock_display(self, obj):
-        if obj.stock > 10:
-            color = '#28a745'
-        elif obj.stock > 0:
-            color = '#ffc107'
-        else:
-            color = '#dc3545'
-        return format_html('<span style="color:{};font-weight:bold;">{}</span>', color, obj.stock)
-    stock_display.short_description = 'المخزون'
-    stock_display.admin_order_field = 'stock'
-    
-    def availability_badge(self, obj):
-        if obj.is_available():
-            return format_html('<span style="background:#28a745;color:white;padding:2px 8px;border-radius:4px;font-size:0.8em;">✓ متوفر</span>')
-        return format_html('<span style="background:#dc3545;color:white;padding:2px 8px;border-radius:4px;font-size:0.8em;">✗ نفد</span>')
-    availability_badge.short_description = 'الحالة'
-    
-    def update_stock_to_zero(self, request, queryset):
-        updated = queryset.update(stock=0)
-        self.message_user(request, f'تم تحديث المخزون إلى 0 لـ {updated} مقاس نمط', messages.SUCCESS)
-    update_stock_to_zero.short_description = 'تحديث المخزون إلى 0'
-    
-    def update_stock_to_ten(self, request, queryset):
-        updated = queryset.update(stock=10)
-        self.message_user(request, f'تم تحديث المخزون إلى 10 لـ {updated} مقاس نمط', messages.SUCCESS)
-    update_stock_to_ten.short_description = 'تحديث المخزون إلى 10'
-    
-    def mark_as_available(self, request, queryset):
-        updated = queryset.filter(stock=0).update(stock=5)
-        self.message_user(request, f'تم تحديث {updated} مقاس نمط إلى متوفر', messages.SUCCESS)
-    mark_as_available.short_description = 'تحديد كمتوفر (5 قطع)'
-    
-    class Meta:
-        verbose_name = 'مقاس نمط'
-        verbose_name_plural = 'مقاسات الأنماط'
+        return format_html('<b style="color:#28a745;">{} \u062c.\u0645</b>', obj.price)
+    price_display.short_description = '\u0627\u0644\u0633\u0639\u0631'
+
+    def stock_badge(self, obj):
+        if obj.stock > 0:
+            return format_html('<span style="color:#28a745;font-weight:bold;">\u2713 {}</span>', obj.stock)
+        return format_html('<span style="color:#dc3545;font-weight:bold;">\u2717 \u0646\u0641\u062f</span>')
+    stock_badge.short_description = '\u0627\u0644\u0645\u062e\u0632\u0648\u0646'
+
+
+@admin.register(ProductImage)
+class ProductImageAdmin(admin.ModelAdmin):
+    list_display = ['preview', 'product', 'color_badge', 'order']
+    list_display_links = ['product']
+    list_editable = ['order']
+    list_filter = ['product__category', 'color']
+    search_fields = ['product__name', 'color__name']
+    autocomplete_fields = ['product', 'color']
+    list_per_page = 40
+    list_select_related = ['product', 'color']
+
+    def preview(self, obj):
+        if obj.image:
+            return format_html(
+                '<img src="{}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;" />',
+                obj.image.url
+            )
+        return '\u2014'
+    preview.short_description = ''
+
+    def color_badge(self, obj):
+        if obj.color and obj.color.code:
+            return format_html(
+                '<span style="display:inline-block;width:14px;height:14px;background:{};'                'border-radius:50%;border:1px solid #ccc;margin-left:4px;vertical-align:middle;"></span> {}',
+                obj.color.code, obj.color.name
+            )
+        return obj.color.name if obj.color else '\u2014'
+    color_badge.short_description = '\u0627\u0644\u0644\u0648\u0646'
+
+
+@admin.register(ProductSpecification)
+class ProductSpecificationAdmin(admin.ModelAdmin):
+    list_display = ['product', 'key', 'value', 'order']
+    list_display_links = ['product']
+    list_editable = ['order']
+    search_fields = ['key', 'value', 'product__name']
+    autocomplete_fields = ['product']
+    list_per_page = 40
+    list_select_related = ['product']

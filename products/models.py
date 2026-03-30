@@ -227,14 +227,6 @@ class ProductColor(models.Model):
     def __str__(self):
         return f"{self.product.name} - {self.color.name}"
     
-    def save(self, *args, **kwargs):
-        """Override save to create ProductVariant automatically"""
-        is_new = self.pk is None
-        super().save(*args, **kwargs)
-        
-        if is_new:
-            # Create ProductVariant for all pattern-size combinations
-            self.create_variants_for_pattern_sizes()
     
     def create_variants_for_pattern_sizes(self):
         """Create ProductVariant for all pattern-size combinations"""
@@ -351,14 +343,6 @@ class PatternSize(models.Model):
         """Check if this pattern-size combination is in stock"""
         return self.stock > 0
     
-    def save(self, *args, **kwargs):
-        """Override save to create ProductVariant automatically"""
-        is_new = self.pk is None
-        super().save(*args, **kwargs)
-        
-        if is_new:
-            # Create ProductVariant for each color
-            self.create_variants_for_colors()
     
     def create_variants_for_colors(self):
         """Create ProductVariant for all colors of this product"""
