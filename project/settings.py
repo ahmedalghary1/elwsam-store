@@ -1,7 +1,4 @@
 
-import pymysql
-pymysql.install_as_MySQLdb()
-
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -13,6 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 import os
+
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-rl17&5ecdx1h131wc@wy!^r-*7zh(q@!+#4jy2*%tw=z@4dv2i')
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -106,6 +104,7 @@ DATABASES = {
         },
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
