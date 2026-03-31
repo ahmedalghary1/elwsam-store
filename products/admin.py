@@ -163,7 +163,6 @@ class CategoryAdmin(admin.ModelAdmin):
     list_editable = ['is_hot', 'order']
     list_filter = ['is_hot']
     search_fields = ['name']
-    prepopulated_fields = {'slug': ('name',)}
     ordering = ['order']
     list_per_page = 25
 
@@ -204,7 +203,6 @@ class ProductAdmin(admin.ModelAdmin):
     list_filter = ['category', 'is_active', 'is_hot', 'is_new']
     search_fields = ['name', 'category__name']
     ordering = ['order']
-    prepopulated_fields = {'slug': ('name',)}
     readonly_fields = ['created_at', 'updated_at', 'image_preview', 'discount_info']
     list_per_page = 25
     list_select_related = ['category']

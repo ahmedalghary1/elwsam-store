@@ -9,7 +9,7 @@ class Category(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     image = models.ImageField(upload_to='categories/', blank=True, null=True)
-    slug = models.SlugField(unique=True, blank=True)
+    slug = models.CharField(max_length=255, unique=True, blank=True, db_index=True)
     icon = models.CharField(max_length=50, default='📁', help_text='أيقونة Emoji أو نص قصير')
     is_hot = models.BooleanField(default=False, help_text='هل هذا القسم من الأقسام المشهورة؟')
     order = models.PositiveIntegerField(default=0)
@@ -26,7 +26,16 @@ class Category(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.name, allow_unicode=True)
+            base_slug = slugify(self.name, allow_unicode=True)
+            if not base_slug:
+                base_slug = 'category'
+            
+            slug = base_slug
+            counter = 1
+            while Category.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f'{base_slug}-{counter}'
+                counter += 1
+            self.slug = slug
         super().save(*args, **kwargs)
     
     def get_product_count(self):
@@ -38,7 +47,7 @@ class Category(models.Model):
 # =========================
 class Product(models.Model):
     name = models.CharField(max_length=255)
-    slug = models.SlugField(unique=True, blank=True)
+    slug = models.CharField(max_length=255, unique=True, blank=True, db_index=True)
     description = models.TextField()
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     image = models.ImageField(upload_to='products/', blank=True, null=True)
@@ -68,7 +77,16 @@ class Product(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.name, allow_unicode=True)
+            base_slug = slugify(self.name, allow_unicode=True)
+            if not base_slug:
+                base_slug = 'product'
+            
+            slug = base_slug
+            counter = 1
+            while Product.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f'{base_slug}-{counter}'
+                counter += 1
+            self.slug = slug
         super().save(*args, **kwargs)
 
     def __str__(self):
