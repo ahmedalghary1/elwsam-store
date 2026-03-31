@@ -28,9 +28,9 @@ urlpatterns = [
     
     # Products Routes
     path('categories/', CategoryListView.as_view(), name='category_list'),
-    path('categories/<str:slug>/', category_products, name='category_products'),
+    path('categories/<int:id>/<str:slug>/', category_products, name='category_products'),
     path('products/', ProductListView.as_view(), name='product_list'),
-    path('products/<str:slug>/', ProductDetailView.as_view(), name='product_detail'),
+    path('products/<int:id>/<str:slug>/', ProductDetailView.as_view(), name='product_detail'),
     
     # Accounts Routes
     path('accounts/', include('accounts.urls')),

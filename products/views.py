@@ -23,12 +23,12 @@ class CategoryListView(ListView):
         return Category.objects.all().order_by('order').prefetch_related('product_set')
 
 
-def category_products(request, slug):
+def category_products(request, id, slug):
     """
-    عرض جميع المنتجات الخاصة بقسم معين (حسب slug)
+    عرض جميع المنتجات الخاصة بقسم معين (حسب ID)
     مع إمكانية الفرز والتصفية
     """
-    category = get_object_or_404(Category, slug=slug)
+    category = get_object_or_404(Category, id=id)
     
     # الحصول على جميع المنتجات النشطة للقسم
     products = Product.objects.filter(
@@ -91,8 +91,8 @@ class ProductListView(ListView):
 class ProductDetailView(View):
     template_name = "product.html"
 
-    def get(self, request, slug):
-        product = get_object_or_404(Product, slug=slug, is_active=True)
+    def get(self, request, id, slug):
+        product = get_object_or_404(Product, id=id, is_active=True)
         
         # كل الصور الخاصة بالمنتج (مرتبة حسب الرتبة)
         images = ProductImage.objects.filter(product=product).order_by('order')

@@ -41,6 +41,11 @@ class Category(models.Model):
     def get_product_count(self):
         """حساب عدد المنتجات في هذا القسم"""
         return self.product_set.count()
+    
+    def get_absolute_url(self):
+        """الحصول على رابط القسم"""
+        from django.urls import reverse
+        return reverse('category_products', kwargs={'id': self.id, 'slug': self.slug})
 
 # =========================
 # Product (ترتيب المنتجات)
@@ -91,6 +96,11 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+    
+    def get_absolute_url(self):
+        """الحصول على رابط المنتج"""
+        from django.urls import reverse
+        return reverse('product_detail', kwargs={'id': self.id, 'slug': self.slug})
     
     def get_price_display(self):
         """عرض السعر مع الخصم إن وجد"""
