@@ -56,6 +56,10 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'project.urls'
 
+# Force Django to generate URLs with leading slash
+# This fixes URL duplication issues on production servers
+FORCE_SCRIPT_NAME = '/'
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
