@@ -51,7 +51,7 @@
     {% if categories %}
       <div class="categories-grid" id="categoriesGrid">
         {% for cat in categories %}
-          <a href="{% url 'category_products' cat.slug %}" class="category-card" data-cat-name="{{ cat.name|lower }}" data-cat-slug="{{ cat.slug }}">
+          <a href="{% url 'category_products' id=cat.id slug=cat.slug %}" class="category-card" data-cat-name="{{ cat.name|lower }}" data-cat-slug="{{ cat.slug }}">
             {% if cat.is_hot %}
               <div class="hot-badge">
                 <span class="hot-dot"></span> رائج

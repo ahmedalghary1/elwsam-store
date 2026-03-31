@@ -101,7 +101,7 @@
 
         <div class="categories-grid">
           {% for category in categories %}
-          <a href="{% url 'category_products' category.slug %}" class="category-card" aria-label="{{ category.name }}">
+          <a href="{% url 'category_products' id=category.id slug=category.slug %}" class="category-card" aria-label="{{ category.name }}">
             <div class="cat-icon">
               {% if category.image %}
                 <img src="{{ category.image.url }}" alt="{{ category.name }}">

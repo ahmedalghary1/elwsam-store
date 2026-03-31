@@ -30,7 +30,7 @@
               </div>
 
               <div class="item-actions">
-                <a href="{% url 'products:product_detail' item.product.slug %}" class="btn btn-outline btn-sm">عرض التفاصيل</a>
+                <a href="{% url 'product_detail' id=item.product.id slug=item.product.slug %}" class="btn btn-outline btn-sm">عرض التفاصيل</a>
                 <button class="btn btn-primary btn-sm add-to-cart-btn" data-action="add-to-cart" data-product-id="{{ item.product.id }}"
                   data-product-name="{{ item.product.name }}" data-product-price="{{ item.product.price }}"
                   data-product-image="{% if item.product.image %}{{ item.product.image.url }}{% endif %}">

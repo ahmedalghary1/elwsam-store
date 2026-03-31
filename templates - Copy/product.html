@@ -14,7 +14,7 @@
         <span aria-hidden="true"><i class="fas fa-chevron-left"></i></span>
         <a href="{% url 'category_list' %}"><i class="fas fa-store"></i> الأقسام</a>
         <span aria-hidden="true"><i class="fas fa-chevron-left"></i></span>
-        <a href="{% url 'category_products' product.category.slug %}">{{ product.category.name }}</a>
+        <a href="{% url 'category_products' id=product.category.id slug=product.category.slug %}">{{ product.category.name }}</a>
         <span aria-hidden="true"><i class="fas fa-chevron-left"></i></span>
         <span class="current">{{ product.name }}</span>
       </nav>
@@ -155,7 +155,7 @@
             <h2><i class="fas fa-th-large"></i> منتجات مشابهة</h2>
             <p>قد يعجبك أيضاً</p>
           </div>
-          <a href="{% url 'category_products' product.category.slug %}" class="view-all-btn">عرض الكل <i class="fas fa-arrow-left"></i></a>
+          <a href="{% url 'category_products' id=product.category.id slug=product.category.slug %}" class="view-all-btn">عرض الكل <i class="fas fa-arrow-left"></i></a>
         </div>
         <div class="products-grid" style="--cols:4;">
           <!-- سيتم إضافتها لاحقًا -->
