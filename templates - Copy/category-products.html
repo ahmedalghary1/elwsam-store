@@ -100,7 +100,9 @@
             
             <div class="product-info">
               <div class="product-category-tag">{{ product.category.name }}</div>
-              <h3 class="product-name">{{ product.name }}</h3>
+              <h3 class="product-name">
+                <a href="{% url 'product_detail' id=product.id slug=product.slug %}">{{ product.name }}</a>
+              </h3>
               
 
               
