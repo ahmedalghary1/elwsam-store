@@ -267,8 +267,8 @@ class ProductAdmin(admin.ModelAdmin):
     def variants_count(self, obj):
         count = obj.variants.count()
         if count > 0:
-            return format_html('<span style="color:#007bff;font-weight:bold;">{} \u0645\u062a\u063a\u064a\u0631</span>', count)
-        return format_html('<span style="color:#dc3545;">\u0644\u0627 \u064a\u0648\u062c\u062f</span>')
+            return format_html('<span style="color:#007bff;font-weight:bold;">{} متغير</span>', count)
+        return format_html('<span style="color:#dc3545;">{}</span>', 'لا يوجد')
     variants_count.short_description = '\u0627\u0644\u0645\u062a\u063a\u064a\u0631\u0627\u062a'
 
     def image_preview(self, obj):
@@ -277,14 +277,14 @@ class ProductAdmin(admin.ModelAdmin):
                 '<img src="{}" style="max-width:220px;border-radius:8px;margin-top:6px;" />',
                 obj.image.url
             )
-        return '\u0644\u0627 \u062a\u0648\u062c\u062f \u0635\u0648\u0631\u0629'
+        return format_html('<span>{}</span>', 'لا توجد صورة')
     image_preview.short_description = '\u0645\u0639\u0627\u064a\u0646\u0629'
 
     def discount_info(self, obj):
         pct = obj.get_discount_percent()
         if pct > 0:
             return format_html('<b style="color:#dc3545;">{}% \u062e\u0635\u0645</b>', pct)
-        return '\u0644\u0627 \u064a\u0648\u062c\u062f \u062e\u0635\u0645'
+        return format_html('<span>{}</span>', 'لا يوجد خصم')
     discount_info.short_description = '\u0646\u0633\u0628\u0629 \u0627\u0644\u062e\u0635\u0645'
 
     def get_queryset(self, request):
@@ -408,8 +408,8 @@ class PatternAdmin(admin.ModelAdmin):
     def variants_count(self, obj):
         count = ProductVariant.objects.filter(pattern=obj).count()
         if count > 0:
-            return format_html('<span style="color:#28a745;font-weight:bold;">{} \u0645\u062a\u063a\u064a\u0631</span>', count)
-        return format_html('<span style="color:#dc3545;">\u0644\u0627 \u064a\u0648\u062c\u062f</span>')
+            return format_html('<span style="color:#28a745;font-weight:bold;">{} متغير</span>', count)
+        return format_html('<span style="color:#dc3545;">{}</span>', 'لا يوجد')
     variants_count.short_description = '\u0627\u0644\u0645\u062a\u063a\u064a\u0631\u0627\u062a'
 
     def save_formset(self, request, form, formset, change):
@@ -593,7 +593,7 @@ class PatternSizeAdmin(admin.ModelAdmin):
     def stock_badge(self, obj):
         if obj.stock > 0:
             return format_html('<span style="color:#28a745;font-weight:bold;">\u2713 {}</span>', obj.stock)
-        return format_html('<span style="color:#dc3545;font-weight:bold;">\u2717 \u0646\u0641\u062f</span>')
+        return format_html('<span style="color:#dc3545;font-weight:bold;">{} {}</span>', '\u2717', '\u0646\u0641\u062f')
     stock_badge.short_description = '\u0627\u0644\u0645\u062e\u0632\u0648\u0646'
 
 
