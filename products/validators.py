@@ -54,16 +54,17 @@ class VariantValidator:
             except Pattern.DoesNotExist:
                 errors['pattern'] = 'النمط المحدد غير موجود'
         
-        # Check if product has product-level sizes (not pattern-based)
-        if not has_patterns:
-            has_product_sizes = ProductSize.objects.filter(product=product).exists()
-            if has_product_sizes and not size_id:
-                errors['size'] = 'يجب اختيار المقاس'
-        
-        # Check if color is required
+        # Check if color is required (for color_only products)
         has_colors = ProductColor.objects.filter(product=product).exists()
         if has_colors and not color_id:
             errors['color'] = 'يجب اختيار اللون'
+        
+        # Check if product has product-level sizes (not pattern-based)
+        # Only require size if product has sizes AND is not color-only
+        if not has_patterns and not has_colors:
+            has_product_sizes = ProductSize.objects.filter(product=product).exists()
+            if has_product_sizes and not size_id:
+                errors['size'] = 'يجب اختيار المقاس'
         
         # Validate color belongs to product if provided
         if color_id:
@@ -74,6 +75,16 @@ class VariantValidator:
             
             if not color_exists:
                 errors['color'] = 'اللون المحدد غير متوفر لهذا المنتج'
+        
+        # Validate size belongs to product if provided (for product-level sizes)
+        if size_id and not pattern_id:
+            size_exists = ProductSize.objects.filter(
+                product=product,
+                size_id=size_id
+            ).exists()
+            
+            if not size_exists:
+                errors['size'] = 'المقاس المحدد غير متوفر لهذا المنتج'
         
         # Build response
         if errors:

@@ -123,13 +123,16 @@ class VariantSelector {
                 }
                 this.renderSizeBasedUI();
                 break;
-            case 'simple':
-                // No selectors needed
+            case 'color_only':
+                // Only colors required - render color selector and enable add to cart when color selected
                 this.updateUI({ available: true, price: this.config.base_price });
-                // Render colors for simple products
                 if (this.config.has_colors) {
                     this.renderColorGroup(this.config.colors);
                 }
+                break;
+            case 'simple':
+                // No selectors needed
+                this.updateUI({ available: true, price: this.config.base_price });
                 break;
         }
     }
@@ -436,6 +439,9 @@ class VariantSelector {
     }
     
     updateUI(variant) {
+        const isColorOnly = this.config?.configuration_type === 'color_only';
+        const colorSelected = this.selectedOptions.color !== null;
+        
         if (variant && variant.available) {
             // Valid variant found
             const price = parseFloat(variant.price).toFixed(2);
@@ -449,6 +455,17 @@ class VariantSelector {
             
             // Announce price change to screen readers
             this.announcePriceChange(price);
+        } else if (isColorOnly && colorSelected) {
+            // Color-only product with color selected - use base price
+            const price = parseFloat(this.config.base_price).toFixed(2);
+            this.priceElement.textContent = `${price} ج.م`;
+            this.addToCartBtn.disabled = false;
+            this.buyNowBtn.disabled = false;
+            this.addToCartBtn.innerHTML = '<i class="fas fa-cart-plus"></i> أضف إلى السلة';
+            // For color-only, we still need a variant ID - it will be fetched from the server
+            delete this.addToCartBtn.dataset.variantId;
+            this.addToCartBtn.dataset.productPrice = price;
+            this.hideMessage();
         } else {
             // No valid variant or incomplete selection
             this.addToCartBtn.disabled = true;

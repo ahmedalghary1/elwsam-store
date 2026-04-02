@@ -122,16 +122,18 @@ def get_product_config(request, product_id):
         
         # Get colors
         colors_data = []
-        product_colors = ProductColor.objects.filter(
-            product=product
-        ).select_related('color').order_by('order')
-        
-        for pc in product_colors:
-            colors_data.append({
-                'id': pc.color.id,
-                'name': pc.color.name,
-                'code': pc.color.code or '#CCCCCC'
-            })
+        has_colors = ProductColor.objects.filter(product=product).exists()
+        if has_colors:
+            product_colors = ProductColor.objects.filter(
+                product=product
+            ).select_related('color').order_by('order')
+            
+            for pc in product_colors:
+                colors_data.append({
+                    'id': pc.color.id,
+                    'name': pc.color.name,
+                    'code': pc.color.code or '#CCCCCC'
+                })
         
         return JsonResponse({
             'success': True,
@@ -141,6 +143,8 @@ def get_product_config(request, product_id):
             'base_price': str(product.base_price),
             'has_patterns': product.has_patterns,
             'has_product_level_sizes': product.has_product_level_sizes,
+            'has_colors': has_colors,
+            'requires_color': product.requires_color_selection(),
             'requires_size': product.requires_size_selection(),
             'patterns': patterns_data,
             'product_sizes': product_sizes_data,
@@ -200,8 +204,8 @@ def get_variant_price(request):
         
         product = get_object_or_404(Product, id=product_id, is_active=True)
         
-        # Validation logic
-        validation_result = validate_selection(product, pattern_id, size_id)
+        # Validation logic - now includes color_id
+        validation_result = validate_selection(product, pattern_id, size_id, color_id)
         
         if not validation_result['valid']:
             return JsonResponse({
@@ -378,12 +382,35 @@ def get_variant_options(request, product_id):
                     'code': pc.color.code or '#CCCCCC'
                 })
         
+        # Determine if size/color selection is required
+        requires_size = False
+        requires_color = False
+        
+        if pattern_id:
+            try:
+                pattern = Pattern.objects.get(id=pattern_id)
+                requires_size = pattern.has_sizes
+            except Pattern.DoesNotExist:
+                pass
+        elif product.has_product_level_sizes:
+            requires_size = True
+        
+        # Check if color is required (color_only products)
+        if not product.has_patterns and not product.has_product_level_sizes:
+            has_colors = ProductColor.objects.filter(product=product).exists()
+            if has_colors:
+                requires_color = True
+        
         return JsonResponse({
             'success': True,
             'patterns': patterns_data,
             'sizes': sizes_data,
             'colors': colors_data,
-            'requires_size': requires_size
+            'requires_size': requires_size,
+            'requires_color': requires_color,
+            'has_patterns': len(patterns_data) > 0 or pattern_id is not None,
+            'has_colors': len(colors_data) > 0,
+            'has_sizes': len(sizes_data) > 0
         })
         
     except Exception as e:
@@ -393,7 +420,7 @@ def get_variant_options(request, product_id):
         }, status=400)
 
 
-def validate_selection(product, pattern_id, size_id):
+def validate_selection(product, pattern_id, size_id, color_id=None):
     """
     Business logic for validating variant selection
     
@@ -405,7 +432,11 @@ def validate_selection(product, pattern_id, size_id):
     2. If product has product_level_sizes (no patterns):
        - Size REQUIRED
     
-    3. If product is simple (no patterns, no sizes):
+    3. If product is color_only (no patterns, no sizes, has colors):
+       - Color REQUIRED
+       - No size validation needed
+    
+    4. If product is simple (no patterns, no sizes, no colors):
        - No validation needed
     
     Returns:
@@ -415,6 +446,9 @@ def validate_selection(product, pattern_id, size_id):
         "requires_size": bool
     }
     """
+    # Check if color is required (for color_only products)
+    has_colors = ProductColor.objects.filter(product=product).exists()
+    
     # Scenario 1: Pattern-based product
     if product.has_patterns:
         if not pattern_id:
@@ -461,7 +495,22 @@ def validate_selection(product, pattern_id, size_id):
             'requires_size': True
         }
     
-    # Scenario 3: Simple product
+    # Scenario 3: Color-only product (no patterns, no sizes, has colors)
+    elif has_colors:
+        if not color_id:
+            return {
+                'valid': False,
+                'message': 'يجب اختيار اللون',
+                'requires_size': False
+            }
+        
+        return {
+            'valid': True,
+            'message': None,
+            'requires_size': False
+        }
+    
+    # Scenario 4: Simple product
     else:
         return {
             'valid': True,

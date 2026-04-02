@@ -213,11 +213,15 @@ def get_product_config(request, product_id):
         # Determine configuration type
         has_patterns = product.has_patterns()
         has_product_sizes = product.has_product_level_sizes()
+        has_colors = ProductColor.objects.filter(product=product).exists()
         
+        # Use the model's configuration type logic
         if has_patterns:
             config_type = 'pattern_based'
         elif has_product_sizes:
             config_type = 'size_based'
+        elif has_colors:
+            config_type = 'color_only'
         else:
             config_type = 'simple'
         
@@ -267,10 +271,10 @@ def get_product_config(request, product_id):
                 for ps in product_sizes
             ]
         
-        # Get colors - only for non-pattern-based products
+        # Get colors for all configuration types except pattern-based
         colors_data = []
         if not has_patterns:
-            # Only return colors for size_based or simple products
+            # Return colors for size_based, color_only, or simple products
             product_colors = ProductColor.objects.filter(
                 product=product
             ).select_related('color').order_by('order')

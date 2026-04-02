@@ -77,6 +77,10 @@ class Product(models.Model):
         default=False,
         help_text='هل المنتج يحتوي على مقاسات على مستوى المنتج؟'
     )
+    has_colors = models.BooleanField(
+        default=False,
+        help_text='هل المنتج يحتوي على ألوان؟ (يتطلب اختيار لون)'
+    )
     
     # Status flags
     is_new = models.BooleanField(default=True)
@@ -104,13 +108,22 @@ class Product(models.Model):
     def get_configuration_type(self):
         """
         Returns product configuration type for frontend logic
+        Priority: pattern_based > size_based > color_only > simple
         """
         if self.has_patterns:
             return 'pattern_based'
         elif self.has_product_level_sizes:
             return 'size_based'
+        elif self.has_colors:
+            return 'color_only'
         else:
             return 'simple'
+    
+    def requires_color_selection(self):
+        """
+        Determines if color selection is required
+        """
+        return self.has_colors
     
     def requires_size_selection(self):
         """
@@ -404,6 +417,7 @@ class ProductVariant(models.Model):
         1. If product has patterns, pattern is required
         2. If pattern has sizes, size is required
         3. If product has product-level sizes (no patterns), size is required
+        4. If product is color_only (no patterns, no sizes, has colors), color is required
         """
         super().clean()
         
@@ -418,6 +432,13 @@ class ProductVariant(models.Model):
         # Rule 3: Product-level size requirement
         if self.product.has_product_level_sizes and not self.pattern and not self.size:
             raise ValidationError('يجب اختيار مقاس لهذا المنتج')
+        
+        # Rule 4: Color requirement for color-only products
+        if (not self.product.has_patterns and 
+            not self.product.has_product_level_sizes and 
+            self.product.has_colors and 
+            not self.color):
+            raise ValidationError('يجب اختيار لون لهذا المنتج')
 
 
 class ProductSpecification(models.Model):

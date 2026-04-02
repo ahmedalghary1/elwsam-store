@@ -266,6 +266,10 @@ class ProductAdmin(admin.ModelAdmin):
             'fields': ('price', 'old_price', 'discount_info'),
             'description': '\u0633\u0639\u0631 \u0627\u0644\u0645\u0646\u062a\u062c \u0627\u0644\u0623\u0633\u0627\u0633\u064a. \u0633\u0639\u0631 \u0627\u0644\u0645\u062a\u063a\u064a\u0631\u0627\u062a \u064a\u064f\u062d\u062f\u062f \u0645\u0646 \u062e\u0644\u0627\u0644 \u0645\u0642\u0627\u0633\u0627\u062a \u0627\u0644\u0646\u0645\u0637.'
         }),
+        ('\u0627\u0644\u062a\u0648\u0635\u064a\u0641 \u0648\u0627\u0644\u062a\u0643\u0648\u064a\u0646', {
+            'fields': ('has_patterns', 'has_product_level_sizes', 'has_colors'),
+            'description': '\u062d\u062f\u062f \u062a\u0648\u0635\u064a\u0641 \u0627\u0644\u0645\u0646\u062a\u062c: \u0639\u0644\u064a\u0647 \u0623\u0646\u0645\u0627\u0637؟ \u0639\u0644\u064a\u0647 \u0645\u0642\u0627\u0633\u0627\u062a؟ \u0639\u0644\u064a\u0647 \u0623\u0644\u0648\u0627\u0646 \u0641\u0642\u0637؟'
+        }),
         ('\u0627\u0644\u062d\u0627\u0644\u0629', {
             'fields': ('is_active', 'is_new', 'is_hot', 'rating', 'order')
         }),
@@ -339,7 +343,7 @@ class ProductAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related('variants')
 
-    actions = ['activate', 'deactivate', 'mark_hot', 'mark_new', 'generate_simple_variants']
+    actions = ['activate', 'deactivate', 'mark_hot', 'mark_new', 'generate_simple_variants', 'generate_color_only_variants']
 
     def generate_simple_variants(self, request, queryset):
         """
@@ -405,7 +409,64 @@ class ProductAdmin(admin.ModelAdmin):
                 messages.INFO
             )
     
-    generate_simple_variants.short_description = '🔗 إنشاء متغيرات من الألوان والمقاسات (بدون أنماط)'
+    def generate_color_only_variants(self, request, queryset):
+        """
+        إنشاء متغيرات تلقائياً من الألوان فقط (بدون مقاسات)
+        للمنتجات التي لها ألوان فقط بدون أنماط أو مقاسات
+        """
+        total_created = 0
+        total_skipped = 0
+        
+        for product in queryset:
+            # Skip products with patterns or sizes - they should use other generators
+            if product.has_patterns or product.has_product_level_sizes:
+                continue
+                
+            # Get all colors for this product
+            colors = ProductColor.objects.filter(product=product).select_related('color')
+            
+            if not colors.exists():
+                self.message_user(
+                    request, 
+                    f'المنتج "{product.name}" ليس له ألوان. أضف ألوان أولاً.', 
+                    messages.WARNING
+                )
+                continue
+            
+            # Create variant for each color (no size, no pattern)
+            for product_color in colors:
+                # Check if variant already exists
+                variant, created = ProductVariant.objects.get_or_create(
+                    product=product,
+                    pattern=None,  # No pattern
+                    color=product_color.color,
+                    size=None,  # No size
+                    defaults={
+                        'price': product.base_price,
+                        'stock': 0,  # Set initial stock to 0
+                        'order': 0
+                    }
+                )
+                
+                if created:
+                    total_created += 1
+                else:
+                    total_skipped += 1
+        
+        if total_created > 0:
+            self.message_user(
+                request, 
+                f'تم إنشاء {total_created} متغير ألوان جديد! (تم تخطي {total_skipped} متغير موجود مسبقاً)', 
+                messages.SUCCESS
+            )
+        else:
+            self.message_user(
+                request, 
+                f'لم يتم إنشاء متغيرات جديدة. جميع المتغيرات ({total_skipped}) موجودة مسبقاً.', 
+                messages.INFO
+            )
+    
+    generate_color_only_variants.short_description = '🎨 إنشاء متغيرات ألوان فقط (بدون مقاسات)'
 
     def activate(self, request, queryset):
         queryset.update(is_active=True)
