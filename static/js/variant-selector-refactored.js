@@ -117,11 +117,11 @@ class VariantSelector {
                 // Don't render colors initially - they will be loaded after pattern selection
                 break;
             case 'size_based':
-                this.renderSizeBasedUI();
-                // Render colors for size-based products
+                // Render colors first for size-based products
                 if (this.config.has_colors) {
                     this.renderColorGroup(this.config.colors);
                 }
+                this.renderSizeBasedUI();
                 break;
             case 'simple':
                 // No selectors needed
