@@ -290,7 +290,73 @@ class ProductAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related('variants')
 
-    actions = ['activate', 'deactivate', 'mark_hot', 'mark_new']
+    actions = ['activate', 'deactivate', 'mark_hot', 'mark_new', 'generate_simple_variants']
+
+    def generate_simple_variants(self, request, queryset):
+        """
+        إنشاء متغيرات تلقائياً من الألوان والمقاسات بدون أنماط
+        يربط كل لون مع كل مقاس للمنتجات المحددة
+        """
+        total_created = 0
+        total_skipped = 0
+        
+        for product in queryset:
+            # Get all colors for this product
+            colors = ProductColor.objects.filter(product=product).select_related('color')
+            # Get all sizes for this product
+            sizes = ProductSize.objects.filter(product=product).select_related('size')
+            
+            if not colors.exists():
+                self.message_user(
+                    request, 
+                    f'المنتج "{product.name}" ليس له ألوان. أضف ألوان أولاً.', 
+                    messages.WARNING
+                )
+                continue
+                
+            if not sizes.exists():
+                self.message_user(
+                    request, 
+                    f'المنتج "{product.name}" ليس له مقاسات. أضف مقاسات أولاً.', 
+                    messages.WARNING
+                )
+                continue
+            
+            # Create variant for each color-size combination
+            for product_color in colors:
+                for product_size in sizes:
+                    # Check if variant already exists
+                    variant, created = ProductVariant.objects.get_or_create(
+                        product=product,
+                        pattern=None,  # No pattern - direct color-size linking
+                        color=product_color.color,
+                        size=product_size.size,
+                        defaults={
+                            'price': product_size.price,
+                            'stock': 0,  # Set initial stock to 0
+                            'order': 0
+                        }
+                    )
+                    
+                    if created:
+                        total_created += 1
+                    else:
+                        total_skipped += 1
+        
+        if total_created > 0:
+            self.message_user(
+                request, 
+                f'تم إنشاء {total_created} متغير جديد بنجاح! (تم تخطي {total_skipped} متغير موجود مسبقاً)', 
+                messages.SUCCESS
+            )
+        else:
+            self.message_user(
+                request, 
+                f'لم يتم إنشاء متغيرات جديدة. جميع المتغيرات ({total_skipped}) موجودة مسبقاً.', 
+                messages.INFO
+            )
+    
+    generate_simple_variants.short_description = '🔗 إنشاء متغيرات من الألوان والمقاسات (بدون أنماط)'
 
     def activate(self, request, queryset):
         queryset.update(is_active=True)
