@@ -93,6 +93,54 @@ class ProductSpecificationInline(admin.TabularInline):
     verbose_name_plural = '\u0627\u0644\u0645\u0648\u0627\u0635\u0641\u0627\u062a'
 
 
+class SimpleProductVariantInline(admin.TabularInline):
+    """
+    Inline for creating variants directly without Pattern requirement.
+    Shows only variants where pattern is NULL (simple variants).
+    """
+    model = ProductVariant
+    extra = 1
+    fields = ['color', 'size', 'price', 'stock', 'sku', 'order']
+    ordering = ['order']
+    verbose_name = '\u0645\u062a\u063a\u064a\u0631 \u0628\u0633\u064a\u0637 (\u0644\u0648\u0646 + \u0645\u0642\u0627\u0633)'
+    verbose_name_plural = '\u0627\u0644\u0645\u062a\u063a\u064a\u0631\u0627\u062a \u0627\u0644\u0628\u0633\u064a\u0637\u0629 (\u0628\u062f\u0648\u0646 \u0623\u0646\u0645\u0627\u0637)'
+
+    def get_queryset(self, request):
+        """Show only variants without pattern (simple variants)"""
+        qs = super().get_queryset(request)
+        return qs.filter(pattern__isnull=True)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """
+        Filter colors and sizes to show only those added to this product.
+        This ensures you can only select colors/sizes that were added via
+        ProductColor and ProductSize inlines.
+        """
+        # Get product ID from URL
+        object_id = request.resolver_match.kwargs.get('object_id')
+
+        if object_id:
+            try:
+                product = Product.objects.get(pk=object_id)
+
+                if db_field.name == 'color':
+                    # Show only colors added to this product
+                    kwargs['queryset'] = Color.objects.filter(
+                        productcolor__product=product
+                    ).distinct()
+
+                elif db_field.name == 'size':
+                    # Show only sizes added to this product
+                    kwargs['queryset'] = Size.objects.filter(
+                        productsize__product=product
+                    ).distinct()
+
+            except Product.DoesNotExist:
+                pass
+
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
 # ================================================
 # Inlines — used inside PatternAdmin
 # ================================================
@@ -231,6 +279,7 @@ class ProductAdmin(admin.ModelAdmin):
         PatternInline,
         ProductColorInline,
         ProductSizeInline,
+        SimpleProductVariantInline,  # NEW: Direct variant creation without Pattern
         ProductImageInline,
         ProductSpecificationInline,
     ]
