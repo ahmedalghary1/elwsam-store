@@ -24,6 +24,8 @@ class VariantSelector {
         this.priceElement = document.querySelector('.price-main');
         this.addToCartBtn = document.getElementById('detail-add-to-cart');
         this.buyNowBtn = document.getElementById('buy-now-btn');
+        this.qtyInput = document.getElementById('qty-input');
+        this.totalPriceContainer = document.getElementById('total-price-container');
         this.messageContainer = null;
         this.productId = this.addToCartBtn?.dataset.productId;
         this.defaultPrice = this.addToCartBtn?.dataset.productPrice;
@@ -36,6 +38,7 @@ class VariantSelector {
             size: null
         };
         
+        this.currentPrice = parseFloat(this.defaultPrice) || 0;
         this.config = null;
         this.isLoading = false;
         this.abortController = null;
@@ -131,8 +134,8 @@ class VariantSelector {
                 }
                 break;
             case 'simple':
-                // No selectors needed
-                this.updateUI({ available: true, price: this.config.base_price });
+                // No selectors needed, but we still need to fetch the variant ID
+                this.debouncedValidateAndUpdate();
                 break;
         }
     }
@@ -260,6 +263,14 @@ class VariantSelector {
             
             this.handleOptionClick(type, value, btn);
         });
+
+        // Listen for quantity changes
+        if (this.qtyInput) {
+            this.qtyInput.addEventListener('change', () => this.updateTotalPrice());
+            // Also listen to the buttons that change the quantity
+            document.getElementById('qty-plus')?.addEventListener('click', () => this.updateTotalPrice());
+            document.getElementById('qty-minus')?.addEventListener('click', () => this.updateTotalPrice());
+        }
     }
     
     async handleOptionClick(type, value, btn) {
@@ -439,47 +450,53 @@ class VariantSelector {
     }
     
     updateUI(variant) {
-        const isColorOnly = this.config?.configuration_type === 'color_only';
+        const configType = this.config?.configuration_type;
         const colorSelected = this.selectedOptions.color !== null;
         
         if (variant && variant.available) {
             // Valid variant found
-            const price = parseFloat(variant.price).toFixed(2);
-            this.priceElement.textContent = `${price} ج.م`;
+            const price = parseFloat(variant.price);
+            this.currentPrice = price;
+            this.priceElement.textContent = `${price.toFixed(2)} ج.م`;
             this.addToCartBtn.disabled = false;
             this.buyNowBtn.disabled = false;
             this.addToCartBtn.innerHTML = '<i class="fas fa-cart-plus"></i> أضف إلى السلة';
             this.addToCartBtn.dataset.variantId = variant.id;
-            // Update price for guest users
-            this.addToCartBtn.dataset.productPrice = price;
+            this.addToCartBtn.dataset.productPrice = price.toFixed(2);
             
-            // Announce price change to screen readers
-            this.announcePriceChange(price);
-        } else if (isColorOnly && colorSelected) {
+            this.updateTotalPrice();
+            this.announcePriceChange(price.toFixed(2));
+                } else if (configType === 'color_only' && colorSelected) {
             // Color-only product with color selected - use base price
-            const price = parseFloat(this.config.base_price).toFixed(2);
-            this.priceElement.textContent = `${price} ج.م`;
+            const price = parseFloat(this.config.base_price);
+            this.currentPrice = price;
+            this.priceElement.textContent = `${price.toFixed(2)} ج.م`;
             this.addToCartBtn.disabled = false;
             this.buyNowBtn.disabled = false;
             this.addToCartBtn.innerHTML = '<i class="fas fa-cart-plus"></i> أضف إلى السلة';
             // For color-only, we still need a variant ID - it will be fetched from the server
             delete this.addToCartBtn.dataset.variantId;
-            this.addToCartBtn.dataset.productPrice = price;
+            this.addToCartBtn.dataset.productPrice = price.toFixed(2);
+            this.updateTotalPrice();
             this.hideMessage();
         } else {
             // No valid variant or incomplete selection
             this.addToCartBtn.disabled = true;
             this.buyNowBtn.disabled = true;
-            this.priceElement.textContent = `${this.defaultPrice} ج.م`;
+            this.currentPrice = parseFloat(this.defaultPrice);
+            this.priceElement.textContent = `${this.currentPrice.toFixed(2)} ج.م`;
             
             const hasAnySelection = this.selectedOptions.pattern || this.selectedOptions.color || this.selectedOptions.size;
-            this.addToCartBtn.innerHTML = hasAnySelection && variant === null 
-                ? '<i class="fas fa-times-circle"></i> غير متاح' 
-                : '<i class="fas fa-check-square"></i> اختر الخيارات';
+            
+            let btnText = '<i class="fas fa-check-square"></i> اختر الخيارات';
+            if (configType !== 'simple' && hasAnySelection && variant === null) {
+                btnText = '<i class="fas fa-times-circle"></i> غير متاح';
+            }
+            this.addToCartBtn.innerHTML = btnText;
             
             delete this.addToCartBtn.dataset.variantId;
-            // Reset price to default
             this.addToCartBtn.dataset.productPrice = this.defaultPrice;
+            this.updateTotalPrice();
         }
     }
     
@@ -618,6 +635,19 @@ class VariantSelector {
             setTimeout(() => {
                 this.liveRegion.textContent = `السعر الجديد: ${price} جنيه مصري`;
             }, 500);
+        }
+    }
+
+    updateTotalPrice() {
+        if (!this.totalPriceContainer || !this.qtyInput) return;
+
+        const quantity = parseInt(this.qtyInput.value, 10) || 1;
+        const total = this.currentPrice * quantity;
+
+        if (total > 0) {
+            this.totalPriceContainer.textContent = `الإجمالي: ${total.toFixed(2)} ج.م`;
+        } else {
+            this.totalPriceContainer.textContent = '';
         }
     }
 }
