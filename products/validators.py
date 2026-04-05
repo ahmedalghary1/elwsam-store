@@ -28,7 +28,7 @@ class VariantValidator:
         errors = {}
         
         # Check if product has patterns and pattern is required
-        has_patterns = Pattern.objects.filter(product=product).exists()
+        has_patterns = product.check_if_has_patterns()
         if has_patterns and not pattern_id:
             errors['pattern'] = 'يجب اختيار النمط أولاً'
         
@@ -61,7 +61,7 @@ class VariantValidator:
         
         # Check if product has product-level sizes (not pattern-based)
         # Only require size if product has sizes AND is not color-only
-        if not has_patterns and not has_colors:
+        if not product.check_if_has_patterns() and not has_colors:
             has_product_sizes = ProductSize.objects.filter(product=product).exists()
             if has_product_sizes and not size_id:
                 errors['size'] = 'يجب اختيار المقاس'

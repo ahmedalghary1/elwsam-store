@@ -150,7 +150,7 @@ def validate_selection(product, pattern_id=None, size_id=None, color_id=None):
     Returns dict with 'valid' boolean and 'message' string.
     """
     # Check if pattern is required
-    if product.has_patterns() and not pattern_id:
+    if product.check_if_has_patterns() and not pattern_id:
         return {
             'valid': False,
             'message': 'يجب اختيار النمط',
@@ -175,7 +175,7 @@ def validate_selection(product, pattern_id=None, size_id=None, color_id=None):
             }
     
     # Check if product has product-level sizes
-    if product.has_product_level_sizes() and not pattern_id and not size_id:
+    if product.check_if_has_product_level_sizes() and not pattern_id and not size_id:
         return {
             'valid': False,
             'message': 'يجب اختيار المقاس',
@@ -211,8 +211,8 @@ def get_product_config(request, product_id):
         product = get_object_or_404(Product, id=product_id, is_active=True)
         
         # Determine configuration type
-        has_patterns = product.has_patterns()
-        has_product_sizes = product.has_product_level_sizes()
+        has_patterns = product.check_if_has_patterns()
+        has_product_sizes = product.check_if_has_product_level_sizes()
         has_colors = ProductColor.objects.filter(product=product).exists()
         
         # Use the model's configuration type logic
@@ -293,7 +293,7 @@ def get_product_config(request, product_id):
             'patterns': patterns_data,
             'product_sizes': product_sizes_data,
             'colors': colors_data,
-            'base_price': str(product.price),
+            'base_price': str(product.get_price()),
             'has_patterns': has_patterns,
             'has_product_level_sizes': has_product_sizes,
             'has_colors': len(colors_data) > 0
@@ -450,7 +450,7 @@ def get_variant_options(request, product_id):
                 requires_size = pattern.has_sizes
             except Pattern.DoesNotExist:
                 pass
-        elif product.has_product_level_sizes():
+        elif product.check_if_has_product_level_sizes():
             requires_size = True
         
         return JsonResponse({

@@ -181,11 +181,11 @@ class Product(models.Model):
         """Check if product has any variants"""
         return self.variants.exists()
     
-    def has_patterns(self):
+    def check_if_has_patterns(self):
         """Check if product has patterns"""
         return self.patterns.exists()
     
-    def has_product_level_sizes(self):
+    def check_if_has_product_level_sizes(self):
         """Check if product has product-level sizes"""
         return self.product_sizes.exists()
     
@@ -194,9 +194,9 @@ class Product(models.Model):
         Returns product configuration type for frontend logic
         Priority: pattern_based > size_based > color_only > simple
         """
-        if self.has_patterns():
+        if self.check_if_has_patterns():
             return 'pattern_based'
-        elif self.has_product_level_sizes():
+        elif self.check_if_has_product_level_sizes():
             return 'size_based'
         elif self.has_colors:
             return 'color_only'
@@ -213,7 +213,7 @@ class Product(models.Model):
         """
         Determines if size selection is required at product level
         """
-        return self.has_product_level_sizes()
+        return self.check_if_has_product_level_sizes()
 
     
 # =========================
@@ -530,8 +530,8 @@ class ProductVariant(models.Model):
             )
         
         # If product is color_only (no patterns, no sizes, has colors), color is required
-        if (not self.product.has_patterns() and 
-            not self.product.has_product_level_sizes() and 
+        if (not self.product.check_if_has_patterns() and 
+            not self.product.check_if_has_product_level_sizes() and 
             self.product.has_colors and 
             not self.color):
             raise ValidationError('يجب اختيار لون لهذا المنتج')
