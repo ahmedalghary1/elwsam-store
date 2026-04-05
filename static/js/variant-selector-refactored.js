@@ -644,10 +644,20 @@ class VariantSelector {
         const quantity = parseInt(this.qtyInput.value, 10) || 1;
         const total = this.currentPrice * quantity;
 
-        if (total > 0) {
-            this.totalPriceContainer.textContent = `الإجمالي: ${total.toFixed(2)} ج.م`;
+        if (total > 0 && quantity > 1) {
+            this.totalPriceContainer.innerHTML = `
+                <div class="total-price-card">
+                    <span class="total-price-label">
+                        <i class="fas fa-calculator"></i>
+                        الإجمالي
+                        <span class="total-price-calc">(${this.currentPrice.toFixed(2)} × ${quantity})</span>
+                    </span>
+                    <span class="total-price-amount">
+                        ${total.toFixed(2)} <small>ج.م</small>
+                    </span>
+                </div>`;
         } else {
-            this.totalPriceContainer.textContent = '';
+            this.totalPriceContainer.innerHTML = '';
         }
     }
 }
