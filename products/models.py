@@ -47,6 +47,9 @@ class Category(models.Model):
         from django.urls import reverse
         return reverse('category_products', kwargs={'id': self.id, 'slug': self.slug})
 
+
+
+
 # =========================
 # Product (ترتيب المنتجات)
 # =========================
@@ -56,7 +59,7 @@ class Product(models.Model):
     description = models.TextField()
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     image = models.ImageField(upload_to='products/', blank=True, null=True)
-    
+
     has_product_level_sizes = models.BooleanField(default=False)
     has_patterns = models.BooleanField(default=False)
     # معلومات الأسعار
