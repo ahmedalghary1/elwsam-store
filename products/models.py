@@ -69,6 +69,14 @@ class Product(models.Model):
     is_active = models.BooleanField(default=True, help_text='هل المنتج متاح؟')
     
     # Product configuration flags
+    has_patterns = models.BooleanField(
+        default=False,
+        help_text='هل المنتج يحتوي على أنماط؟'
+    )
+    has_product_level_sizes = models.BooleanField(
+        default=False,
+        help_text='هل المنتج يحتوي على مقاسات على مستوى المنتج؟'
+    )
     has_colors = models.BooleanField(
         default=False,
         help_text='هل المنتج يحتوي على ألوان فقط؟ (بدون أنماط أو مقاسات)'

@@ -442,7 +442,7 @@ class ProductAdmin(admin.ModelAdmin):
                     color=product_color.color,
                     size=None,  # No size
                     defaults={
-                        'price': product.base_price,
+                        'price': product.price,
                         'stock': 0,  # Set initial stock to 0
                         'order': 0
                     }
