@@ -419,7 +419,7 @@ class ProductAdmin(admin.ModelAdmin):
         
         for product in queryset:
             # Skip products with patterns or sizes - they should use other generators
-            if product.has_patterns or product.has_product_level_sizes:
+            if product.check_if_has_patterns() or product.check_if_has_product_level_sizes():
                 continue
                 
             # Get all colors for this product
