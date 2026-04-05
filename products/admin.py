@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.contrib import messages
+from django import forms
 from .models import (
     Category, Product, Pattern, Color, ProductColor, Size, ProductSize,
     ProductImage, ProductVariant, ProductSpecification, PatternSize
@@ -155,16 +156,51 @@ class PatternSizeInline(admin.TabularInline):
     autocomplete_fields = ['size']
 
 
+class PatternVariantForm(forms.ModelForm):
+    """
+    Custom form for PatternVariantInline that auto-fills price
+    from PatternSize (pattern + size) or Pattern.base_price.
+    Removes the need to enter price manually — it comes from PatternSizeInline.
+    """
+    class Meta:
+        model = ProductVariant
+        exclude = ['price']
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        # Priority 1: PatternSize price (pattern + size combination)
+        if instance.pattern_id and instance.size_id:
+            try:
+                ps = PatternSize.objects.get(
+                    pattern_id=instance.pattern_id,
+                    size_id=instance.size_id
+                )
+                instance.price = ps.price
+            except PatternSize.DoesNotExist:
+                instance.price = 0
+        # Priority 2: Pattern base_price (pattern without sizes)
+        elif instance.pattern_id:
+            try:
+                patt = Pattern.objects.get(pk=instance.pattern_id)
+                instance.price = patt.base_price or 0
+            except Pattern.DoesNotExist:
+                instance.price = 0
+        else:
+            instance.price = 0
+        if commit:
+            instance.save()
+            self._save_m2m()
+        return instance
+
+
 class PatternVariantInline(admin.TabularInline):
     model = ProductVariant
+    form = PatternVariantForm
     extra = 1
-    fields = ['color', 'size', 'price', 'stock', 'sku', 'order']
+    fields = ['color', 'size', 'stock', 'sku', 'order']
     ordering = ['order']
     verbose_name = '\u0645\u062a\u063a\u064a\u0631 (\u0644\u0648\u0646 + \u0645\u0642\u0627\u0633)'
-    verbose_name_plural = '\u0627\u0644\u0645\u062a\u063a\u064a\u0631\u0627\u062a \u2014 \u0627\u0631\u0628\u0637 \u0643\u0644 \u0644\u0648\u0646 \u0628\u0645\u0642\u0627\u0633'
-    # No autocomplete_fields here — using plain <select> to avoid AJAX/validation mismatch.
-    # Autocomplete shows ALL items via AJAX, but formfield_for_foreignkey restricts the
-    # queryset, causing submitted values to fail validation silently (cleared field + loop).
+    verbose_name_plural = '\u0627\u0644\u0645\u062a\u063a\u064a\u0631\u0627\u062a — اربط كل لون بمقاس (السعر يؤخذ تلقائياً من مقاسات النمط)'
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)

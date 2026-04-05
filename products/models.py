@@ -537,6 +537,10 @@ class ProductVariant(models.Model):
                 'يجب اختيار مقاس لهذا النمط'
             )
         
+        # Skip relationship queries if product is not saved yet (no PK)
+        if not self.product_id:
+            return
+        
         # If product is color_only (no patterns, no sizes, has colors), color is required
         if (not self.product.check_if_has_patterns() and 
             not self.product.check_if_has_product_level_sizes() and 
