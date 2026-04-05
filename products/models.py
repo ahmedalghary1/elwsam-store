@@ -59,9 +59,6 @@ class Product(models.Model):
     description = models.TextField()
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     image = models.ImageField(upload_to='products/', blank=True, null=True)
-
-    has_product_level_sizes = models.BooleanField(default=False)
-    has_patterns = models.BooleanField(default=False)
     # معلومات الأسعار
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     old_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, help_text='السعر القديم (للخصم)')
