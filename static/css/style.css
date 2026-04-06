@@ -963,8 +963,8 @@ h4 { font-size: 1rem; font-weight: 600; }
 }
 
 .slider-dots .dot {
-  width: clamp(2px, 0.85vw, 4px);
-  height: clamp(2px, 0.85vw, 4px);
+  width: clamp(2px, 0.55vw, 3px);
+  height: clamp(2px, 0.55vw, 3px);
   border-radius: 50%;
   background: rgba(255,255,255,0.4);
   border: none;
@@ -972,6 +972,13 @@ h4 { font-size: 1rem; font-weight: 600; }
   padding: 0;
   transition: background 0.3s ease;
   flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .slider-dots .dot {
+    width: 4px;
+    height: 4px;
+  }
 }
 
 .slider-dots .dot:hover {
