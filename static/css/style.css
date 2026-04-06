@@ -948,11 +948,11 @@ h4 { font-size: 1rem; font-weight: 600; }
   z-index: 1;
 }
 
-/* Arrows hidden on all screens */
+/* Arrows hidden on all screens
 .slider-arrow { display: none; }
 
 /* Dots — small circles, touching (gap: 3px), active = filled gold */
-.slider-dots {
+/* .slider-dots {
   position: absolute;
   bottom: 14px;
   left: 50%;
@@ -960,9 +960,9 @@ h4 { font-size: 1rem; font-weight: 600; }
   display: flex;
   gap: 3px;
   z-index: 10;
-}
+} */
 
-.slider-dots .dot {
+/* .slider-dots .dot {
   width: clamp(2px, 0.55vw, 3px);
   height: clamp(2px, 0.55vw, 3px);
   border-radius: 50%;
@@ -972,22 +972,20 @@ h4 { font-size: 1rem; font-weight: 600; }
   padding: 0;
   transition: background 0.3s ease;
   flex-shrink: 0;
-}
+} */
 
-@media (min-width: 768px) {
+/* @media (min-width: 768px) {
   .slider-dots .dot {
     width: 4px;
     height: 4px;
   }
-}
+} */
 
-.slider-dots .dot:hover {
-  transform: scale(1.2);
-}
 
-.slider-dots .dot.active {
+
+/* .slider-dots .dot.active {
   background: var(--color-primary);
-}
+} */ */
 
 /* ============ Promo Banner ============ */
 .promo-banner {
