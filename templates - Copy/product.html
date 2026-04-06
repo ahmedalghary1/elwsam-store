@@ -25,7 +25,9 @@
         <!-- معرض الصور -->
         <div class="product-gallery">
           <div class="gallery-main" aria-label="صورة المنتج الرئيسية">
-            {% if product.image %}
+            {% if images %}
+              <img src="{{ images.0.image.url }}" alt="{{ product.name }}" id="main-product-image">
+            {% elif product.image %}
               <img src="{{ product.image.url }}" alt="{{ product.name }}" id="main-product-image">
             {% else %}
               <img src="{% static 'image/placeholder.png' %}" alt="{{ product.name }}" id="main-product-image">
@@ -33,9 +35,17 @@
           </div>
 
           <div class="gallery-thumbs" role="listbox" aria-label="صور المنتج">
-            <div class="gallery-thumb active" data-src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'image/placeholder.png' %}{% endif %}">
-              <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'image/placeholder.png' %}{% endif %}" alt="{{ product.name }}">
-            </div>
+            {% if images %}
+              {% for img in images %}
+                <div class="gallery-thumb {% if forloop.first %}active{% endif %}" data-src="{{ img.image.url }}">
+                  <img src="{{ img.image.url }}" alt="{{ product.name }}" loading="lazy">
+                </div>
+              {% endfor %}
+            {% else %}
+              <div class="gallery-thumb active" data-src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'image/placeholder.png' %}{% endif %}">
+                <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'image/placeholder.png' %}{% endif %}" alt="{{ product.name }}">
+              </div>
+            {% endif %}
           </div>
         </div>
 
@@ -63,7 +73,7 @@
             <span class="price-main">{{ product.price }} ج.م</span>
             {% if product.old_price %}
               <span class="price-old">{{ product.old_price }} ج.م</span>
-              <span class="discount-tag"><i class="fas fa-tag"></i> وفّر {{ product.old_price|add:product.price|add:"-" }} ج.م</span>
+              <span class="discount-tag"><i class="fas fa-tag"></i> خصم {{ product.get_discount_percent }}%</span>
             {% endif %}
           </div>
 
@@ -93,7 +103,7 @@
               <button class="btn btn-primary btn-lg" id="detail-add-to-cart"
                   data-action="add-to-cart" data-product-id="{{ product.id }}" data-quantity="1"
                   data-product-name="{{ product.name }}" data-product-price="{{ product.price }}"
-                  data-product-image="{% if product.image %}{{ product.image.url }}{% endif %}"
+                  data-product-image="{% if images %}{{ images.0.image.url }}{% elif product.image %}{{ product.image.url }}{% endif %}"
                   aria-label="أضف إلى سلة التسوق">
                   <i class="fas fa-cart-plus"></i> أضف إلى السلة
               </button>
@@ -133,9 +143,9 @@
           {% if specs %}
             <div style="display:grid;grid-template-columns:1fr;gap:0;border:1px solid var(--color-gray-200);border-radius:var(--radius-md);overflow:hidden;margin-top:8px;">
               {% for spec in specs %}
-                <div style="display:grid; grid-template-columns:1fr 1fr; padding:12px 16px; {% if forloop.counter|divisibleby:2 %} background:var(--color-gray-100);{% endif %} {% if not forloop.last %} border-bottom:1px solid var(--color-gray-200);{% endif %}">
-                  <span style="font-size:0.85rem;font-weight:700;color:var(--color-gray-600);">{{ spec.key }}</span>
-                  <span style="font-size:0.85rem;font-weight:600;">{{ spec.value }}</span>
+                <div class="spec-row {% if forloop.counter|divisibleby:2 %}spec-row-alt{% endif %} {% if not forloop.last %}spec-row-border{% endif %}">
+                  <span class="spec-key">{{ spec.key }}</span>
+                  <span class="spec-val">{{ spec.value }}</span>
                 </div>
               {% endfor %}
             </div>
@@ -159,7 +169,45 @@
           <a href="{% url 'category_products' id=product.category.id slug=product.category.slug %}" class="view-all-btn">عرض الكل <i class="fas fa-arrow-left"></i></a>
         </div>
         <div class="products-grid" style="--cols:4;">
-          <!-- سيتم إضافتها لاحقًا -->
+          {% for rel in related_products %}
+          <div class="product-card">
+            <div class="product-image-wrap">
+              <a href="{% url 'product_detail' id=rel.id slug=rel.slug %}">
+                {% if rel.image %}
+                  <img src="{{ rel.image.url }}" alt="{{ rel.name }}" loading="lazy">
+                {% else %}
+                  <div class="product-img-placeholder"><i class="fas fa-image"></i></div>
+                {% endif %}
+              </a>
+              {% if rel.is_hot %}<span class="product-badge badge-hot">رائج</span>{% endif %}
+              {% if rel.is_new %}<span class="product-badge badge-new">جديد</span>{% endif %}
+              {% if rel.old_price %}<span class="product-badge badge-sale">خصم {{ rel.get_discount_percent }}%</span>{% endif %}
+            </div>
+            <div class="product-info">
+              <div class="product-category-tag">{{ rel.category.name }}</div>
+              <h3 class="product-name">
+                <a href="{% url 'product_detail' id=rel.id slug=rel.slug %}">{{ rel.name }}</a>
+              </h3>
+              <div class="product-price-row">
+                <div class="price-group">
+                  <span class="price-current">{{ rel.price }} ج.م</span>
+                  {% if rel.old_price %}<span class="price-original">{{ rel.old_price }} ج.م</span>{% endif %}
+                </div>
+                <button class="add-to-cart-btn" data-action="add-to-cart"
+                  data-product-id="{{ rel.id }}"
+                  data-product-name="{{ rel.name }}"
+                  data-product-price="{{ rel.price }}"
+                  data-quantity="1"
+                  data-product-image="{% if rel.image %}{{ rel.image.url }}{% endif %}"
+                  aria-label="أضف للسلة">
+                  <i class="fas fa-shopping-cart"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+          {% empty %}
+          <p style="grid-column:1/-1;text-align:center;color:var(--color-gray-500);padding:16px 0;">لا توجد منتجات مشابهة</p>
+          {% endfor %}
         </div>
       </div>
 
@@ -167,6 +215,11 @@
   </div>
 </main>
 <style>
+.spec-row { display:grid; grid-template-columns:1fr 1fr; padding:12px 16px; }
+.spec-row-alt { background:var(--color-gray-100); }
+.spec-row-border { border-bottom:1px solid var(--color-gray-200); }
+.spec-key { font-size:0.85rem; font-weight:700; color:var(--color-gray-600); }
+.spec-val { font-size:0.85rem; font-weight:600; }
 @keyframes totalPriceIn {
   from { opacity: 0; transform: translateY(-5px); }
   to   { opacity: 1; transform: translateY(0); }
