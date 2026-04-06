@@ -4,6 +4,7 @@ from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.contrib import messages
 from django import forms
+from adminsortable2.admin import SortableAdminMixin, SortableInlineAdminMixin
 from .models import (
     Category, Product, Pattern, Color, ProductColor, Size, ProductSize,
     ProductImage, ProductVariant, ProductSpecification, PatternSize
@@ -14,10 +15,10 @@ from .models import (
 # Inlines — used inside ProductAdmin
 # ================================================
 
-class PatternInline(admin.TabularInline):
+class PatternInline(SortableInlineAdminMixin, admin.TabularInline):
     model = Pattern
     extra = 0
-    fields = ['name', 'has_sizes', 'base_price', 'order', 'edit_link']
+    fields = ['name', 'has_sizes', 'base_price', 'edit_link']
     readonly_fields = ['edit_link']
     ordering = ['order']
     verbose_name = '\u0646\u0645\u0637'
@@ -35,10 +36,10 @@ class PatternInline(admin.TabularInline):
     edit_link.short_description = '\u0625\u062f\u0627\u0631\u0629'
 
 
-class ProductColorInline(admin.TabularInline):
+class ProductColorInline(SortableInlineAdminMixin, admin.TabularInline):
     model = ProductColor
     extra = 1
-    fields = ['color', 'color_preview', 'order']
+    fields = ['color', 'color_preview']
     readonly_fields = ['color_preview']
     ordering = ['order']
     verbose_name = '\u0644\u0648\u0646'
@@ -55,20 +56,20 @@ class ProductColorInline(admin.TabularInline):
     color_preview.short_description = '\u0645\u0639\u0627\u064a\u0646\u0629'
 
 
-class ProductSizeInline(admin.TabularInline):
+class ProductSizeInline(SortableInlineAdminMixin, admin.TabularInline):
     model = ProductSize
     extra = 1
-    fields = ['size', 'price', 'order']
+    fields = ['size', 'price']
     ordering = ['order']
     verbose_name = '\u0645\u0642\u0627\u0633'
     verbose_name_plural = '\u0627\u0644\u0645\u0642\u0627\u0633\u0627\u062a'
     autocomplete_fields = ['size']
 
 
-class ProductImageInline(admin.TabularInline):
+class ProductImageInline(SortableInlineAdminMixin, admin.TabularInline):
     model = ProductImage
     extra = 1
-    fields = ['color', 'image', 'preview', 'order']
+    fields = ['color', 'image', 'preview']
     readonly_fields = ['preview']
     ordering = ['order']
     verbose_name = '\u0635\u0648\u0631\u0629'
@@ -85,23 +86,23 @@ class ProductImageInline(admin.TabularInline):
     preview.short_description = '\u0645\u0639\u0627\u064a\u0646\u0629'
 
 
-class ProductSpecificationInline(admin.TabularInline):
+class ProductSpecificationInline(SortableInlineAdminMixin, admin.TabularInline):
     model = ProductSpecification
     extra = 1
-    fields = ['key', 'value', 'order']
+    fields = ['key', 'value']
     ordering = ['order']
     verbose_name = '\u0645\u0648\u0627\u0635\u0641\u0629'
     verbose_name_plural = '\u0627\u0644\u0645\u0648\u0627\u0635\u0641\u0627\u062a'
 
 
-class SimpleProductVariantInline(admin.TabularInline):
+class SimpleProductVariantInline(SortableInlineAdminMixin, admin.TabularInline):
     """
     Inline for creating variants directly without Pattern requirement.
     Shows only variants where pattern is NULL (simple variants).
     """
     model = ProductVariant
     extra = 1
-    fields = ['color', 'size', 'price', 'stock', 'sku', 'order']
+    fields = ['color', 'size', 'price', 'stock', 'sku']
     ordering = ['order']
     verbose_name = '\u0645\u062a\u063a\u064a\u0631 \u0628\u0633\u064a\u0637 (\u0644\u0648\u0646 + \u0645\u0642\u0627\u0633)'
     verbose_name_plural = '\u0627\u0644\u0645\u062a\u063a\u064a\u0631\u0627\u062a \u0627\u0644\u0628\u0633\u064a\u0637\u0629 (\u0628\u062f\u0648\u0646 \u0623\u0646\u0645\u0627\u0637)'
@@ -146,10 +147,10 @@ class SimpleProductVariantInline(admin.TabularInline):
 # Inlines — used inside PatternAdmin
 # ================================================
 
-class PatternSizeInline(admin.TabularInline):
+class PatternSizeInline(SortableInlineAdminMixin, admin.TabularInline):
     model = PatternSize
     extra = 1
-    fields = ['size', 'price', 'stock', 'order']
+    fields = ['size', 'price', 'stock']
     ordering = ['order']
     verbose_name = '\u0645\u0642\u0627\u0633 \u0627\u0644\u0646\u0645\u0637'
     verbose_name_plural = '\u0645\u0642\u0627\u0633\u0627\u062a \u0627\u0644\u0646\u0645\u0637 (\u0633\u0639\u0631 + \u0645\u062e\u0632\u0648\u0646 \u0644\u0643\u0644 \u0645\u0642\u0627\u0633)'
@@ -193,11 +194,11 @@ class PatternVariantForm(forms.ModelForm):
         return instance
 
 
-class PatternVariantInline(admin.TabularInline):
+class PatternVariantInline(SortableInlineAdminMixin, admin.TabularInline):
     model = ProductVariant
     form = PatternVariantForm
     extra = 1
-    fields = ['color', 'size', 'stock', 'sku', 'order']
+    fields = ['color', 'size', 'stock', 'sku']
     ordering = ['order']
     verbose_name = '\u0645\u062a\u063a\u064a\u0631 (\u0644\u0648\u0646 + \u0645\u0642\u0627\u0633)'
     verbose_name_plural = '\u0627\u0644\u0645\u062a\u063a\u064a\u0631\u0627\u062a — اربط كل لون بمقاس (السعر يؤخذ تلقائياً من مقاسات النمط)'
@@ -241,10 +242,10 @@ class PatternVariantInline(admin.TabularInline):
 # ================================================
 
 @admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
+class CategoryAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_display = ['cat_icon', 'name', 'product_count', 'is_hot', 'order']
     list_display_links = ['name']
-    list_editable = ['is_hot', 'order']
+    list_editable = ['is_hot']
     list_filter = ['is_hot']
     search_fields = ['name']
     ordering = ['order']
@@ -277,13 +278,13 @@ class CategoryAdmin(admin.ModelAdmin):
 # ================================================
 
 @admin.register(Product)
-class ProductAdmin(admin.ModelAdmin):
+class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_display = [
         'thumb', 'name', 'category', 'price_display',
         'discount_badge', 'variants_count', 'is_active', 'is_hot', 'is_new', 'order'
     ]
     list_display_links = ['name']
-    list_editable = ['is_active', 'is_hot', 'is_new', 'order']
+    list_editable = ['is_active', 'is_hot', 'is_new']
     list_filter = ['category', 'is_active', 'is_hot', 'is_new']
     search_fields = ['name', 'category__name']
     ordering = ['order']
@@ -578,10 +579,10 @@ class SizeAdmin(admin.ModelAdmin):
 # ================================================
 
 @admin.register(Pattern)
-class PatternAdmin(admin.ModelAdmin):
+class PatternAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_display = ['product', 'name', 'has_sizes', 'base_price_display', 'sizes_count', 'variants_count', 'order']
     list_display_links = ['name']
-    list_editable = ['order']
+    list_editable = []
     list_filter = ['has_sizes', 'product__category']
     search_fields = ['name', 'product__name']
     ordering = ['product', 'order']
@@ -681,10 +682,10 @@ class PatternAdmin(admin.ModelAdmin):
 # ================================================
 
 @admin.register(ProductVariant)
-class ProductVariantAdmin(admin.ModelAdmin):
+class ProductVariantAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_display = ['product', 'pattern', 'color_badge', 'size', 'price_display', 'stock_badge', 'sku', 'order']
     list_display_links = ['product']
-    list_editable = ['order']
+    list_editable = []
     list_filter = ['product__category', 'pattern', 'color', 'size']
     search_fields = ['product__name', 'pattern__name', 'color__name', 'size__name', 'sku']
     ordering = ['product', 'order']
@@ -746,10 +747,10 @@ class ProductVariantAdmin(admin.ModelAdmin):
 # ================================================
 
 @admin.register(ProductColor)
-class ProductColorAdmin(admin.ModelAdmin):
+class ProductColorAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_display = ['product', 'color_badge', 'order']
     list_display_links = ['product']
-    list_editable = ['order']
+    list_editable = []
     list_filter = ['color', 'product__category']
     search_fields = ['product__name', 'color__name']
     autocomplete_fields = ['product', 'color']
@@ -767,10 +768,10 @@ class ProductColorAdmin(admin.ModelAdmin):
 
 
 @admin.register(ProductSize)
-class ProductSizeAdmin(admin.ModelAdmin):
+class ProductSizeAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_display = ['product', 'size', 'price_display', 'order']
     list_display_links = ['product']
-    list_editable = ['order']
+    list_editable = []
     list_filter = ['size', 'product__category']
     search_fields = ['product__name', 'size__name']
     autocomplete_fields = ['product', 'size']
@@ -783,10 +784,10 @@ class ProductSizeAdmin(admin.ModelAdmin):
 
 
 @admin.register(PatternSize)
-class PatternSizeAdmin(admin.ModelAdmin):
+class PatternSizeAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_display = ['pattern', 'size', 'price_display', 'stock_badge', 'order']
     list_display_links = ['pattern']
-    list_editable = ['order']
+    list_editable = []
     list_filter = ['pattern__product__category', 'size']
     search_fields = ['pattern__name', 'pattern__product__name', 'size__name']
     autocomplete_fields = ['pattern', 'size']
@@ -810,10 +811,10 @@ class PatternSizeAdmin(admin.ModelAdmin):
 
 
 @admin.register(ProductImage)
-class ProductImageAdmin(admin.ModelAdmin):
+class ProductImageAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_display = ['preview', 'product', 'color_badge', 'order']
     list_display_links = ['product']
-    list_editable = ['order']
+    list_editable = []
     list_filter = ['product__category', 'color']
     search_fields = ['product__name', 'color__name']
     autocomplete_fields = ['product', 'color']
@@ -840,10 +841,10 @@ class ProductImageAdmin(admin.ModelAdmin):
 
 
 @admin.register(ProductSpecification)
-class ProductSpecificationAdmin(admin.ModelAdmin):
+class ProductSpecificationAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_display = ['product', 'key', 'value', 'order']
     list_display_links = ['product']
-    list_editable = ['order']
+    list_editable = []
     search_fields = ['key', 'value', 'product__name']
     autocomplete_fields = ['product']
     list_per_page = 40
