@@ -539,7 +539,11 @@ class VariantSelector {
         this.showImageSkeleton(mainImage, galleryThumbs);
         
         try {
-            const response = await fetch(`/api/product-images/${this.productId}/${colorId}/`);
+            let url = `/api/product-images/${this.productId}/${colorId}/`;
+            if (this.selectedOptions.pattern) {
+                url += `?pattern_id=${this.selectedOptions.pattern}`;
+            }
+            const response = await fetch(url);
             const data = await response.json();
             
             if (!data.success || data.images.length === 0) {

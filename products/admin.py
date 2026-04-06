@@ -7,7 +7,8 @@ from django import forms
 from adminsortable2.admin import SortableAdminMixin, SortableInlineAdminMixin
 from .models import (
     Category, Product, Pattern, Color, ProductColor, Size, ProductSize,
-    ProductImage, ProductVariant, ProductSpecification, PatternSize
+    ProductImage, ProductVariant, ProductSpecification, PatternSize,
+    PatternColor, PatternImage
 )
 
 
@@ -157,6 +158,61 @@ class PatternSizeInline(SortableInlineAdminMixin, admin.TabularInline):
     autocomplete_fields = ['size']
 
 
+class PatternColorInline(SortableInlineAdminMixin, admin.TabularInline):
+    model = PatternColor
+    extra = 1
+    fields = ['color', 'color_preview']
+    readonly_fields = ['color_preview']
+    ordering = ['order']
+    verbose_name = 'لون النمط'
+    verbose_name_plural = 'ألوان النمط'
+    autocomplete_fields = ['color']
+
+    def color_preview(self, obj):
+        if obj.pk and obj.color and obj.color.code:
+            return format_html(
+                '<span style="display:inline-block;width:26px;height:26px;background:{};'
+                'border-radius:50%;border:2px solid #ddd;vertical-align:middle;"></span>',
+                obj.color.code
+            )
+        return '—'
+    color_preview.short_description = 'معاينة'
+
+
+class PatternImageInline(SortableInlineAdminMixin, admin.TabularInline):
+    model = PatternImage
+    extra = 1
+    fields = ['color', 'image', 'preview']
+    readonly_fields = ['preview']
+    ordering = ['order']
+    verbose_name = 'صورة النمط'
+    verbose_name_plural = 'صور النمط'
+    autocomplete_fields = ['color']
+
+    def preview(self, obj):
+        if obj.pk and obj.image:
+            return format_html(
+                '<img src="{}" style="width:70px;height:70px;object-fit:cover;border-radius:6px;" />',
+                obj.image.url
+            )
+        return '—'
+    preview.short_description = 'معاينة'
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        object_id = request.resolver_match.kwargs.get('object_id')
+        if object_id and db_field.name == 'color':
+            try:
+                pattern = Pattern.objects.get(pk=object_id)
+                pattern_colors = Color.objects.filter(
+                    pattern_colors__pattern=pattern
+                ).distinct()
+                if pattern_colors.exists():
+                    kwargs['queryset'] = pattern_colors
+            except Pattern.DoesNotExist:
+                pass
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
 class PatternVariantForm(forms.ModelForm):
     """
     Custom form for PatternVariantInline that auto-fills price
@@ -221,14 +277,17 @@ class PatternVariantInline(SortableInlineAdminMixin, admin.TabularInline):
                 pattern = Pattern.objects.select_related('product').get(pk=object_id)
                 product = pattern.product
                 if db_field.name == 'color':
-                    # Show only colors linked to this product via ProductColor
-                    kwargs['queryset'] = Color.objects.filter(
-                        productcolor__product=product
+                    # Priority: PatternColor → fallback to ProductColor
+                    pattern_colors = Color.objects.filter(
+                        pattern_colors__pattern=pattern
                     ).distinct()
+                    if pattern_colors.exists():
+                        kwargs['queryset'] = pattern_colors
+                    else:
+                        kwargs['queryset'] = Color.objects.filter(
+                            productcolor__product=product
+                        ).distinct()
                 elif db_field.name == 'size':
-                    # FIX: show sizes from PatternSize (pattern-level), NOT ProductSize.
-                    # Pattern sizes are added via PatternSizeInline → stored in PatternSize.
-                    # productsize__product was wrong — it filtered product-level sizes only.
                     kwargs['queryset'] = Size.objects.filter(
                         patternsize__pattern=pattern
                     ).distinct()
@@ -604,7 +663,7 @@ class PatternAdmin(SortableAdminMixin, admin.ModelAdmin):
         }),
     )
 
-    inlines = [PatternSizeInline, PatternVariantInline]
+    inlines = [PatternColorInline, PatternImageInline, PatternSizeInline, PatternVariantInline]
 
     def base_price_display(self, obj):
         if obj.base_price:
@@ -849,3 +908,56 @@ class ProductSpecificationAdmin(SortableAdminMixin, admin.ModelAdmin):
     autocomplete_fields = ['product']
     list_per_page = 40
     list_select_related = ['product']
+
+
+@admin.register(PatternColor)
+class PatternColorAdmin(SortableAdminMixin, admin.ModelAdmin):
+    list_display = ['pattern', 'color_badge', 'order']
+    list_display_links = ['pattern']
+    list_editable = []
+    list_filter = ['pattern__product__category', 'color']
+    search_fields = ['pattern__name', 'pattern__product__name', 'color__name']
+    autocomplete_fields = ['pattern', 'color']
+    list_per_page = 40
+    list_select_related = ['pattern', 'pattern__product', 'color']
+
+    def color_badge(self, obj):
+        if obj.color and obj.color.code:
+            return format_html(
+                '<span style="display:inline-block;width:16px;height:16px;background:{};'
+                'border-radius:50%;border:1px solid #ccc;margin-left:5px;vertical-align:middle;"></span> {}',
+                obj.color.code, obj.color.name
+            )
+        return obj.color.name if obj.color else '—'
+    color_badge.short_description = 'اللون'
+
+
+@admin.register(PatternImage)
+class PatternImageAdmin(SortableAdminMixin, admin.ModelAdmin):
+    list_display = ['preview', 'pattern', 'color_badge', 'order']
+    list_display_links = ['pattern']
+    list_editable = []
+    list_filter = ['pattern__product__category', 'color']
+    search_fields = ['pattern__name', 'pattern__product__name', 'color__name']
+    autocomplete_fields = ['pattern', 'color']
+    list_per_page = 40
+    list_select_related = ['pattern', 'pattern__product', 'color']
+
+    def preview(self, obj):
+        if obj.image:
+            return format_html(
+                '<img src="{}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;" />',
+                obj.image.url
+            )
+        return '—'
+    preview.short_description = ''
+
+    def color_badge(self, obj):
+        if obj.color and obj.color.code:
+            return format_html(
+                '<span style="display:inline-block;width:14px;height:14px;background:{};'
+                'border-radius:50%;border:1px solid #ccc;margin-left:4px;vertical-align:middle;"></span> {}',
+                obj.color.code, obj.color.name
+            )
+        return obj.color.name if obj.color else '—'
+    color_badge.short_description = 'اللون'

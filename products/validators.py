@@ -4,7 +4,7 @@ Comprehensive validation for product variants, cart operations, and user selecti
 """
 
 from django.core.exceptions import ValidationError
-from .models import Product, Pattern, PatternSize, ProductVariant, ProductColor, ProductSize
+from .models import Product, Pattern, PatternSize, ProductVariant, ProductColor, ProductSize, PatternColor
 
 
 class VariantValidator:
@@ -54,27 +54,35 @@ class VariantValidator:
             except Pattern.DoesNotExist:
                 errors['pattern'] = 'النمط المحدد غير موجود'
         
-        # Check if color is required (for color_only products)
-        has_colors = ProductColor.objects.filter(product=product).exists()
-        if has_colors and not color_id:
-            errors['color'] = 'يجب اختيار اللون'
-        
+        # Check if color is required
+        # Priority: PatternColor (if pattern selected) → ProductColor
+        if pattern_id:
+            try:
+                pattern_obj = Pattern.objects.get(id=pattern_id, product=product)
+                has_pattern_colors = PatternColor.objects.filter(pattern=pattern_obj).exists()
+                if has_pattern_colors and not color_id:
+                    errors['color'] = 'يجب اختيار اللون'
+                if color_id and has_pattern_colors:
+                    if not PatternColor.objects.filter(
+                        pattern=pattern_obj, color_id=color_id
+                    ).exists():
+                        errors['color'] = 'اللون المحدد غير متوفر لهذا النمط'
+            except Pattern.DoesNotExist:
+                pass
+        else:
+            has_colors = ProductColor.objects.filter(product=product).exists()
+            if has_colors and not color_id:
+                errors['color'] = 'يجب اختيار اللون'
+            if color_id and not pattern_id:
+                if not ProductColor.objects.filter(product=product, color_id=color_id).exists():
+                    errors['color'] = 'اللون المحدد غير متوفر لهذا المنتج'
+
         # Check if product has product-level sizes (not pattern-based)
-        # Only require size if product has sizes AND is not color-only
+        has_colors = ProductColor.objects.filter(product=product).exists()
         if not product.check_if_has_patterns() and not has_colors:
             has_product_sizes = ProductSize.objects.filter(product=product).exists()
             if has_product_sizes and not size_id:
                 errors['size'] = 'يجب اختيار المقاس'
-        
-        # Validate color belongs to product if provided
-        if color_id:
-            color_exists = ProductColor.objects.filter(
-                product=product,
-                color_id=color_id
-            ).exists()
-            
-            if not color_exists:
-                errors['color'] = 'اللون المحدد غير متوفر لهذا المنتج'
         
         # Validate size belongs to product if provided (for product-level sizes)
         if size_id and not pattern_id:

@@ -451,6 +451,47 @@ class PatternSize(models.Model):
 
 
 # =========================
+# PatternColor (ألوان خاصة بكل نمط)
+# =========================
+class PatternColor(models.Model):
+    pattern = models.ForeignKey(Pattern, on_delete=models.CASCADE, related_name="pattern_colors")
+    color = models.ForeignKey(Color, on_delete=models.CASCADE, related_name="pattern_colors")
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+        unique_together = ('pattern', 'color')
+        verbose_name = 'لون النمط'
+        verbose_name_plural = 'ألوان الأنماط'
+
+    def __str__(self):
+        return f"{self.pattern.name} - {self.color.name}"
+
+
+# =========================
+# PatternImage (صور خاصة بكل نمط ولون)
+# =========================
+class PatternImage(models.Model):
+    pattern = models.ForeignKey(Pattern, on_delete=models.CASCADE, related_name="pattern_images")
+    color = models.ForeignKey(
+        Color, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="pattern_images",
+        help_text='اختياري: اربط الصورة بلون معين لعرضها عند اختياره'
+    )
+    image = models.ImageField(upload_to='patterns/')
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+        verbose_name = 'صورة النمط'
+        verbose_name_plural = 'صور الأنماط'
+
+    def __str__(self):
+        color_part = f" - {self.color.name}" if self.color else ""
+        return f"صورة {self.pattern.name}{color_part}"
+
+
+# =========================
 # Product Images (ترتيب الصور لكل لون)
 # =========================
 class ProductImage(models.Model):

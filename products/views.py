@@ -5,8 +5,9 @@ from django.http import JsonResponse
 from django.db.models import Q, Exists, OuterRef
 from django.core.cache import cache
 from .models import (
-    Product, Category, ProductVariant, ProductImage, ProductColor, 
-    ProductSize, Pattern, ProductSpecification, PatternSize, Size, Color
+    Product, Category, ProductVariant, ProductImage, ProductColor,
+    ProductSize, Pattern, ProductSpecification, PatternSize, Size, Color,
+    PatternColor, PatternImage
 )
 
 
@@ -77,12 +78,35 @@ class ProductListView(ListView):
         queryset = Product.objects.filter(is_active=True).order_by('order')
         queryset = queryset.prefetch_related('images', 'variants', 'specs')
         
-        # التصفية حسب الفئة إن وجدت
         category_slug = self.request.GET.get('category')
         if category_slug:
             queryset = queryset.filter(category__slug=category_slug)
-        
+
+        sort_by = self.request.GET.get('sort', 'order')
+        if sort_by == 'price':
+            queryset = queryset.order_by('price')
+        elif sort_by == 'price_desc':
+            queryset = queryset.order_by('-price')
+        elif sort_by == 'newest':
+            queryset = queryset.order_by('-created_at')
+        elif sort_by == 'rating':
+            queryset = queryset.order_by('-rating')
+
+        q = self.request.GET.get('q', '').strip()
+        if q:
+            queryset = queryset.filter(
+                Q(name__icontains=q) | Q(description__icontains=q)
+            )
+
         return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['categories'] = Category.objects.all().order_by('order')
+        context['sort_by'] = self.request.GET.get('sort', 'order')
+        context['search_query'] = self.request.GET.get('q', '')
+        context['selected_category'] = self.request.GET.get('category', '')
+        return context
 
 
 # =========================
@@ -253,7 +277,7 @@ def get_product_config(request, product_id):
                         }
                         for ps in pattern_sizes
                     ]
-                
+
                 patterns_data.append(pattern_info)
         
         # Get product-level sizes
@@ -271,10 +295,10 @@ def get_product_config(request, product_id):
                 for ps in product_sizes
             ]
         
-        # Get colors for all configuration types except pattern-based
+        # Get colors: for non-pattern products use ProductColor;
+        # for pattern-based products colors are embedded per-pattern above
         colors_data = []
         if not has_patterns:
-            # Return colors for size_based, color_only, or simple products
             product_colors = ProductColor.objects.filter(
                 product=product
             ).select_related('color').order_by('order')
@@ -358,26 +382,55 @@ def get_variant_options(request, product_id):
                 })
         
         # Get colors with availability
+        # If pattern selected and has PatternColors → use those; else use variant-derived colors
         colors_data = []
-        color_ids = variants_qs.values_list('color_id', flat=True).distinct()
-        colors = Color.objects.filter(id__in=color_ids)
-        for color in colors:
-            # Check if this color has stock with current selection
-            filter_kwargs = {'product': product, 'color': color}
-            if pattern_id:
-                filter_kwargs['pattern_id'] = pattern_id
-            
-            has_stock = ProductVariant.objects.filter(
-                **filter_kwargs,
-                stock__gt=0
-            ).exists()
-            
-            colors_data.append({
-                'id': color.id,
-                'name': color.name,
-                'code': color.code or '#ccc',
-                'available': has_stock
-            })
+        if pattern_id:
+            try:
+                sel_pattern = Pattern.objects.get(id=pattern_id)
+                p_colors = PatternColor.objects.filter(
+                    pattern=sel_pattern
+                ).select_related('color').order_by('order')
+                if p_colors.exists():
+                    for pc in p_colors:
+                        has_stock = ProductVariant.objects.filter(
+                            product=product,
+                            pattern_id=pattern_id,
+                            color=pc.color,
+                            stock__gt=0
+                        ).exists()
+                        colors_data.append({
+                            'id': pc.color.id,
+                            'name': pc.color.name,
+                            'code': pc.color.code or '#ccc',
+                            'available': has_stock
+                        })
+                else:
+                    color_ids = variants_qs.values_list('color_id', flat=True).distinct()
+                    colors = Color.objects.filter(id__in=color_ids)
+                    for color in colors:
+                        has_stock = ProductVariant.objects.filter(
+                            product=product, color=color,
+                            pattern_id=pattern_id, stock__gt=0
+                        ).exists()
+                        colors_data.append({
+                            'id': color.id, 'name': color.name,
+                            'code': color.code or '#ccc', 'available': has_stock
+                        })
+            except Pattern.DoesNotExist:
+                pass
+        else:
+            color_ids = variants_qs.values_list('color_id', flat=True).distinct()
+            colors = Color.objects.filter(id__in=color_ids)
+            for color in colors:
+                has_stock = ProductVariant.objects.filter(
+                    product=product, color=color, stock__gt=0
+                ).exists()
+                colors_data.append({
+                    'id': color.id,
+                    'name': color.name,
+                    'code': color.code or '#ccc',
+                    'available': has_stock
+                })
         
         # Get sizes with availability
         sizes_data = []
@@ -587,17 +640,37 @@ def get_variant_detail(request, variant_id):
 # =========================
 def product_images_by_color(request, product_id, color_id):
     """
-    إرجاع قائمة الصور حسب اللون باستخدام AJAX
+    إرجاع قائمة الصور حسب اللون باستخدام AJAX.
+    إذا تم تمرير pattern_id → يتحقق من PatternImage أولاً،
+    وإذا لم توجد صور للنمط يرجع إلى ProductImage.
     """
     try:
         product = get_object_or_404(Product, id=product_id, is_active=True)
-        images = ProductImage.objects.filter(
-            product=product,
-            color_id=color_id
-        ).order_by('order')
-        
-        image_urls = [img.image.url for img in images]
-        
+        pattern_id = request.GET.get('pattern_id')
+
+        image_urls = []
+
+        if pattern_id:
+            pattern_images = PatternImage.objects.filter(
+                pattern_id=pattern_id,
+                color_id=color_id
+            ).order_by('order')
+
+            if not pattern_images.exists():
+                pattern_images = PatternImage.objects.filter(
+                    pattern_id=pattern_id,
+                    color__isnull=True
+                ).order_by('order')
+
+            image_urls = [pi.image.url for pi in pattern_images]
+
+        if not image_urls:
+            product_imgs = ProductImage.objects.filter(
+                product=product,
+                color_id=color_id
+            ).order_by('order')
+            image_urls = [img.image.url for img in product_imgs]
+
         return JsonResponse({
             'success': True,
             'images': image_urls
