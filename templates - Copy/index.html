@@ -10,16 +10,14 @@
       <div class="hero-grid-overlay" aria-hidden="true"></div>
       <div class="hero-inner">
         <div class="hero-content container">
-          <div class="hero-badge">
-            <span>تخفيضات الموسم — حتى 70% خصم</span>
-          </div>
+
           <h1 class="hero-title">
             كل ما تحتاجه<br />
             <span class="highlight">في مكان واحد</span>
           </h1>
           <p class="hero-subtitle">
             اكتشف آلاف المنتجات المختارة بعناية بأفضل الأسعار وجودة لا مثيل لها.
-            شحن سريع وإرجاع مجاني خلال 30 يومًا.
+            شحن سريع وإرجاع مجاني خلال 10 يومًا.
           </p>
           <div class="hero-actions">
             <a href="{% url 'category_list' %}" class="btn btn-primary btn-lg">
@@ -29,24 +27,34 @@
           </div>
         </div>
 
-        <div class="hero-image-side" style="display:none;">
-          <!-- يظهر على ديسكتوب -->
+        <div class="hero-image-side">
+          <div class="hero-slider" id="heroSlider">
+            <div class="slide active">
+              <img src="{% static 'image/slide1.png' %}" alt="مشتركات كهربائية">
+              <span class="slide-caption">مشتركات كهربائية</span>
+            </div>
+            <div class="slide">
+              <img src="{% static 'image/slide2.png' %}" alt="كشاف وإضاءة">
+              <span class="slide-caption">كشاف وإضاءة</span>
+            </div>
+            <div class="slide">
+              <img src="{% static 'image/slide3.png' %}" alt="دواية ديكور">
+              <span class="slide-caption">دواية ديكور</span>
+            </div>
+            <button class="slider-arrow slider-prev" aria-label="السابق">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+            <button class="slider-arrow slider-next" aria-label="التالي">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="slider-dots">
+              <button class="dot active" aria-label="الشريحة 1"></button>
+              <button class="dot" aria-label="الشريحة 2"></button>
+              <button class="dot" aria-label="الشريحة 3"></button>
+            </div>
+          </div>
         </div>
 
-        <div class="hero-stats">
-          <div class="hero-stat">
-            <span class="stat-num">+500</span>
-            <span class="stat-label">منتج متاح</span>
-          </div>
-          <div class="hero-stat">
-            <span class="stat-num">+20K</span>
-            <span class="stat-label">عميل سعيد</span>
-          </div>
-          <div class="hero-stat">
-            <span class="stat-num">4.9★</span>
-            <span class="stat-label">تقييم المتجر</span>
-          </div>
-        </div>
       </div>
     </section>
     
@@ -59,14 +67,13 @@
           <div class="strip-icon"><i class="fas fa-truck-fast"></i></div>
           <div class="strip-text">
             <strong>شحن مجاني</strong>
-            <span>على الطلبات فوق 1000 جنيه</span>
           </div>
         </div>
         <div class="strip-item">
           <div class="strip-icon"><i class="fas fa-rotate-left"></i></div>
           <div class="strip-text">
             <strong>إرجاع مجاني</strong>
-            <span>خلال 30 يوم بلا شروط</span>
+            <span>خلال 5 يوم بلا شروط</span>
           </div>
         </div>
         <div class="strip-item">
@@ -79,7 +86,7 @@
         <div class="strip-item">
           <div class="strip-icon">	<i class="fas fa-headset"></i></div>
           <div class="strip-text">
-            <strong>دعم 24/7</strong>
+            <strong>دعم  ساعة 24</strong>
             <span>نحن دائمًا هنا لمساعدتك</span>
           </div>
         </div>
@@ -143,7 +150,6 @@
             <span class="offer-emoji" aria-hidden="true"><img src="{% static 'image/21-2.png' %}" style="width:200px; height:200px; object-fit:contain;" alt=""></span>
             <div class="offer-tag">الكشاف والإضاءة</div>
             <div class="offer-title">أحدث التصاميم<br />لإضاءة مثالية</div>
-            <div class="offer-discount">خصم 40%</div>
             <a href="/" class="btn btn-black btn-sm" style="width:fit-content">اكتشف الآن</a>
           </div>
 
@@ -157,8 +163,6 @@
         </div>
       </div>
     </section>
-
-
 
   </main>
 {% endblock content %}
