@@ -796,7 +796,10 @@ h4 { font-size: 1rem; font-weight: 600; }
 
   .hero-content {
     padding: 80px 48px;
-    flex: 1;
+    flex: 0 0 40%;
+    width: auto;
+    max-width: none;
+    margin: 0;
   }
 
   .hero-stats {
@@ -846,12 +849,10 @@ h4 { font-size: 1rem; font-weight: 600; }
 @media (min-width: 768px) {
   .hero-image-side {
     flex: 1;
-    padding: 32px 40px;
+    padding: 24px 32px;
     width: auto;
     overflow: visible;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    min-width: 0;
   }
 }
 
@@ -994,14 +995,14 @@ h4 { font-size: 1rem; font-weight: 600; }
 }
 
 .slider-dots .dot {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
   background: rgba(255,255,255,0.4);
   border: none;
   cursor: pointer;
   padding: 0;
-  transition: background 0.3s ease, transform 0.2s ease;
+  transition: background 0.3s ease;
   flex-shrink: 0;
 }
 
@@ -1011,8 +1012,8 @@ h4 { font-size: 1rem; font-weight: 600; }
 
 @media (min-width: 768px) {
   .slider-dots .dot {
-    width: 8px;
-    height: 8px;
+    width: 3px;
+    height: 3px;
   }
 }
 
