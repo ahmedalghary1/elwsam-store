@@ -145,7 +145,8 @@ STATICFILES_DIRS = [
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_URL = '/shop_media/'
-MEDIA_ROOT = '/home/elwsamst/shop/media'
+MEDIA_ROOT = '/home/elwsamst/media'
+
 
 AUTH_USER_MODEL = 'accounts.User'
 DEFAULT_CHARSET = 'utf-8'
