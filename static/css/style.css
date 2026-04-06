@@ -882,11 +882,11 @@ h4 { font-size: 1rem; font-weight: 600; }
   }
 }
 
-/* Mobile: fills the full hero width, fixed height */
+/* Mobile: fills the full hero width, increased height */
 .hero-slider {
   position: relative;
   width: 100%;
-  height: min(300px, 78vw);
+  height: min(360px, 85vw);
   border-radius: 0;
   overflow: hidden;
   background: rgba(255,255,255,0.04);
@@ -894,11 +894,11 @@ h4 { font-size: 1rem; font-weight: 600; }
   box-shadow: none;
 }
 
-/* Desktop: fixed square, rounded, glowing */
+/* Desktop: larger fixed square, rounded, glowing */
 @media (min-width: 768px) {
   .hero-slider {
-    width: 380px;
-    height: 380px;
+    width: 420px;
+    height: 420px;
     border-radius: var(--radius-lg);
     border: 1.5px solid rgba(255,215,0,0.28);
     box-shadow:
@@ -910,8 +910,8 @@ h4 { font-size: 1rem; font-weight: 600; }
 
 @media (min-width: 1024px) {
   .hero-slider {
-    width: 440px;
-    height: 440px;
+    width: 480px;
+    height: 480px;
   }
 }
 
@@ -997,8 +997,8 @@ h4 { font-size: 1rem; font-weight: 600; }
 }
 
 .slider-dots .dot {
-  width: 4px;
-  height: 4px;
+  width: 3px;
+  height: 3px;
   border-radius: 50%;
   background: rgba(255,255,255,0.3);
   border: none;
