@@ -672,11 +672,9 @@ h4 { font-size: 1rem; font-weight: 600; }
 /* ============ Hero Section ============ */
 .hero {
   background: var(--color-black);
-  min-height: min(520px, 85vw);
   display: flex;
-  align-items: stretch;
+  align-items: flex-start;
   position: relative;
-  overflow: hidden;
 }
 
 .hero-bg-pattern {
@@ -708,7 +706,7 @@ h4 { font-size: 1rem; font-weight: 600; }
 
 .hero-content {
   padding: 48px var(--container-padding) 32px;
-  flex: 1;
+  flex: none;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -788,6 +786,7 @@ h4 { font-size: 1rem; font-weight: 600; }
 @media (min-width: 768px) {
   .hero {
     min-height: 560px;
+    align-items: stretch;
   }
 
   .hero-inner {
@@ -998,20 +997,19 @@ h4 { font-size: 1rem; font-weight: 600; }
 }
 
 .slider-dots .dot {
-  width: 7px;
-  height: 7px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.28);
+  background: rgba(255,255,255,0.3);
   border: none;
   cursor: pointer;
   padding: 0;
-  transition: background 0.3s ease, transform 0.3s ease;
+  transition: background 0.3s ease;
   flex-shrink: 0;
 }
 
 .slider-dots .dot.active {
   background: var(--color-primary);
-  transform: scale(1.25);
 }
 
 /* ============ Promo Banner ============ */
