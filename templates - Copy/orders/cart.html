@@ -1,0 +1,669 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}سلة التسوق | متجر الوسام{% endblock title %}
+
+{% block content %}
+<main>
+  <div class="cart-page">
+    <div class="container">
+      <div class="cart-header">
+        <h1>سلة التسوق</h1>
+        <p id="cart-count">
+          {% if user.is_authenticated and cart_items %}
+            {{ cart_items|length }} منتج
+          {% else %}
+            0 منتج
+          {% endif %}
+        </p>
+      </div>
+
+      {% if user.is_authenticated %}
+        {# المستخدم مسجل – نعرض السلة من قاعدة البيانات #}
+        {% if cart_items %}
+          <div class="cart-content">
+            <!-- Cart Items -->
+            <div class="cart-items">
+              {% for item in cart_items %}
+                <div class="cart-item" data-item-id="{{ item.id }}">
+                  <div class="item-image">
+                    {% if item.product.image %}
+                      <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                    {% else %}
+                      <img src="{% static 'image/no-image.png' %}" alt="صورة المنتج">
+                    {% endif %}
+                  </div>
+
+                  <div class="item-details">
+                    <h3>{{ item.product.name }}</h3>
+                    {% with vd=item.get_variant_display %}
+                      <!-- {% if vd %}
+                        <p class="variant-info">
+                          {% if item.variant.color and item.variant.color.code %}
+                            <span class="color-dot" style="background:{{ item.variant.color.code }};"></span>
+                          {% endif %}
+                          {{ vd }}
+                        </p>
+                      {% endif %} -->
+                    {% endwith %}
+                    <p class="item-price">{% if item.variant and item.variant.price %}{{ item.variant.price|floatformat:2 }}{% else %}{{ item.product.price|floatformat:2 }}{% endif %} جنيه / قطعة</p>
+                  </div>
+
+                  <div class="item-details-btn">
+                    {% if item.variant %}
+                      <button class="details-btn" onclick="showVariantDetails({{ item.id }})">التفاصيل</button>
+                    {% endif %}
+                  </div>
+
+                  <div class="item-quantity">
+                    <button class="quantity-btn minus" data-action="decrease">-</button>
+                    <input type="number" class="quantity-input" value="{{ item.quantity }}" min="1" max="99">
+                    <button class="quantity-btn plus" data-action="increase">+</button>
+                  </div>
+
+                  <div class="item-total">
+                    <p class="total-price">{{ item.get_total_price }} جنيه</p>
+                  </div>
+
+                  <div class="item-actions">
+                    <button class="remove-btn" data-item-id="{{ item.id }}">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+
+            <!-- Cart Summary -->
+            <div class="cart-summary">
+              <div class="summary-content">
+                <h3>ملخص الطلب</h3>
+
+                <div class="summary-row">
+                  <span>المجموع الفرعي:</span>
+                  <span id="subtotal">{{ cart.get_total_price }} جنيه</span>
+                </div>
+
+                <div class="summary-row">
+                  <span>الشحن:</span>
+                  <span id="shipping">0 جنيه</span>
+                </div>
+
+                <div class="summary-row total">
+                  <span>المجموع الكلي:</span>
+                  <span id="total">{{ cart.get_total_price }} جنيه</span>
+                </div>
+
+                <div class="checkout-actions">
+                  <a href="{% url 'category_list' %}" class="btn btn-outline">متابعة التسوق</a>
+                  <a href="{% url 'orders:checkout' %}" class="btn btn-primary">المتابعة للدفع</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% else %}
+          <!-- السلة فارغة للمستخدم المسجل -->
+          <div class="empty-cart">
+            <div class="empty-cart-icon"><i class="fas fa-shopping-cart"></i></div>
+            <h2>سلة التسوق فارغة</h2>
+            <p>لم تقم بإضافة أي منتجات للسلة بعد</p>
+            <a href="{% url 'category_list' %}" class="btn btn-primary">تصفح الأقسام</a>
+          </div>
+        {% endif %}
+
+      {% else %}
+        {# المستخدم غير مسجل – نعرض منطقة الضيف مباشرة #}
+        <div id="guest-cart-container" style="display: block;">
+          <div class="cart-content">
+            <div class="cart-items" id="guest-cart-items"></div>
+            <div class="cart-summary" id="cart-content-guest" style="display:none;">
+              <div class="summary-content">
+                <h3>ملخص الطلب</h3>
+                <div class="summary-row"><span>المجموع الفرعي:</span><span id="guest-subtotal">0 جنيه</span></div>
+                <div class="summary-row"><span>الشحن:</span><span>0 جنيه</span></div>
+                <div class="summary-row total"><span>المجموع الكلي:</span><span id="guest-total">0 جنيه</span></div>
+                <div class="checkout-actions">
+                  <a href="{% url 'category_list' %}" class="btn btn-outline">متابعة التسوق</a>
+                  <a href="{% url 'orders:checkout' %}" class="btn btn-primary">المتابعة للدفع</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="guest-empty-cart" class="empty-cart" style="display: none;">
+          <div class="empty-cart-icon"><i class="fas fa-shopping-cart"></i></div>
+          <h2>سلة التسوق فارغة</h2>
+          <p>يمكنك إضافة منتجات إلى سلتك حتى لو لم تكن مسجلاً، وسيتم حفظها مؤقتًا.</p>
+          <a href="{% url 'category_list' %}" class="btn btn-primary">تصفح الأقسام</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Variant Details Modal -->
+  <div id="variant-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>تفاصيل المنتج</h3>
+        <button class="modal-close" onclick="closeVariantModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-variant-details">
+        <!-- Variant details will be inserted here -->
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  // في حالة المستخدم غير مسجل، نعتمد على CartManager لتحميل المحتوى
+  document.addEventListener('DOMContentLoaded', function() {
+    const isAuthenticated = document.body.dataset.auth === 'true';
+    if (!isAuthenticated && window.cartManager) {
+      // إعادة التصيير يدوياً بعد التأكد من وجود الحاوية
+      window.cartManager.renderGuestCart();
+      // تحديث الملخص
+      window.cartManager.updateGuestSummary();
+    }
+  });
+
+  // Variant details modal functions
+  const variantData = {
+    {% for item in cart_items %}
+    {{ item.id }}: {
+      product: "{{ item.product.name }}",
+      pattern: "{{ item.variant.pattern.name|default:'' }}",
+      color: "{{ item.variant.color.name|default:'' }}",
+      colorCode: "{{ item.variant.color.code|default:'' }}",
+      size: "{{ item.variant.size.name|default:'' }}",
+      price: "{{ item.variant.price|default:item.product.price|floatformat:2 }}",
+      sku: "{{ item.variant.sku|default:'' }}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  };
+
+  // Function for guest users
+  async function showGuestVariantDetails(cartIndex) {
+    if (!window.cartManager) return;
+    
+    const cart = window.cartManager.getCart();
+    const item = cart[cartIndex];
+    
+    if (!item || !item.variant_id) return;
+    
+    try {
+      // Fetch variant details from API
+      const response = await fetch(`/api/variant-detail/${item.variant_id}/`);
+      const data = await response.json();
+      
+      if (data.success && data.variant) {
+        const v = data.variant;
+        let html = '<div class="variant-detail-item"><strong>المنتج:</strong> ' + (item.name || 'منتج') + '</div>';
+        
+        if (v.pattern_name) {
+          html += '<div class="variant-detail-item"><strong>النمط:</strong> ' + v.pattern_name + '</div>';
+        }
+        
+        if (v.color_name) {
+          html += '<div class="variant-detail-item"><strong>اللون:</strong> ';
+          if (v.color_code) {
+            html += '<span class="color-dot" style="background:' + v.color_code + ';"></span> ';
+          }
+          html += v.color_name + '</div>';
+        }
+        
+        if (v.size_name) {
+          html += '<div class="variant-detail-item"><strong>المقاس:</strong> ' + v.size_name + '</div>';
+        }
+        
+        html += '<div class="variant-detail-item"><strong>السعر:</strong> ' + (item.price || 0).toFixed(2) + ' جنيه</div>';
+        
+        if (v.sku) {
+          html += '<div class="variant-detail-item"><strong>رقم المنتج:</strong> ' + v.sku + '</div>';
+        }
+
+        document.getElementById('modal-variant-details').innerHTML = html;
+        document.getElementById('variant-modal').style.display = 'flex';
+      }
+    } catch (error) {
+      console.error('Error fetching variant details:', error);
+    }
+  }
+
+  function showVariantDetails(itemId) {
+    const data = variantData[itemId];
+    if (!data) return;
+
+    let html = '<div class="variant-detail-item"><strong>المنتج:</strong> ' + data.product + '</div>';
+    
+    if (data.pattern) {
+      html += '<div class="variant-detail-item"><strong>النمط:</strong> ' + data.pattern + '</div>';
+    }
+    
+    if (data.color) {
+      html += '<div class="variant-detail-item"><strong>اللون:</strong> ';
+      if (data.colorCode) {
+        html += '<span class="color-dot" style="background:' + data.colorCode + ';"></span> ';
+      }
+      html += data.color + '</div>';
+    }
+    
+    if (data.size) {
+      html += '<div class="variant-detail-item"><strong>المقاس:</strong> ' + data.size + '</div>';
+    }
+    
+    html += '<div class="variant-detail-item"><strong>السعر:</strong> ' + data.price + ' جنيه</div>';
+    
+    if (data.sku) {
+      html += '<div class="variant-detail-item"><strong>رقم المنتج:</strong> ' + data.sku + '</div>';
+    }
+
+    document.getElementById('modal-variant-details').innerHTML = html;
+    document.getElementById('variant-modal').style.display = 'flex';
+  }
+
+  function closeVariantModal() {
+    document.getElementById('variant-modal').style.display = 'none';
+  }
+
+  // Close modal when clicking outside
+  window.onclick = function(event) {
+    const modal = document.getElementById('variant-modal');
+    if (event.target === modal) {
+      closeVariantModal();
+    }
+  };
+</script>
+
+<style>
+  /* تحسين التصميم ليكون متجاوبًا مع جميع الشاشات */
+  .cart-page {
+    padding: 2rem 0;
+    min-height: 60vh;
+  }
+
+  .cart-header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .cart-header h1 {
+    font-size: clamp(1.5rem, 5vw, 2.5rem);
+    margin-bottom: 0.5rem;
+  }
+
+  #cart-count {
+    color: var(--color-gray-600);
+    font-size: 1.1rem;
+  }
+
+  .cart-content {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .cart-items {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    overflow: hidden;
+  }
+
+  .cart-item {
+    display: grid;
+    grid-template-columns: 100px 1fr 100px 120px 100px 40px;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--color-gray-200);
+    align-items: center;
+  }
+
+  .cart-item:last-child {
+    border-bottom: none;
+  }
+
+  .item-image img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+
+  .item-details h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+    color: var(--color-gray-800);
+  }
+
+  .variant-info {
+    color: var(--color-gray-600);
+    font-size: 0.9rem;
+    margin: 0.25rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  .color-dot {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.15);
+    flex-shrink: 0;
+  }
+
+  .item-price {
+    font-weight: 600;
+    color: var(--color-primary);
+    margin: 0;
+  }
+
+  .item-details-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .item-quantity {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-self: center;
+  }
+
+  .quantity-btn {
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--color-gray-300);
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    transition: all 0.2s;
+  }
+
+  .quantity-btn:hover {
+    background: var(--color-gray-100);
+  }
+
+  .quantity-input {
+    width: 50px;
+    text-align: center;
+    border: 1px solid var(--color-gray-300);
+    border-radius: 4px;
+    padding: 0.25rem;
+  }
+
+  .item-total {
+    text-align: center;
+  }
+
+  .total-price {
+    font-weight: 600;
+    color: var(--color-gray-800);
+    margin: 0;
+  }
+
+  .item-actions {
+    text-align: center;
+  }
+
+  .remove-btn {
+    background: none;
+    border: none;
+    color: var(--color-danger);
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: background 0.2s;
+  }
+
+  .remove-btn:hover {
+    background: rgba(220, 53, 69, 0.1);
+  }
+
+  .cart-summary {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    height: fit-content;
+    position: sticky;
+    top: 2rem;
+  }
+
+  .summary-content {
+    padding: 2rem;
+  }
+
+  .summary-content h3 {
+    margin-bottom: 1.5rem;
+    color: var(--color-gray-800);
+  }
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+  }
+
+  .summary-row.total {
+    border-top: 2px solid var(--color-gray-200);
+    padding-top: 1rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--color-gray-800);
+  }
+
+  .checkout-actions {
+    margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .empty-cart {
+    text-align: center;
+    padding: 4rem 2rem;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .empty-cart-icon {
+    font-size: 4rem;
+    color: var(--color-gray-300);
+    margin-bottom: 1rem;
+  }
+
+  .empty-cart h2 {
+    margin-bottom: 1rem;
+    color: var(--color-gray-700);
+  }
+
+  .empty-cart p {
+    margin-bottom: 2rem;
+    color: var(--color-gray-500);
+  }
+
+  /* تحسينات للشاشات المتوسطة والصغيرة */
+  @media (max-width: 992px) {
+    .cart-content {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+    .cart-summary {
+      position: static;
+      margin-top: 1rem;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .cart-item {
+      grid-template-columns: 80px 1fr;
+      gap: 0.75rem;
+      padding: 1rem;
+    }
+    .item-details-btn, .item-quantity, .item-total, .item-actions {
+      grid-column: span 2;
+      justify-self: stretch;
+      text-align: center;
+    }
+    .item-details-btn {
+      order: 3;
+    }
+    .item-quantity {
+      order: 4;
+      justify-content: center;
+    }
+    .item-total {
+      order: 5;
+    }
+    .item-actions {
+      order: 6;
+    }
+    .checkout-actions {
+      flex-direction: row;
+      justify-content: space-between;
+    }
+    .checkout-actions .btn {
+      flex: 1;
+      text-align: center;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .cart-header h1 {
+      font-size: 1.8rem;
+    }
+    .cart-item {
+      grid-template-columns: 70px 1fr;
+    }
+    .item-image img {
+      width: 60px;
+      height: 60px;
+    }
+    .quantity-input {
+      width: 40px;
+    }
+    .summary-content {
+      padding: 1.25rem;
+    }
+  }
+
+  /* Details Button */
+  .details-btn {
+    margin-top: 0.5rem;
+    padding: 0.4rem 1rem;
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .details-btn:hover {
+    background: var(--color-primary-dark, #0056b3);
+  }
+
+  /* Modal Styles */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-content {
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    animation: modalFadeIn 0.3s ease;
+  }
+
+  @keyframes modalFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--color-gray-200);
+  }
+
+  .modal-header h3 {
+    margin: 0;
+    color: var(--color-gray-800);
+    font-size: 1.3rem;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: var(--color-gray-500);
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background 0.2s;
+  }
+
+  .modal-close:hover {
+    background: var(--color-gray-100);
+    color: var(--color-gray-700);
+  }
+
+  .modal-body {
+    padding: 1.5rem;
+  }
+
+  .variant-detail-item {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--color-gray-100);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .variant-detail-item:last-child {
+    border-bottom: none;
+  }
+
+  .variant-detail-item strong {
+    color: var(--color-gray-700);
+    min-width: 80px;
+  }
+</style>
+{% endblock %}

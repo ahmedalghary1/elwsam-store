@@ -1,0 +1,397 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %} متجر الوسام | {{ product.name }}{% endblock title %}
+
+{% block content %}
+<main>
+  <div class="product-detail-page">
+    <div class="container">
+
+      <!-- مسار التنقل -->
+      <nav class="breadcrumb" aria-label="مسار التنقل">
+        <a href="/"><i class="fas fa-home"></i> الرئيسية</a>
+        <span aria-hidden="true"><i class="fas fa-chevron-left"></i></span>
+        <a href="{% url 'category_list' %}"><i class="fas fa-store"></i> الأقسام</a>
+        <span aria-hidden="true"><i class="fas fa-chevron-left"></i></span>
+        <a href="{% url 'category_products' id=product.category.id slug=product.category.slug %}">{{ product.category.name }}</a>
+        <span aria-hidden="true"><i class="fas fa-chevron-left"></i></span>
+        <span class="current">{{ product.name }}</span>
+      </nav>
+
+      <!-- شبكة المنتج -->
+      <div class="product-detail-grid">
+
+        <!-- معرض الصور -->
+        <div class="product-gallery">
+          <div class="gallery-main" aria-label="صورة المنتج الرئيسية">
+            {% if images %}
+              <img src="{{ images.0.image.url }}" alt="{{ product.name }}" id="main-product-image">
+            {% elif product.image %}
+              <img src="{{ product.image.url }}" alt="{{ product.name }}" id="main-product-image">
+            {% else %}
+              <img src="{% static 'image/placeholder.png' %}" alt="{{ product.name }}" id="main-product-image">
+            {% endif %}
+          </div>
+
+          <div class="gallery-thumbs" role="listbox" aria-label="صور المنتج">
+            {% if images %}
+              {% for img in images %}
+                <div class="gallery-thumb {% if forloop.first %}active{% endif %}" data-src="{{ img.image.url }}">
+                  <img src="{{ img.image.url }}" alt="{{ product.name }}" loading="lazy">
+                </div>
+              {% endfor %}
+            {% else %}
+              <div class="gallery-thumb active" data-src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'image/placeholder.png' %}{% endif %}">
+                <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'image/placeholder.png' %}{% endif %}" alt="{{ product.name }}">
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- لوحة المعلومات -->
+        <div class="product-info-panel">
+          <span class="category-tag"><i class="fas fa-plug"></i> {{ product.category.name }}</span>
+          <h1 class="product-title">{{ product.name }}</h1>
+
+          <div class="rating-row">
+            <div class="stars" aria-label="تقييم {{ product.rating }} من 5">
+              {% for i in "12345" %}
+                {% if forloop.counter <= product.rating %}★{% else %}☆{% endif %}
+              {% endfor %}
+            </div>
+            <span class="rating-num">{{ product.rating }}</span>
+            <a href="#reviews" class="review-count"><i class="far fa-comments"></i> {{ product.rating }} تقييم</a>
+            {% if product.is_active %}
+              <span style="color:var(--color-success);font-size:0.82rem;font-weight:700;"><i class="fas fa-check-circle"></i> متوفر في المخزن</span>
+            {% else %}
+              <span style="color:#e74c3c;font-size:0.82rem;font-weight:700;"><i class="fas fa-times-circle"></i> غير متوفر حالياً</span>
+            {% endif %}
+          </div>
+
+          <div class="price-section">
+            <span class="price-main">{{ product.price }} ج.م</span>
+            {% if product.old_price %}
+              <span class="price-old">{{ product.old_price }} ج.م</span>
+              <span class="discount-tag"><i class="fas fa-tag"></i> خصم {{ product.get_discount_percent }}%</span>
+            {% endif %}
+          </div>
+
+          <div class="product-divider"></div>
+
+          <p style="font-size:0.9rem;color:var(--color-gray-600);line-height:1.8;">
+            {{ product.description }}
+          </p>
+
+          <div id="variants-container"></div>
+
+          <div class="product-divider"></div>
+
+          <!-- الكمية (محسنة) -->
+          <div>
+            <div class="variant-label"><i class="fas fa-sort-amount-up"></i> الكمية</div>
+            <div class="qty-selector" style="display: flex; align-items: center; gap: 12px; margin-top: 8px;">
+              <button class="qty-btn" id="qty-minus" aria-label="تقليل الكمية"><i class="fas fa-minus"></i></button>
+              <input type="number" id="qty-input" value="1" min="1" max="999" style="width: 70px; text-align: center; padding: 6px; border: 1px solid #ccc; border-radius: 6px;">
+              <button class="qty-btn" id="qty-plus" aria-label="زيادة الكمية"><i class="fas fa-plus"></i></button>
+            </div>
+            <div id="total-price-container"></div>
+          </div>
+
+          <!-- أزرار الإجراءات -->
+          <div class="detail-actions">
+              <button class="btn btn-primary btn-lg" id="detail-add-to-cart"
+                  data-action="add-to-cart" data-product-id="{{ product.id }}" data-quantity="1"
+                  data-product-name="{{ product.name }}" data-product-price="{{ product.price }}"
+                  data-product-image="{% if images %}{{ images.0.image.url }}{% elif product.image %}{{ product.image.url }}{% endif %}"
+                  aria-label="أضف إلى سلة التسوق">
+                  <i class="fas fa-cart-plus"></i> أضف إلى السلة
+              </button>
+            <!-- <button class="wishlist-btn-lg" data-action="add-to-wishlist" data-product-id="{{ product.id }}"
+              data-product-name="{{ product.name }}" data-product-price="{{ product.price }}"
+              data-product-category="{{ product.category.name }}"
+              {% if product.old_price %}data-product-old-price="{{ product.old_price }}"{% endif %}
+              data-product-rating="{{ product.rating }}" aria-label="أضف للمفضلة">
+              <i class="far fa-heart"></i>
+            </button> -->
+          </div>
+
+
+          <button class="btn btn-outline btn-full" id="buy-now-btn" style="margin-top:-8px;">
+            <i class="fas fa-bolt"></i> اشتر الآن
+          </button>
+
+
+
+        </div><!-- /product-info-panel -->
+      </div><!-- /product-detail-grid -->
+
+      <!-- التبويبات -->
+      <div class="product-tabs" id="reviews">
+        <div class="tabs-header" role="tablist">
+          <button class="tab-btn active" role="tab" data-tab="tab-description" aria-selected="true"><i class="fas fa-align-left"></i> الوصف</button>
+          <!-- <button class="tab-btn" role="tab" data-tab="tab-specs" aria-selected="false"><i class="fas fa-microchip"></i> المواصفات</button>
+          <button class="tab-btn" role="tab" data-tab="tab-reviews" aria-selected="false"><i class="far fa-star"></i> التقييمات</button>
+          <button class="tab-btn" role="tab" data-tab="tab-shipping" aria-selected="false"><i class="fas fa-shipping-fast"></i> الشحن</button> -->
+        </div>
+
+        <div class="tab-content active" id="tab-description" role="tabpanel">
+          <p>{{ product.description }}</p>
+        </div>
+
+        <div class="tab-content" id="tab-specs" role="tabpanel">
+          {% if specs %}
+            <div style="display:grid;grid-template-columns:1fr;gap:0;border:1px solid var(--color-gray-200);border-radius:var(--radius-md);overflow:hidden;margin-top:8px;">
+              {% for spec in specs %}
+                <div class="spec-row {% if forloop.counter|divisibleby:2 %}spec-row-alt{% endif %} {% if not forloop.last %}spec-row-border{% endif %}">
+                  <span class="spec-key">{{ spec.key }}</span>
+                  <span class="spec-val">{{ spec.value }}</span>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p style="color:var(--color-gray-500); text-align: center; padding: 20px;">لا توجد مواصفات متاحة</p>
+          {% endif %}
+        </div>
+
+
+
+
+      </div>
+
+      <!-- منتجات مشابهة -->
+      <div class="page-section">
+        <div class="section-header">
+          <div class="section-title">
+            <h2><i class="fas fa-th-large"></i> منتجات مشابهة</h2>
+            <p>قد يعجبك أيضاً</p>
+          </div>
+          <a href="{% url 'category_products' id=product.category.id slug=product.category.slug %}" class="view-all-btn">عرض الكل <i class="fas fa-arrow-left"></i></a>
+        </div>
+        <div class="products-grid" style="--cols:4;">
+          {% for rel in related_products %}
+          <div class="product-card">
+            <div class="product-image-wrap">
+              <a href="{% url 'product_detail' id=rel.id slug=rel.slug %}">
+                {% if rel.image %}
+                  <img src="{{ rel.image.url }}" alt="{{ rel.name }}" loading="lazy">
+                {% else %}
+                  <div class="product-img-placeholder"><i class="fas fa-image"></i></div>
+                {% endif %}
+              </a>
+              {% if rel.is_hot %}<span class="product-badge badge-hot">رائج</span>{% endif %}
+              {% if rel.is_new %}<span class="product-badge badge-new">جديد</span>{% endif %}
+              {% if rel.old_price %}<span class="product-badge badge-sale">خصم {{ rel.get_discount_percent }}%</span>{% endif %}
+            </div>
+            <div class="product-info">
+              <div class="product-category-tag">{{ rel.category.name }}</div>
+              <h3 class="product-name">
+                <a href="{% url 'product_detail' id=rel.id slug=rel.slug %}">{{ rel.name }}</a>
+              </h3>
+              <div class="product-price-row">
+                <div class="price-group">
+                  <span class="price-current">{{ rel.price }} ج.م</span>
+                  {% if rel.old_price %}<span class="price-original">{{ rel.old_price }} ج.م</span>{% endif %}
+                </div>
+                <button class="add-to-cart-btn" data-action="add-to-cart"
+                  data-product-id="{{ rel.id }}"
+                  data-product-name="{{ rel.name }}"
+                  data-product-price="{{ rel.price }}"
+                  data-quantity="1"
+                  data-product-image="{% if rel.image %}{{ rel.image.url }}{% endif %}"
+                  aria-label="أضف للسلة">
+                  <i class="fas fa-shopping-cart"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+          {% empty %}
+          <p style="grid-column:1/-1;text-align:center;color:var(--color-gray-500);padding:16px 0;">لا توجد منتجات مشابهة</p>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+<style>
+.spec-row { display:grid; grid-template-columns:1fr 1fr; padding:12px 16px; }
+.spec-row-alt { background:var(--color-gray-100); }
+.spec-row-border { border-bottom:1px solid var(--color-gray-200); }
+.spec-key { font-size:0.85rem; font-weight:700; color:var(--color-gray-600); }
+.spec-val { font-size:0.85rem; font-weight:600; }
+@keyframes totalPriceIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.total-price-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #eef4ff, #f8fbff);
+  border: 1.5px solid var(--color-primary, #2563eb);
+  border-radius: 10px;
+  padding: 10px 16px;
+  margin-top: 10px;
+  animation: totalPriceIn 0.25s ease;
+}
+.total-price-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.88rem;
+  color: #555;
+}
+.total-price-label i {
+  color: var(--color-primary, #2563eb);
+  font-size: 0.9rem;
+}
+.total-price-calc {
+  font-size: 0.85rem;
+  color: #888;
+  margin-right: 4px;
+}
+.total-price-amount {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--color-primary, #2563eb);
+  letter-spacing: -0.3px;
+}
+.total-price-amount small {
+  font-size: 0.65em;
+  font-weight: 600;
+  opacity: 0.75;
+  margin-right: 2px;
+}
+</style>
+<script src="{% static 'js/cart.js' %}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // عناصر التحكم بالكمية
+    const qtyMinus = document.getElementById('qty-minus');
+    const qtyPlus = document.getElementById('qty-plus');
+    const qtyInput = document.getElementById('qty-input');
+    const addToCartBtn = document.getElementById('detail-add-to-cart');
+
+    // تحديث data-quantity عند تغيير الكمية
+    function updateQuantity() {
+      let qty = parseInt(qtyInput.value);
+      if (isNaN(qty)) qty = 1;
+      if (qty < 1) qty = 1;
+      if (qty > 99) qty = 99;
+      qtyInput.value = qty;
+      if (addToCartBtn) {
+        addToCartBtn.dataset.quantity = qty;
+      }
+    }
+
+    if (qtyMinus && qtyPlus && qtyInput && addToCartBtn) {
+      qtyMinus.addEventListener('click', function() {
+        let qty = parseInt(qtyInput.value);
+        if (qty > 1) {
+          qtyInput.value = qty - 1;
+          updateQuantity();
+        }
+      });
+
+      qtyPlus.addEventListener('click', function() {
+        let qty = parseInt(qtyInput.value);
+        if (qty < 99) {
+          qtyInput.value = qty + 1;
+          updateQuantity();
+        }
+      });
+
+      qtyInput.addEventListener('change', updateQuantity);
+      qtyInput.addEventListener('input', updateQuantity);
+
+      // تعيين القيمة الابتدائية
+      updateQuantity();
+    }
+
+    // معرض الصور (كما هو)
+    const galleryContainer = document.querySelector('.gallery-main');
+    const galleryImg = galleryContainer?.querySelector('img');
+    const galleryThumbs = document.querySelectorAll('.gallery-thumb');
+
+    if (galleryImg && galleryThumbs.length) {
+      const originalSrc = galleryImg.src;
+      galleryThumbs.forEach(thumb => {
+        thumb.addEventListener('click', function() {
+          const newSrc = this.getAttribute('data-src');
+          if (newSrc) {
+            galleryImg.src = newSrc;
+            galleryThumbs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+          }
+        });
+      });
+
+      galleryContainer.addEventListener('click', function(e) {
+        if (galleryImg.src.split('?')[0] !== originalSrc.split('?')[0]) {
+          galleryImg.src = originalSrc + '?t=' + Date.now();
+          galleryThumbs.forEach(t => t.classList.remove('active'));
+          const firstThumb = document.querySelector('.gallery-thumb:first-child');
+          if (firstThumb) firstThumb.classList.add('active');
+        }
+      });
+
+      galleryImg.onerror = function() {
+        this.src = originalSrc;
+      };
+    }
+  });
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const buyNowBtn = document.getElementById('buy-now-btn');
+    if (buyNowBtn && window.cartManager) {
+      buyNowBtn.addEventListener('click', async function(e) {
+        e.preventDefault();
+        
+        // تعطيل الزر أثناء المعالجة
+        buyNowBtn.disabled = true;
+        buyNowBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإضافة...';
+        
+        const addToCartBtn = document.getElementById('detail-add-to-cart');
+        const qtyInput = document.getElementById('qty-input');
+        const quantity = qtyInput ? parseInt(qtyInput.value, 10) : 1;
+        const productId = addToCartBtn ? addToCartBtn.dataset.productId : null;
+        const variantId = addToCartBtn ? addToCartBtn.dataset.variantId : null;
+        const productName = addToCartBtn ? addToCartBtn.dataset.productName : '';
+        const productPrice = addToCartBtn ? addToCartBtn.dataset.productPrice : 0;
+        
+        if (!productId) {
+          alert('حدث خطأ في المنتج');
+          buyNowBtn.disabled = false;
+          buyNowBtn.innerHTML = '<i class="fas fa-bolt"></i> اشتر الآن';
+          return;
+        }
+        
+        try {
+          // إضافة المنتج إلى السلة باستخدام CartManager
+          if (window.cartManager.isAuthenticated()) {
+            await window.cartManager.addToCartAjax(productId, variantId, quantity);
+          } else {
+            await window.cartManager.addToCart(productId, variantId, quantity, {
+              name: productName,
+              price: parseFloat(productPrice),
+              image: document.getElementById('main-product-image')?.src || ''
+            });
+          }
+          // بعد الإضافة الناجحة، التوجيه إلى صفحة الدفع
+          window.location.href = "{% url 'orders:checkout' %}";
+        } catch (error) {
+          console.error('Add to cart error:', error);
+          alert('حدث خطأ أثناء إضافة المنتج للسلة. حاول مرة أخرى.');
+          buyNowBtn.disabled = false;
+          buyNowBtn.innerHTML = '<i class="fas fa-bolt"></i> اشتر الآن';
+        }
+      });
+    }
+  });
+</script>
+
+<script src="{% static 'js/variant-selector-refactored.js' %}" defer></script>
+{% endblock %}
