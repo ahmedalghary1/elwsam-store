@@ -322,6 +322,43 @@ const ProductDetail = {
   }
 };
 
+// ============ Hero Slider ============
+const HeroSlider = {
+  current: 0,
+  total: 0,
+  interval: null,
+  init() {
+    const slider = document.getElementById('heroSlider');
+    if (!slider) return;
+    const slides = slider.querySelectorAll('.slide');
+    const dots = slider.querySelectorAll('.dot');
+    this.total = slides.length;
+    if (this.total === 0) return;
+    slider.querySelector('.slider-prev')?.addEventListener('click', () => { this.prev(); this.resetAuto(); });
+    slider.querySelector('.slider-next')?.addEventListener('click', () => { this.next(); this.resetAuto(); });
+    dots.forEach((dot, i) => dot.addEventListener('click', () => { this.goTo(i); this.resetAuto(); }));
+    this.startAuto();
+    slider.addEventListener('mouseenter', () => this.stopAuto());
+    slider.addEventListener('mouseleave', () => this.startAuto());
+  },
+  goTo(n) {
+    const slider = document.getElementById('heroSlider');
+    if (!slider) return;
+    const slides = slider.querySelectorAll('.slide');
+    const dots = slider.querySelectorAll('.dot');
+    slides[this.current]?.classList.remove('active');
+    dots[this.current]?.classList.remove('active');
+    this.current = (n + this.total) % this.total;
+    slides[this.current]?.classList.add('active');
+    dots[this.current]?.classList.add('active');
+  },
+  next() { this.goTo(this.current + 1); },
+  prev() { this.goTo(this.current - 1); },
+  startAuto() { this.interval = setInterval(() => this.next(), 3500); },
+  stopAuto() { clearInterval(this.interval); },
+  resetAuto() { this.stopAuto(); this.startAuto(); }
+};
+
 // ============ Filter Toggle ============
 function initFilterToggle() {
   const btn=document.querySelector('.filter-toggle-btn'); const sidebar=document.querySelector('.filter-sidebar');
@@ -352,7 +389,7 @@ function initPage() {
   MobileMenu.init(); initSearch(); initPromoBanner(); initCartButtons(); initWishlistButtons();
   setActiveNavLinks(); syncWishlistBtns(); UI.updateCartBadge(); UI.updateWishlistBadge();
   // CartPage.init(); // Disabled - CartManager handles cart 
-  ProductDetail.init(); WishlistPage.init(); initFilterToggle();
+  ProductDetail.init(); WishlistPage.init(); initFilterToggle(); HeroSlider.init();
 }
 
 document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', initPage) : initPage();
