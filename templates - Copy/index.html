@@ -28,78 +28,81 @@
         </div>
 
         <div class="hero-image-side">
-          
+
         <style>
-        .hero-slider {
-          position: relative;
-          --dot-size: clamp(6px, 1vw, 10px);
-          --dots-gap: 2px;
-          --dots-offset-y: clamp(8px, 1.8vw, 14px);
-          --active-adj-overlap: 0px;
-          background: transparent !important;
-        }
-
-        .hero-slider .slider-dots {
-          position: absolute;
-          left: 50%;
-          transform: translateX(-50%);
-          bottom: var(--dots-offset-y);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: var(--dots-gap);
-          z-index: 20;
-        }
-
-        .hero-slider .dot {
-          width: auto;
-          height: auto;
-          padding: 5px; /* مساحة لمس مناسبة */
-          border: none;
-          background: transparent;
-          display: inline-grid;
-          place-items: center;
-          border-radius: 999px;
-          margin: 0;
-          cursor: pointer;
-          touch-action: manipulation;
-          -webkit-tap-highlight-color: transparent;
-        }
-
-        .hero-slider .dot::before {
-          content: '';
-          display: block;
-          width: var(--dot-size);
-          height: var(--dot-size);
-          border-radius: 999px;
-          background: var(--color-white);
-        }
-
-        .hero-slider .dot.active::before {
-          background: var(--color-primary);
-        }
-
-        .hero-slider .dot.active + .dot {
-          margin-inline-start: calc(var(--active-adj-overlap) * -1);
-        }
-
-        .hero-slider .dot:focus-visible {
-          outline: 2px solid var(--color-primary);
-          outline-offset: 2px;
-        }
-
-        .hero-slider .slide.active img {
-          animation: none !important;
-        }
-
-        @media (max-width: 768px) {
           .hero-slider {
-            --dots-gap: 1px;
+            position: relative;
+            --dot-size: 10px;       /* حجم النقطة */
+            --dots-gap: 6px;        /* المسافة بين النقاط على الكمبيوتر */
+            --dots-offset-y: 12px;  /* المسافة من أسفل الصورة */
+            --active-adj-overlap: 0px;
+            background: transparent !important;
           }
+
+          .hero-slider .slider-dots {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: var(--dots-offset-y);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--dots-gap);
+            z-index: 20;
+          }
+
           .hero-slider .dot {
-            padding: 4px;
+            width: auto;
+            height: auto;
+            padding: 5px; 
+            border: none;
+            background: transparent;
+            display: inline-grid;
+            place-items: center;
+            border-radius: 999px;
+            margin: 0;
+            cursor: pointer;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
           }
-        }
+
+          .hero-slider .dot::before {
+            content: '';
+            display: block;
+            width: var(--dot-size);
+            height: var(--dot-size);
+            border-radius: 999px;
+            background: var(--color-white);
+          }
+
+          .hero-slider .dot.active::before {
+            background: var(--color-primary);
+          }
+
+          .hero-slider .dot.active + .dot {
+            margin-inline-start: calc(var(--active-adj-overlap) * -1);
+          }
+
+          .hero-slider .dot:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
+          }
+
+          .hero-slider .slide.active img {
+            animation: none !important;
+          }
+
+          /* ======= تعديلات الهاتف ======= */
+          @media (max-width: 768px) {
+            .hero-slider {
+              --dots-gap: 4px;     /* تقليل المسافة بين النقاط للهاتف */
+              --dot-size: 8px;     /* تصغير حجم النقاط للهاتف */
+              --dots-offset-y: 10px;
+            }
+            .hero-slider .dot {
+              padding: 3px;        /* مساحة لمس مناسبة للهاتف */
+            }
+          }
         </style>
           <div class="hero-slider-wrap">
           <div class="hero-slider" id="heroSlider">
