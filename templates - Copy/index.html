@@ -28,78 +28,79 @@
         </div>
 
         <div class="hero-image-side">
-          <style>
-            .hero-slider{
-              position:relative;
-              --dot-size:clamp(0.5rem,1.2vw,0.875rem);
-              --dot-hit:clamp(2.5rem,6vw,3rem);
-              --dots-gap:clamp(1px,0.25vw,2px);
-              --dots-offset-y:clamp(8px,1.8vw,14px);
-              --active-adj-overlap:0px;
-              background:transparent!important;
-            }
-            .hero-slider .slider-dots{
-              position:absolute;
-              left:50%;
-              transform:translateX(-50%);
-              bottom:var(--dots-offset-y);
-              display:flex;
-              align-items:center;
-              justify-content:center;
-              gap:var(--dots-gap);
-              z-index:20;
-            }
-            @media (max-width: 768px){
-              .hero-slider{ --dots-gap: 0.2px; }
-            }
+          
+        <style>
+        .hero-slider {
+          position: relative;
+          --dot-size: clamp(6px, 1vw, 10px);
+          --dots-gap: 2px;
+          --dots-offset-y: clamp(8px, 1.8vw, 14px);
+          --active-adj-overlap: 0px;
+          background: transparent !important;
+        }
 
-            @media (min-width: 768px){
-              .hero-image-side{ overflow:hidden; }
-              .hero-slider .slider-dots{ position:absolute; left:50%; transform:translateX(-50%); bottom:var(--dots-offset-y); }
-            }
-            @supports not (gap: 1px) {
-              .hero-slider .slider-dots{ gap: 0; }
-              .hero-slider .dot{ margin-inline-start: var(--dots-gap); }
-              .hero-slider .dot:first-child{ margin-inline-start: 0; }
-              .hero-slider .dot.active + .dot{ margin-inline-start: var(--dots-gap); }
-            }
-            .hero-slider .dot{
-              width:var(--dot-hit,44px);
-              height:var(--dot-hit,44px);
-              padding:0;
-              border:none;
-              background:transparent;
-              display:inline-grid;
-              place-items:center;
-              border-radius:999px;
-              margin:0;
-              cursor:pointer;
-              touch-action:manipulation;
-              -webkit-tap-highlight-color:transparent;
-            }
-            .hero-slider .dot::before{
-              content:'';
-              display:block;
-              width:var(--dot-size,10px);
-              height:var(--dot-size,10px);
-              border-radius:999px;
-              background:var(--color-white);
-            }
-            .hero-slider .dot.active::before{
-              background:var(--color-primary);
-            }
-            .hero-slider .dot.active + .dot{
-              margin-inline-start:calc(var(--active-adj-overlap)*-1);
-            }
-            .hero-slider .dot:focus-visible{
-              outline:2px solid var(--color-primary);
-              outline-offset:2px;
-            }
-            .hero-slider .slide.active img{
-              animation:none !important;
-            }
+        .hero-slider .slider-dots {
+          position: absolute;
+          left: 50%;
+          transform: translateX(-50%);
+          bottom: var(--dots-offset-y);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: var(--dots-gap);
+          z-index: 20;
+        }
 
-          </style>
+        .hero-slider .dot {
+          width: auto;
+          height: auto;
+          padding: 5px; /* مساحة لمس مناسبة */
+          border: none;
+          background: transparent;
+          display: inline-grid;
+          place-items: center;
+          border-radius: 999px;
+          margin: 0;
+          cursor: pointer;
+          touch-action: manipulation;
+          -webkit-tap-highlight-color: transparent;
+        }
+
+        .hero-slider .dot::before {
+          content: '';
+          display: block;
+          width: var(--dot-size);
+          height: var(--dot-size);
+          border-radius: 999px;
+          background: var(--color-white);
+        }
+
+        .hero-slider .dot.active::before {
+          background: var(--color-primary);
+        }
+
+        .hero-slider .dot.active + .dot {
+          margin-inline-start: calc(var(--active-adj-overlap) * -1);
+        }
+
+        .hero-slider .dot:focus-visible {
+          outline: 2px solid var(--color-primary);
+          outline-offset: 2px;
+        }
+
+        .hero-slider .slide.active img {
+          animation: none !important;
+        }
+
+        @media (max-width: 768px) {
+          .hero-slider {
+            --dots-gap: 1px;
+          }
+          .hero-slider .dot {
+            padding: 4px;
+          }
+        }
+        </style>
           <div class="hero-slider-wrap">
           <div class="hero-slider" id="heroSlider">
             <div class="slide active">
