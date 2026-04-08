@@ -28,6 +28,15 @@
         </div>
 
         <div class="hero-image-side">
+          <style>
+            .hero-slider{position:relative;--dot-size:clamp(6px,0.9vw,12px);--dot-hit:clamp(36px,5vw,44px);--dots-gap:clamp(6px,1.4vw,14px);--dots-offset-y:clamp(10px,2.4vw,18px)}
+            .hero-slider .slider-dots{position:absolute;left:50%;transform:translateX(-50%);bottom:var(--dots-offset-y);display:flex;align-items:center;justify-content:center;gap:var(--dots-gap);z-index:20}
+            .hero-slider .dot{width:var(--dot-hit,44px);height:var(--dot-hit,44px);padding:0;border:none;background:transparent;display:inline-grid;place-items:center;border-radius:999px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+            .hero-slider .dot::before{content:'';display:block;width:var(--dot-size,10px);height:var(--dot-size,10px);border-radius:999px;background:rgba(255,255,255,.78);box-shadow:0 0 0 1px rgba(0,0,0,.22) inset;transform:scale(1);transition:transform .2s ease,background-color .2s ease,box-shadow .2s ease}
+            .hero-slider .dot:hover::before{transform:scale(1.15)}
+            .hero-slider .dot.active::before{background:var(--color-primary);box-shadow:0 0 0 1px rgba(0,0,0,.08) inset,0 0 0 3px rgba(255,215,0,.35)}
+            .hero-slider .dot:focus-visible{outline:2px solid var(--color-primary);outline-offset:2px}
+          </style>
           <div class="hero-slider-wrap">
           <div class="hero-slider" id="heroSlider">
             <div class="slide active">
@@ -39,11 +48,13 @@
             <div class="slide">
               <img src="{% static 'image/slide1.png' %}" alt="دواية ديكور">
             </div>
-            <!-- <div class="slider-dots">
+            <div class="slider-dots ">
               <button class="dot active" aria-label="الشريحة 1"></button>
               <button class="dot" aria-label="الشريحة 2"></button>
               <button class="dot" aria-label="الشريحة 3"></button>
-            </div> -->
+            </div>
+
+
           </div>
           </div>
         </div>
@@ -51,6 +62,7 @@
       </div>
     </section>
     
+
     <!-- ============================
          BANNER STRIP
          ============================ -->
@@ -66,7 +78,7 @@
           <div class="strip-icon"><i class="fas fa-rotate-left"></i></div>
           <div class="strip-text">
             <strong>إرجاع مجاني</strong>
-            <span>خلال 5 يوم بلا شروط</span>
+            <span>خلال 10 يوم بلا شروط</span>
           </div>
         </div>
         <div class="strip-item">
