@@ -49,12 +49,10 @@
               gap:var(--dots-gap);
               z-index:20;
             }
-            @media (max-width: 480px){
-              .hero-slider{ --dots-gap: 0.3px; }
+            @media (max-width: 768px){
+              .hero-slider{ --dots-gap: 0.2px; }
             }
-            @media (min-width: 768px){
-              .hero-slider{ --dots-gap: 0.8px; }
-            }
+
             @media (min-width: 768px){
               .hero-image-side{ overflow:hidden; }
               .hero-slider .slider-dots{ position:absolute; left:50%; transform:translateX(-50%); bottom:var(--dots-offset-y); }
