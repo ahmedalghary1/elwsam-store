@@ -375,7 +375,7 @@ const HeroSlider = {
   },
   next() { this.goTo(this.current + 1); },
   prev() { this.goTo(this.current - 1); },
-  startAuto() { this.interval = setInterval(() => this.next(), 3500); },
+  startAuto() { this.interval = setInterval(() => this.next(), 3000); },
   stopAuto() { clearInterval(this.interval); },
   resetAuto() { this.stopAuto(); this.startAuto(); }
 };

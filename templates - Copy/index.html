@@ -33,9 +33,10 @@
               position:relative;
               --dot-size:clamp(0.5rem,1.2vw,0.875rem);
               --dot-hit:clamp(2.5rem,6vw,3rem);
-              --dots-gap:clamp(1.5px,0.35vw,3px);
+              --dots-gap:clamp(1px,0.25vw,2px);
               --dots-offset-y:clamp(8px,1.8vw,14px);
               --active-adj-overlap:0px;
+              background:transparent!important;
             }
             .hero-slider .slider-dots{
               position:absolute;
@@ -49,10 +50,14 @@
               z-index:20;
             }
             @media (max-width: 480px){
-              .hero-slider{ --dots-gap: 1.5px; }
+              .hero-slider{ --dots-gap: 1px; }
             }
             @media (min-width: 768px){
-              .hero-slider{ --dots-gap: 3px; }
+              .hero-slider{ --dots-gap: 2px; }
+            }
+            @media (min-width: 768px){
+              .hero-image-side{ overflow:hidden; }
+              .hero-slider .slider-dots{ position:absolute; left:50%; transform:translateX(-50%); bottom:var(--dots-offset-y); }
             }
             @supports not (gap: 1px) {
               .hero-slider .slider-dots{ gap: 0; }
