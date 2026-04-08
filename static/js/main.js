@@ -331,12 +331,33 @@ const HeroSlider = {
     const slider = document.getElementById('heroSlider');
     if (!slider) return;
     const slides = slider.querySelectorAll('.slide');
-    const dots = slider.querySelectorAll('.dot');
     this.total = slides.length;
     if (this.total === 0) return;
+    
+    const activeIndex = Array.from(slides).findIndex(s => s.classList.contains('active'));
+    this.current = activeIndex >= 0 ? activeIndex : 0;
+    
+    if (!slider.querySelector('.slider-dots')) {
+      const dotsWrap = document.createElement('div');
+      dotsWrap.className = 'slider-dots';
+      dotsWrap.setAttribute('role', 'tablist');
+      dotsWrap.setAttribute('aria-label', 'التنقل بين الشرائح');
+      for (let i = 0; i < this.total; i++) {
+        const b = document.createElement('button');
+        b.className = 'dot' + (i === this.current ? ' active' : '');
+        b.type = 'button';
+        b.setAttribute('aria-label', `الشريحة ${i + 1}`);
+        if (i === this.current) b.setAttribute('aria-current', 'true');
+        dotsWrap.appendChild(b);
+      }
+      slider.appendChild(dotsWrap);
+    }
+
+    const dots = slider.querySelectorAll('.dot');
     slider.querySelector('.slider-prev')?.addEventListener('click', () => { this.prev(); this.resetAuto(); });
     slider.querySelector('.slider-next')?.addEventListener('click', () => { this.next(); this.resetAuto(); });
     dots.forEach((dot, i) => dot.addEventListener('click', () => { this.goTo(i); this.resetAuto(); }));
+
     this.startAuto();
     slider.addEventListener('mouseenter', () => this.stopAuto());
     slider.addEventListener('mouseleave', () => this.startAuto());
@@ -347,10 +368,10 @@ const HeroSlider = {
     const slides = slider.querySelectorAll('.slide');
     const dots = slider.querySelectorAll('.dot');
     slides[this.current]?.classList.remove('active');
-    dots[this.current]?.classList.remove('active');
+    if (dots[this.current]) { dots[this.current].classList.remove('active'); dots[this.current].removeAttribute('aria-current'); }
     this.current = (n + this.total) % this.total;
     slides[this.current]?.classList.add('active');
-    dots[this.current]?.classList.add('active');
+    if (dots[this.current]) { dots[this.current].classList.add('active'); dots[this.current].setAttribute('aria-current','true'); }
   },
   next() { this.goTo(this.current + 1); },
   prev() { this.goTo(this.current - 1); },
