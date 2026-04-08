@@ -31,11 +31,11 @@
           <style>
             .hero-slider{
               position:relative;
-              --dot-size:clamp(6px,0.8vw,10px);
-              --dot-hit:clamp(36px,5vw,44px);
-              --dots-gap:clamp(2px,0.6vw,8px);
+              --dot-size:clamp(0.5rem,1.2vw,0.875rem);
+              --dot-hit:clamp(2.5rem,6vw,3rem);
+              --dots-gap:clamp(0.125rem,0.35vw,0.375rem);
               --dots-offset-y:clamp(8px,1.8vw,14px);
-              --active-adj-overlap:clamp(1px,0.4vw,6px);
+              --active-adj-overlap:clamp(0.0625rem,0.25vw,0.25rem);
             }
             .hero-slider .slider-dots{
               position:absolute;
@@ -78,6 +78,9 @@
             .hero-slider .dot:focus-visible{
               outline:2px solid var(--color-primary);
               outline-offset:2px;
+            }
+            .hero-slider .slide.active img{
+              animation:none !important;
             }
 
           </style>
