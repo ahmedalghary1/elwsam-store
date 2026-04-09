@@ -160,6 +160,8 @@ class ProductDetailView(View):
             'variants': variants,
             'specs': specs,
             'related_products': related_products,
+            'is_simple_product': product.is_simple_product(),
+            'product_stock': product.stock if product.is_simple_product() else None,
         }
 
         return render(request, self.template_name, context)

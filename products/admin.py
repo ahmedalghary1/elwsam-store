@@ -70,11 +70,11 @@ class ProductSizeInline(SortableInlineAdminMixin, admin.TabularInline):
 class ProductImageInline(SortableInlineAdminMixin, admin.TabularInline):
     model = ProductImage
     extra = 1
-    fields = ['color', 'image', 'preview']
+    fields = ['image', 'color', 'preview']
     readonly_fields = ['preview']
     ordering = ['order']
     verbose_name = '\u0635\u0648\u0631\u0629'
-    verbose_name_plural = '\u0627\u0644\u0635\u0648\u0631'
+    verbose_name_plural = '\u0627\u0644\u0635\u0648\u0631 (\u0627\u0644\u0644\u0648\u0646 \u0627\u062e\u062a\u064a\u0627\u0631\u064a \u0644\u0644\u0645\u0646\u062a\u062c\u0627\u062a \u0627\u0644\u0628\u0633\u064a\u0637\u0629)'
     autocomplete_fields = ['color']
 
     def preview(self, obj):
@@ -340,14 +340,14 @@ class CategoryAdmin(SortableAdminMixin, admin.ModelAdmin):
 class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_display = [
         'thumb', 'name', 'category', 'price_display',
-        'discount_badge', 'variants_count', 'is_active', 'is_hot', 'is_new', 'order'
+        'discount_badge', 'stock_badge', 'variants_count', 'is_active', 'is_hot', 'is_new', 'order'
     ]
     list_display_links = ['name']
-    list_editable = ['is_active', 'is_hot', 'is_new']
+    list_editable = ['is_active', 'is_hot', 'is_new', 'stock']
     list_filter = ['category', 'is_active', 'is_hot', 'is_new']
     search_fields = ['name', 'category__name']
     ordering = ['order']
-    readonly_fields = ['created_at', 'updated_at', 'image_preview', 'discount_info']
+    readonly_fields = ['created_at', 'updated_at', 'image_preview', 'discount_info', 'product_type_info']
     list_per_page = 25
     list_select_related = ['category']
 
@@ -362,9 +362,13 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
             'fields': ('price', 'old_price', 'discount_info'),
             'description': '\u0633\u0639\u0631 \u0627\u0644\u0645\u0646\u062a\u062c \u0627\u0644\u0623\u0633\u0627\u0633\u064a. \u0633\u0639\u0631 \u0627\u0644\u0645\u062a\u063a\u064a\u0631\u0627\u062a \u064a\u064f\u062d\u062f\u062f \u0645\u0646 \u062e\u0644\u0627\u0644 \u0645\u0642\u0627\u0633\u0627\u062a \u0627\u0644\u0646\u0645\u0637.'
         }),
+        ('\u0627\u0644\u0645\u062e\u0632\u0648\u0646 (\u0644\u0644\u0645\u0646\u062a\u062c\u0627\u062a \u0627\u0644\u0628\u0633\u064a\u0637\u0629 \u0641\u0642\u0637)', {
+            'fields': ('stock',),
+            'description': '\u0627\u0644\u0645\u062e\u0632\u0648\u0646 \u064a\u064f\u0633\u062a\u062e\u062f\u0645 \u0641\u0642\u0637 \u0644\u0644\u0645\u0646\u062a\u062c\u0627\u062a \u0627\u0644\u0628\u0633\u064a\u0637\u0629 (\u0628\u062f\u0648\u0646 \u0623\u0644\u0648\u0627\u0646 \u0623\u0648 \u0645\u0642\u0627\u0633\u0627\u062a \u0623\u0648 \u0623\u0646\u0645\u0627\u0637). \u0625\u0630\u0627 \u0643\u0627\u0646 \u0644\u0644\u0645\u0646\u062a\u062c \u0645\u062a\u063a\u064a\u0631\u0627\u062a\u060c \u0627\u0633\u062a\u062e\u062f\u0645 \u0627\u0644\u0645\u062e\u0632\u0648\u0646 \u0641\u064a \u062c\u062f\u0648\u0644 \u0627\u0644\u0645\u062a\u063a\u064a\u0631\u0627\u062a.'
+        }),
         ('\u0627\u0644\u062a\u0648\u0635\u064a\u0641 \u0648\u0627\u0644\u062a\u0643\u0648\u064a\u0646', {
-            'fields': ('has_patterns', 'has_product_level_sizes', 'has_colors'),
-            'description': '\u062d\u062f\u062f \u062a\u0648\u0635\u064a\u0641 \u0627\u0644\u0645\u0646\u062a\u062c: \u0639\u0644\u064a\u0647 \u0623\u0646\u0645\u0627\u0637؟ \u0639\u0644\u064a\u0647 \u0645\u0642\u0627\u0633\u0627\u062a؟ \u0639\u0644\u064a\u0647 \u0623\u0644\u0648\u0627\u0646 \u0641\u0642\u0637؟'
+            'fields': ('product_type_info', 'has_patterns', 'has_product_level_sizes', 'has_colors'),
+            'description': '\u062d\u062f\u062f \u062a\u0648\u0635\u064a\u0641 \u0627\u0644\u0645\u0646\u062a\u062c: \u0639\u0644\u064a\u0647 \u0623\u0646\u0645\u0627\u0637؟ \u0639\u0644\u064a\u0647 \u0645\u0642\u0627\u0633\u0627\u062a؟ \u0639\u0644\u064a\u0647 \u0623\u0644\u0648\u0627\u0646 \u0641\u0642\u0637؟ \u0625\u0630\u0627 \u0644\u0645 \u062a\u062d\u062f\u062f \u0634\u064a\u0626\u0627\u064b\u060c \u0633\u064a\u0643\u0648\u0646 \u0645\u0646\u062a\u062c \u0628\u0633\u064a\u0637.'
         }),
         ('\u0627\u0644\u062d\u0627\u0644\u0629', {
             'fields': ('is_active', 'is_new', 'is_hot', 'rating', 'order')
@@ -435,6 +439,32 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
             return format_html('<b style="color:#dc3545;">{}% \u062e\u0635\u0645</b>', pct)
         return format_html('<span>{}</span>', 'لا يوجد خصم')
     discount_info.short_description = '\u0646\u0633\u0628\u0629 \u0627\u0644\u062e\u0635\u0645'
+    
+    def stock_badge(self, obj):
+        """عرض حالة المخزون للمنتجات البسيطة"""
+        if obj.is_simple_product():
+            if obj.stock > 10:
+                return format_html('<span style="color:#28a745;font-weight:bold;">✓ {}</span>', obj.stock)
+            elif obj.stock > 0:
+                return format_html('<span style="color:#ffc107;font-weight:bold;">⚠ {}</span>', obj.stock)
+            else:
+                return format_html('<span style="color:#dc3545;font-weight:bold;">✗ نفد</span>')
+        else:
+            return format_html('<span style="color:#6c757d;">—</span>')
+    stock_badge.short_description = 'المخزون'
+    
+    def product_type_info(self, obj):
+        """عرض نوع المنتج"""
+        if obj.is_simple_product():
+            return format_html('<span style="background:#28a745;color:white;padding:4px 10px;border-radius:4px;font-size:0.85em;">منتج بسيط</span>')
+        elif obj.check_if_has_patterns():
+            return format_html('<span style="background:#007bff;color:white;padding:4px 10px;border-radius:4px;font-size:0.85em;">له أنماط</span>')
+        elif obj.check_if_has_product_level_sizes():
+            return format_html('<span style="background:#17a2b8;color:white;padding:4px 10px;border-radius:4px;font-size:0.85em;">له مقاسات</span>')
+        elif obj.has_colors:
+            return format_html('<span style="background:#ffc107;color:#000;padding:4px 10px;border-radius:4px;font-size:0.85em;">له ألوان فقط</span>')
+        return format_html('<span style="color:#6c757d;">غير محدد</span>')
+    product_type_info.short_description = 'نوع المنتج'
 
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related('variants')

@@ -68,6 +68,12 @@ class Product(models.Model):
     is_hot = models.BooleanField(default=False, help_text='هل المنتج مشهور/مبيع؟')
     is_active = models.BooleanField(default=True, help_text='هل المنتج متاح؟')
     
+    # المخزون للمنتجات البسيطة (بدون متغيرات)
+    stock = models.IntegerField(
+        default=0,
+        help_text='المخزون المتاح للمنتج البسيط (يُستخدم فقط إذا لم يكن للمنتج ألوان أو مقاسات أو أنماط)'
+    )
+    
     # Product configuration flags
     has_patterns = models.BooleanField(
         default=False,
@@ -222,6 +228,33 @@ class Product(models.Model):
         Determines if size selection is required at product level
         """
         return self.check_if_has_product_level_sizes()
+    
+    def is_simple_product(self):
+        """
+        Check if this is a simple product (no patterns, no sizes, no colors)
+        """
+        return (not self.check_if_has_patterns() and 
+                not self.check_if_has_product_level_sizes() and 
+                not self.has_colors)
+    
+    def is_available(self):
+        """
+        Check if product is available in stock
+        For simple products: check product.stock
+        For products with variants: check if any variant has stock
+        """
+        if self.is_simple_product():
+            return self.stock > 0
+        else:
+            return self.variants.filter(stock__gt=0).exists()
+    
+    def get_stock(self):
+        """
+        Get stock for simple products
+        """
+        if self.is_simple_product():
+            return self.stock
+        return None
 
     
 # =========================
