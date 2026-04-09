@@ -452,19 +452,31 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
         else:
             return format_html('<span style="color:#6c757d;">—</span>')
     stock_badge.short_description = 'المخزون'
-    
+        
+
     def product_type_info(self, obj):
         """عرض نوع المنتج"""
-        if obj.is_simple_product():
-            return format_html('<span style="background:#28a745;color:white;padding:4px 10px;border-radius:4px;font-size:0.85em;">منتج بسيط</span>')
+        if (not obj.check_if_has_patterns() 
+            and not obj.check_if_has_product_level_sizes() 
+            and not obj.has_colors):
+            return format_html(
+                '<span style="background:#28a745;color:white;padding:4px 10px;border-radius:4px;font-size:0.85em;">منتج بسيط</span>'
+            )
         elif obj.check_if_has_patterns():
-            return format_html('<span style="background:#007bff;color:white;padding:4px 10px;border-radius:4px;font-size:0.85em;">له أنماط</span>')
+            return format_html(
+                '<span style="background:#007bff;color:white;padding:4px 10px;border-radius:4px;font-size:0.85em;">له أنماط</span>'
+            )
         elif obj.check_if_has_product_level_sizes():
-            return format_html('<span style="background:#17a2b8;color:white;padding:4px 10px;border-radius:4px;font-size:0.85em;">له مقاسات</span>')
+            return format_html(
+                '<span style="background:#17a2b8;color:white;padding:4px 10px;border-radius:4px;font-size:0.85em;">له مقاسات</span>'
+            )
         elif obj.has_colors:
-            return format_html('<span style="background:#ffc107;color:#000;padding:4px 10px;border-radius:4px;font-size:0.85em;">له ألوان فقط</span>')
-        return format_html('<span style="color:#6c757d;">غير محدد</span>')
-    product_type_info.short_description = 'نوع المنتج'
+            return format_html(
+                '<span style="background:#ffc107;color:#000;padding:4px 10px;border-radius:4px;font-size:0.85em;">له ألوان فقط</span>'
+            )
+        else:
+            return format_html('<span style="color:#6c757d;">—</span>')
+
 
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related('variants')
