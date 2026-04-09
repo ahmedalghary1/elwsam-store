@@ -343,7 +343,7 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
         'discount_badge', 'stock_badge', 'variants_count', 'is_active', 'is_hot', 'is_new', 'order'
     ]
     list_display_links = ['name']
-    list_editable = ['is_active', 'is_hot', 'is_new', 'stock']
+    list_editable = ['is_active', 'is_hot', 'is_new']
     list_filter = ['category', 'is_active', 'is_hot', 'is_new']
     search_fields = ['name', 'category__name']
     ordering = ['order']
