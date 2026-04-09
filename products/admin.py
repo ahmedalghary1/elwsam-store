@@ -347,7 +347,7 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_filter = ['category', 'is_active', 'is_hot', 'is_new']
     search_fields = ['name', 'category__name']
     ordering = ['order']
-    readonly_fields = ['created_at', 'updated_at', 'image_preview', 'discount_info', 'product_type_info']
+    readonly_fields = ['created_at', 'updated_at', 'image_preview', 'discount_info']
     list_per_page = 25
     list_select_related = ['category']
 
@@ -367,7 +367,7 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
             'description': '\u0627\u0644\u0645\u062e\u0632\u0648\u0646 \u064a\u064f\u0633\u062a\u062e\u062f\u0645 \u0641\u0642\u0637 \u0644\u0644\u0645\u0646\u062a\u062c\u0627\u062a \u0627\u0644\u0628\u0633\u064a\u0637\u0629 (\u0628\u062f\u0648\u0646 \u0623\u0644\u0648\u0627\u0646 \u0623\u0648 \u0645\u0642\u0627\u0633\u0627\u062a \u0623\u0648 \u0623\u0646\u0645\u0627\u0637). \u0625\u0630\u0627 \u0643\u0627\u0646 \u0644\u0644\u0645\u0646\u062a\u062c \u0645\u062a\u063a\u064a\u0631\u0627\u062a\u060c \u0627\u0633\u062a\u062e\u062f\u0645 \u0627\u0644\u0645\u062e\u0632\u0648\u0646 \u0641\u064a \u062c\u062f\u0648\u0644 \u0627\u0644\u0645\u062a\u063a\u064a\u0631\u0627\u062a.'
         }),
         ('\u0627\u0644\u062a\u0648\u0635\u064a\u0641 \u0648\u0627\u0644\u062a\u0643\u0648\u064a\u0646', {
-            'fields': ('product_type_info', 'has_patterns', 'has_product_level_sizes', 'has_colors'),
+            'fields': ( 'has_patterns', 'has_product_level_sizes', 'has_colors'),
             'description': '\u062d\u062f\u062f \u062a\u0648\u0635\u064a\u0641 \u0627\u0644\u0645\u0646\u062a\u062c: \u0639\u0644\u064a\u0647 \u0623\u0646\u0645\u0627\u0637؟ \u0639\u0644\u064a\u0647 \u0645\u0642\u0627\u0633\u0627\u062a؟ \u0639\u0644\u064a\u0647 \u0623\u0644\u0648\u0627\u0646 \u0641\u0642\u0637؟ \u0625\u0630\u0627 \u0644\u0645 \u062a\u062d\u062f\u062f \u0634\u064a\u0626\u0627\u064b\u060c \u0633\u064a\u0643\u0648\u0646 \u0645\u0646\u062a\u062c \u0628\u0633\u064a\u0637.'
         }),
         ('\u0627\u0644\u062d\u0627\u0644\u0629', {
@@ -453,26 +453,26 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
             return format_html('<span style="color:#6c757d;">—</span>')
     stock_badge.short_description = 'المخزون'
 
-    def product_type_info(self, obj):
-        """عرض نوع المنتج"""
-        if (not obj.check_if_has_patterns() 
-            and not obj.check_if_has_product_level_sizes() 
-            and not obj.has_colors):
-            return format_html('<span style="background:#28a745;color:white;padding:4px 10px;border-radius:4px;font-size:0.85em;">منتج بسيط</span>')
-        elif obj.check_if_has_patterns():
-            return format_html(
-                '<span style="background:#007bff;color:white;padding:4px 10px;border-radius:4px;font-size:0.85em;">له أنماط</span>'
-            )
-        elif obj.check_if_has_product_level_sizes():
-            return format_html(
-                '<span style="background:#17a2b8;color:white;padding:4px 10px;border-radius:4px;font-size:0.85em;">له مقاسات</span>'
-            )
-        elif obj.has_colors:
-            return format_html(
-                '<span style="background:#ffc107;color:#000;padding:4px 10px;border-radius:4px;font-size:0.85em;">له ألوان فقط</span>'
-            )
-        else:
-            return format_html('<span style="color:#6c757d;">—</span>')
+    # def product_type_info(self, obj):
+    #     """عرض نوع المنتج"""
+    #     if (not obj.check_if_has_patterns() 
+    #         and not obj.check_if_has_product_level_sizes() 
+    #         and not obj.has_colors):
+    #         return format_html('<span style="background:#28a745;color:white;padding:4px 10px;border-radius:4px;font-size:0.85em;">منتج بسيط</span>')
+    #     elif obj.check_if_has_patterns():
+    #         return format_html(
+    #             '<span style="background:#007bff;color:white;padding:4px 10px;border-radius:4px;font-size:0.85em;">له أنماط</span>'
+    #         )
+    #     elif obj.check_if_has_product_level_sizes():
+    #         return format_html(
+    #             '<span style="background:#17a2b8;color:white;padding:4px 10px;border-radius:4px;font-size:0.85em;">له مقاسات</span>'
+    #         )
+    #     elif obj.has_colors:
+    #         return format_html(
+    #             '<span style="background:#ffc107;color:#000;padding:4px 10px;border-radius:4px;font-size:0.85em;">له ألوان فقط</span>'
+    #         )
+    #     else:
+    #         return format_html('<span style="color:#6c757d;">—</span>')
 
 
     def get_queryset(self, request):
