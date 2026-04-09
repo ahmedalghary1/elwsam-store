@@ -22,19 +22,20 @@ class PatternInline(SortableInlineAdminMixin, admin.TabularInline):
     fields = ['name', 'has_sizes', 'base_price', 'edit_link']
     readonly_fields = ['edit_link']
     ordering = ['order']
-    verbose_name = '\u0646\u0645\u0637'
-    verbose_name_plural = '\u0627\u0644\u0623\u0646\u0645\u0627\u0637'
+    verbose_name = 'نقش'
+    verbose_name_plural = 'الأنماط'
     show_change_link = False
 
     def edit_link(self, instance):
         if instance.pk:
             url = reverse('admin:products_pattern_change', args=[instance.pk])
+            # تم تصحيح السلسلة النصية: دمج الأجزاء في سلسلة واحدة
             return format_html(
-                '<a href="{}" style="background:#007bff;color:white;padding:3px 10px;'                'border-radius:4px;text-decoration:none;font-size:0.82em;">'                '\u2712 \u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u0645\u0642\u0627\u0633\u0627\u062a \u0648\u0627\u0644\u0645\u062a\u063a\u064a\u0631\u0627\u062a</a>',
+                '<a href="{}" style="background:#007bff;color:white;padding:3px 10px;border-radius:4px;text-decoration:none;font-size:0.82em;">✒ إدارة المقاسات والمتغيرات</a>',
                 url
             )
-        return '\u2014'
-    edit_link.short_description = '\u0625\u062f\u0627\u0631\u0629'
+        return '—'
+    edit_link.short_description = 'إدارة'
 
 
 class ProductColorInline(SortableInlineAdminMixin, admin.TabularInline):
@@ -43,18 +44,18 @@ class ProductColorInline(SortableInlineAdminMixin, admin.TabularInline):
     fields = ['color', 'color_preview']
     readonly_fields = ['color_preview']
     ordering = ['order']
-    verbose_name = '\u0644\u0648\u0646'
-    verbose_name_plural = '\u0627\u0644\u0623\u0644\u0648\u0627\u0646'
+    verbose_name = 'لون'
+    verbose_name_plural = 'الألوان'
     autocomplete_fields = ['color']
 
     def color_preview(self, obj):
         if obj.pk and obj.color and obj.color.code:
             return format_html(
-                '<span style="display:inline-block;width:26px;height:26px;background:{};'                'border-radius:50%;border:2px solid #ddd;vertical-align:middle;"></span>',
+                '<span style="display:inline-block;width:26px;height:26px;background:{};border-radius:50%;border:2px solid #ddd;vertical-align:middle;"></span>',
                 obj.color.code
             )
-        return '\u2014'
-    color_preview.short_description = '\u0645\u0639\u0627\u064a\u0646\u0629'
+        return '—'
+    color_preview.short_description = 'معاينة'
 
 
 class ProductSizeInline(SortableInlineAdminMixin, admin.TabularInline):
@@ -62,8 +63,8 @@ class ProductSizeInline(SortableInlineAdminMixin, admin.TabularInline):
     extra = 1
     fields = ['size', 'price']
     ordering = ['order']
-    verbose_name = '\u0645\u0642\u0627\u0633'
-    verbose_name_plural = '\u0627\u0644\u0645\u0642\u0627\u0633\u0627\u062a'
+    verbose_name = 'مقاس'
+    verbose_name_plural = 'المقاسات'
     autocomplete_fields = ['size']
 
 
@@ -73,8 +74,8 @@ class ProductImageInline(SortableInlineAdminMixin, admin.TabularInline):
     fields = ['image', 'color', 'preview']
     readonly_fields = ['preview']
     ordering = ['order']
-    verbose_name = '\u0635\u0648\u0631\u0629'
-    verbose_name_plural = '\u0627\u0644\u0635\u0648\u0631 (\u0627\u0644\u0644\u0648\u0646 \u0627\u062e\u062a\u064a\u0627\u0631\u064a \u0644\u0644\u0645\u0646\u062a\u062c\u0627\u062a \u0627\u0644\u0628\u0633\u064a\u0637\u0629)'
+    verbose_name = 'صورة'
+    verbose_name_plural = 'الصور (اللون اختياري للمنتجات البسيطة)'
     autocomplete_fields = ['color']
 
     def preview(self, obj):
@@ -83,8 +84,8 @@ class ProductImageInline(SortableInlineAdminMixin, admin.TabularInline):
                 '<img src="{}" style="width:60px;height:60px;object-fit:cover;border-radius:6px;" />',
                 obj.image.url
             )
-        return '\u2014'
-    preview.short_description = '\u0645\u0639\u0627\u064a\u0646\u0629'
+        return '—'
+    preview.short_description = 'معاينة'
 
 
 class ProductSpecificationInline(SortableInlineAdminMixin, admin.TabularInline):
@@ -92,8 +93,8 @@ class ProductSpecificationInline(SortableInlineAdminMixin, admin.TabularInline):
     extra = 1
     fields = ['key', 'value']
     ordering = ['order']
-    verbose_name = '\u0645\u0648\u0627\u0635\u0641\u0629'
-    verbose_name_plural = '\u0627\u0644\u0645\u0648\u0627\u0635\u0641\u0627\u062a'
+    verbose_name = 'مواصفة'
+    verbose_name_plural = 'المواصفات'
 
 
 class SimpleProductVariantInline(SortableInlineAdminMixin, admin.TabularInline):
@@ -105,8 +106,8 @@ class SimpleProductVariantInline(SortableInlineAdminMixin, admin.TabularInline):
     extra = 1
     fields = ['color', 'size', 'price', 'stock', 'sku']
     ordering = ['order']
-    verbose_name = '\u0645\u062a\u063a\u064a\u0631 \u0628\u0633\u064a\u0637 (\u0644\u0648\u0646 + \u0645\u0642\u0627\u0633)'
-    verbose_name_plural = '\u0627\u0644\u0645\u062a\u063a\u064a\u0631\u0627\u062a \u0627\u0644\u0628\u0633\u064a\u0637\u0629 (\u0628\u062f\u0648\u0646 \u0623\u0646\u0645\u0627\u0637)'
+    verbose_name = 'متغير بسيط (لون + مقاس)'
+    verbose_name_plural = 'المتغيرات البسيطة (بدون أنماط)'
 
     def get_queryset(self, request):
         """Show only variants without pattern (simple variants)"""
@@ -153,8 +154,8 @@ class PatternSizeInline(SortableInlineAdminMixin, admin.TabularInline):
     extra = 1
     fields = ['size', 'price', 'stock']
     ordering = ['order']
-    verbose_name = '\u0645\u0642\u0627\u0633 \u0627\u0644\u0646\u0645\u0637'
-    verbose_name_plural = '\u0645\u0642\u0627\u0633\u0627\u062a \u0627\u0644\u0646\u0645\u0637 (\u0633\u0639\u0631 + \u0645\u062e\u0632\u0648\u0646 \u0644\u0643\u0644 \u0645\u0642\u0627\u0633)'
+    verbose_name = 'مقاس النمط'
+    verbose_name_plural = 'مقاسات النمط (سعر + مخزون لكل مقاس)'
     autocomplete_fields = ['size']
 
 
@@ -171,8 +172,7 @@ class PatternColorInline(SortableInlineAdminMixin, admin.TabularInline):
     def color_preview(self, obj):
         if obj.pk and obj.color and obj.color.code:
             return format_html(
-                '<span style="display:inline-block;width:26px;height:26px;background:{};'
-                'border-radius:50%;border:2px solid #ddd;vertical-align:middle;"></span>',
+                '<span style="display:inline-block;width:26px;height:26px;background:{};border-radius:50%;border:2px solid #ddd;vertical-align:middle;"></span>',
                 obj.color.code
             )
         return '—'
@@ -256,8 +256,8 @@ class PatternVariantInline(SortableInlineAdminMixin, admin.TabularInline):
     extra = 1
     fields = ['color', 'size', 'stock', 'sku']
     ordering = ['order']
-    verbose_name = '\u0645\u062a\u063a\u064a\u0631 (\u0644\u0648\u0646 + \u0645\u0642\u0627\u0633)'
-    verbose_name_plural = '\u0627\u0644\u0645\u062a\u063a\u064a\u0631\u0627\u062a — اربط كل لون بمقاس (السعر يؤخذ تلقائياً من مقاسات النمط)'
+    verbose_name = 'متغير (لون + مقاس)'
+    verbose_name_plural = 'المتغيرات — اربط كل لون بمقاس (السعر يؤخذ تلقائياً من مقاسات النمط)'
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -311,9 +311,9 @@ class CategoryAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_per_page = 25
 
     fieldsets = (
-        ('\u0645\u0639\u0644\u0648\u0645\u0627\u062a \u0627\u0644\u0642\u0633\u0645', {'fields': ('name', 'slug', 'description', 'icon')}),
-        ('\u0627\u0644\u0635\u0648\u0631\u0629', {'fields': ('image',)}),
-        ('\u0627\u0644\u0625\u0639\u062f\u0627\u062f\u0627\u062a', {'fields': ('is_hot', 'order')}),
+        ('معلومات القسم', {'fields': ('name', 'slug', 'description', 'icon')}),
+        ('الصورة', {'fields': ('image',)}),
+        ('الإعدادات', {'fields': ('is_hot', 'order')}),
     )
 
     def cat_icon(self, obj):
@@ -322,14 +322,14 @@ class CategoryAdmin(SortableAdminMixin, admin.ModelAdmin):
                 '<img src="{}" style="width:34px;height:34px;object-fit:cover;border-radius:6px;" />',
                 obj.image.url
             )
-        return format_html('<span style="font-size:1.4rem;">{}</span>', obj.icon or '\U0001f4c1')
+        return format_html('<span style="font-size:1.4rem;">{}</span>', obj.icon or '📁')
     cat_icon.short_description = ''
 
     def product_count(self, obj):
         count = obj.product_set.count()
         color = '#28a745' if count > 0 else '#999'
         return format_html('<span style="color:{};font-weight:bold;">{}</span>', color, count)
-    product_count.short_description = '\u0639\u062f\u062f \u0627\u0644\u0645\u0646\u062a\u062c\u0627\u062a'
+    product_count.short_description = 'عدد المنتجات'
 
 
 # ================================================
@@ -352,28 +352,28 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_select_related = ['category']
 
     fieldsets = (
-        ('\u0645\u0639\u0644\u0648\u0645\u0627\u062a \u0627\u0644\u0645\u0646\u062a\u062c', {
+        ('معلومات المنتج', {
             'fields': ('name', 'slug', 'category', 'description')
         }),
-        ('\u0627\u0644\u0635\u0648\u0631\u0629 \u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629', {
+        ('الصورة الرئيسية', {
             'fields': ('image', 'image_preview')
         }),
-        ('\u0627\u0644\u0623\u0633\u0639\u0627\u0631', {
+        ('الأسعار', {
             'fields': ('price', 'old_price', 'discount_info'),
-            'description': '\u0633\u0639\u0631 \u0627\u0644\u0645\u0646\u062a\u062c \u0627\u0644\u0623\u0633\u0627\u0633\u064a. \u0633\u0639\u0631 \u0627\u0644\u0645\u062a\u063a\u064a\u0631\u0627\u062a \u064a\u064f\u062d\u062f\u062f \u0645\u0646 \u062e\u0644\u0627\u0644 \u0645\u0642\u0627\u0633\u0627\u062a \u0627\u0644\u0646\u0645\u0637.'
+            'description': 'سعر المنتج الأساسي. سعر المتغيرات يُحدد من خلال مقاسات النمط.'
         }),
-        ('\u0627\u0644\u0645\u062e\u0632\u0648\u0646 (\u0644\u0644\u0645\u0646\u062a\u062c\u0627\u062a \u0627\u0644\u0628\u0633\u064a\u0637\u0629 \u0641\u0642\u0637)', {
+        ('المخزون (للمنتجات البسيطة فقط)', {
             'fields': ('stock',),
-            'description': '\u0627\u0644\u0645\u062e\u0632\u0648\u0646 \u064a\u064f\u0633\u062a\u062e\u062f\u0645 \u0641\u0642\u0637 \u0644\u0644\u0645\u0646\u062a\u062c\u0627\u062a \u0627\u0644\u0628\u0633\u064a\u0637\u0629 (\u0628\u062f\u0648\u0646 \u0623\u0644\u0648\u0627\u0646 \u0623\u0648 \u0645\u0642\u0627\u0633\u0627\u062a \u0623\u0648 \u0623\u0646\u0645\u0627\u0637). \u0625\u0630\u0627 \u0643\u0627\u0646 \u0644\u0644\u0645\u0646\u062a\u062c \u0645\u062a\u063a\u064a\u0631\u0627\u062a\u060c \u0627\u0633\u062a\u062e\u062f\u0645 \u0627\u0644\u0645\u062e\u0632\u0648\u0646 \u0641\u064a \u062c\u062f\u0648\u0644 \u0627\u0644\u0645\u062a\u063a\u064a\u0631\u0627\u062a.'
+            'description': 'المخزون يُستخدم فقط للمنتجات البسيطة (بدون ألوان أو مقاسات أو أنماط). إذا كان للمنتج متغيرات، استخدم المخزون في جدول المتغيرات.'
         }),
-        ('\u0627\u0644\u062a\u0648\u0635\u064a\u0641 \u0648\u0627\u0644\u062a\u0643\u0648\u064a\u0646', {
+        ('الوصف والتكوين', {
             'fields': ('product_type_info', 'has_patterns', 'has_product_level_sizes', 'has_colors'),
-            'description': '\u062d\u062f\u062f \u062a\u0648\u0635\u064a\u0641 \u0627\u0644\u0645\u0646\u062a\u062c: \u0639\u0644\u064a\u0647 \u0623\u0646\u0645\u0627\u0637؟ \u0639\u0644\u064a\u0647 \u0645\u0642\u0627\u0633\u0627\u062a؟ \u0639\u0644\u064a\u0647 \u0623\u0644\u0648\u0627\u0646 \u0641\u0642\u0637؟ \u0625\u0630\u0627 \u0644\u0645 \u062a\u062d\u062f\u062f \u0634\u064a\u0626\u0627\u064b\u060c \u0633\u064a\u0643\u0648\u0646 \u0645\u0646\u062a\u062c \u0628\u0633\u064a\u0637.'
+            'description': 'حدد وصف المنتج: عليه أنماط؟ عليه مقاسات؟ عليه ألوان فقط؟ إذا لم تحدد شيئاً، سيكون منتج بسيط.'
         }),
-        ('\u0627\u0644\u062d\u0627\u0644\u0629', {
+        ('الحالة', {
             'fields': ('is_active', 'is_new', 'is_hot', 'rating', 'order')
         }),
-        ('\u0627\u0644\u062a\u0648\u0627\u0631\u064a\u062e', {
+        ('التواريخ', {
             'fields': ('created_at', 'updated_at'),
             'classes': ('collapse',)
         }),
@@ -383,7 +383,7 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
         PatternInline,
         ProductColorInline,
         ProductSizeInline,
-        SimpleProductVariantInline,  # NEW: Direct variant creation without Pattern
+        SimpleProductVariantInline,
         ProductImageInline,
         ProductSpecificationInline,
     ]
@@ -391,38 +391,38 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
     def thumb(self, obj):
         if obj.image:
             return format_html(
-                '<img src="{}" style="width:44px;height:44px;object-fit:cover;'                'border-radius:6px;border:1px solid #eee;" />',
+                '<img src="{}" style="width:44px;height:44px;object-fit:cover;border-radius:6px;border:1px solid #eee;" />',
                 obj.image.url
             )
-        return mark_safe('<span style="font-size:1.5rem;">\U0001f4e6</span>')
+        return mark_safe('<span style="font-size:1.5rem;">📦</span>')
     thumb.short_description = ''
 
     def price_display(self, obj):
         if obj.old_price and obj.old_price > obj.price:
             return format_html(
-                '<b style="color:#28a745;">{} \u062c.\u0645</b> '                '<s style="color:#999;font-size:0.8em;">{} \u062c.\u0645</s>',
+                '<b style="color:#28a745;">{} ج.م</b> <s style="color:#999;font-size:0.8em;">{} ج.م</s>',
                 obj.price, obj.old_price
             )
-        return format_html('<b>{} \u062c.\u0645</b>', obj.price)
-    price_display.short_description = '\u0627\u0644\u0633\u0639\u0631'
+        return format_html('<b>{} ج.م</b>', obj.price)
+    price_display.short_description = 'السعر'
     price_display.admin_order_field = 'price'
 
     def discount_badge(self, obj):
         pct = obj.get_discount_percent()
         if pct > 0:
             return format_html(
-                '<span style="background:#dc3545;color:#fff;padding:2px 7px;'                'border-radius:10px;font-size:0.8em;font-weight:bold;">-{}%</span>',
+                '<span style="background:#dc3545;color:#fff;padding:2px 7px;border-radius:10px;font-size:0.8em;font-weight:bold;">-{}%</span>',
                 pct
             )
-        return '\u2014'
-    discount_badge.short_description = '\u062e\u0635\u0645'
+        return '—'
+    discount_badge.short_description = 'خصم'
 
     def variants_count(self, obj):
         count = obj.variants.count()
         if count > 0:
             return format_html('<span style="color:#007bff;font-weight:bold;">{} متغير</span>', count)
         return format_html('<span style="color:#dc3545;">{}</span>', 'لا يوجد')
-    variants_count.short_description = '\u0627\u0644\u0645\u062a\u063a\u064a\u0631\u0627\u062a'
+    variants_count.short_description = 'المتغيرات'
 
     def image_preview(self, obj):
         if obj.image:
@@ -431,14 +431,14 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
                 obj.image.url
             )
         return format_html('<span>{}</span>', 'لا توجد صورة')
-    image_preview.short_description = '\u0645\u0639\u0627\u064a\u0646\u0629'
+    image_preview.short_description = 'معاينة'
 
     def discount_info(self, obj):
         pct = obj.get_discount_percent()
         if pct > 0:
-            return format_html('<b style="color:#dc3545;">{}% \u062e\u0635\u0645</b>', pct)
+            return format_html('<b style="color:#dc3545;">{}% خصم</b>', pct)
         return format_html('<span>{}</span>', 'لا يوجد خصم')
-    discount_info.short_description = '\u0646\u0633\u0628\u0629 \u0627\u0644\u062e\u0635\u0645'
+    discount_info.short_description = 'نسبة الخصم'
     
     def stock_badge(self, obj):
         """عرض حالة المخزون للمنتجات البسيطة"""
@@ -596,23 +596,23 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
 
     def activate(self, request, queryset):
         queryset.update(is_active=True)
-        self.message_user(request, '\u062a\u0645 \u062a\u0641\u0639\u064a\u0644 \u0627\u0644\u0645\u0646\u062a\u062c\u0627\u062a', messages.SUCCESS)
-    activate.short_description = '\u062a\u0641\u0639\u064a\u0644'
+        self.message_user(request, 'تم تفعيل المنتجات', messages.SUCCESS)
+    activate.short_description = 'تفعيل'
 
     def deactivate(self, request, queryset):
         queryset.update(is_active=False)
-        self.message_user(request, '\u062a\u0645 \u0625\u064a\u0642\u0627\u0641 \u0627\u0644\u0645\u0646\u062a\u062c\u0627\u062a', messages.SUCCESS)
-    deactivate.short_description = '\u0625\u064a\u0642\u0627\u0641'
+        self.message_user(request, 'تم إيقاف المنتجات', messages.SUCCESS)
+    deactivate.short_description = 'إيقاف'
 
     def mark_hot(self, request, queryset):
         queryset.update(is_hot=True)
-        self.message_user(request, '\u062a\u0645 \u0627\u0644\u062a\u062d\u062f\u064a\u062f \u0643\u0645\u0634\u0647\u0648\u0631', messages.SUCCESS)
-    mark_hot.short_description = '\u062a\u062d\u062f\u064a\u062f \u0643\u0645\u0634\u0647\u0648\u0631'
+        self.message_user(request, 'تم التحديد كمشهور', messages.SUCCESS)
+    mark_hot.short_description = 'تحديد كمشهور'
 
     def mark_new(self, request, queryset):
         queryset.update(is_new=True)
-        self.message_user(request, '\u062a\u0645 \u0627\u0644\u062a\u062d\u062f\u064a\u062f \u0643\u062c\u062f\u064a\u062f', messages.SUCCESS)
-    mark_new.short_description = '\u062a\u062d\u062f\u064a\u062f \u0643\u062c\u062f\u064a\u062f'
+        self.message_user(request, 'تم التحديد كجديد', messages.SUCCESS)
+    mark_new.short_description = 'تحديد كجديد'
 
 
 # ================================================
@@ -629,16 +629,16 @@ class ColorAdmin(admin.ModelAdmin):
     def swatch(self, obj):
         if obj.code:
             return format_html(
-                '<span style="display:inline-block;width:22px;height:22px;'                'background:{};border-radius:50%;border:2px solid #ccc;"></span>',
+                '<span style="display:inline-block;width:22px;height:22px;background:{};border-radius:50%;border:2px solid #ccc;"></span>',
                 obj.code
             )
-        return '\u2014'
+        return '—'
     swatch.short_description = ''
 
     def products_count(self, obj):
         count = obj.productcolor_set.count()
-        return format_html('<span style="color:#007bff;">{}</span>', count) if count else '\u2014'
-    products_count.short_description = '\u0627\u0644\u0645\u0646\u062a\u062c\u0627\u062a'
+        return format_html('<span style="color:#007bff;">{}</span>', count) if count else '—'
+    products_count.short_description = 'المنتجات'
 
 
 # ================================================
@@ -654,13 +654,13 @@ class SizeAdmin(admin.ModelAdmin):
 
     def products_count(self, obj):
         count = obj.productsize_set.count()
-        return format_html('<span style="color:#28a745;">{}</span>', count) if count else '\u2014'
-    products_count.short_description = '\u0627\u0644\u0645\u0646\u062a\u062c\u0627\u062a'
+        return format_html('<span style="color:#28a745;">{}</span>', count) if count else '—'
+    products_count.short_description = 'المنتجات'
 
     def patterns_count(self, obj):
         count = obj.patternsize_set.count()
-        return format_html('<span style="color:#007bff;">{}</span>', count) if count else '\u2014'
-    patterns_count.short_description = '\u0627\u0644\u0623\u0646\u0645\u0627\u0637'
+        return format_html('<span style="color:#007bff;">{}</span>', count) if count else '—'
+    patterns_count.short_description = 'الأنماط'
 
 
 # ================================================
@@ -680,15 +680,15 @@ class PatternAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_select_related = ['product']
 
     fieldsets = (
-        ('\u0645\u0639\u0644\u0648\u0645\u0627\u062a \u0627\u0644\u0646\u0645\u0637', {
+        ('معلومات النمط', {
             'fields': ('product', 'name', 'order'),
-            'description': '\u0627\u062e\u062a\u0631 \u0627\u0644\u0645\u0646\u062a\u062c \u0623\u0648\u0644\u0627\u064b \u062b\u0645 \u0623\u062f\u062e\u0644 \u0627\u0633\u0645 \u0627\u0644\u0646\u0645\u0637.'
+            'description': 'اختر المنتج أولاً ثم أدخل اسم النمط.'
         }),
-        ('\u0627\u0644\u062a\u0633\u0639\u064a\u0631', {
+        ('التسعير', {
             'fields': ('has_sizes', 'base_price'),
             'description': (
-                '\u0625\u0630\u0627 \u0643\u0627\u0646 \u0644\u0644\u0646\u0645\u0637 \u0645\u0642\u0627\u0633\u0627\u062a: \u0641\u0639\u0651\u0644 "\u0644\u0647 \u0645\u0642\u0627\u0633\u0627\u062a" \u0648\u0623\u0636\u0641\u0647\u0627 \u0641\u064a \u062c\u062f\u0648\u0644 "\u0645\u0642\u0627\u0633\u0627\u062a \u0627\u0644\u0646\u0645\u0637" \u0623\u062f\u0646\u0627\u0647. '
-                '\u0648\u0625\u0644\u0627 \u0623\u062f\u062e\u0644 \u0627\u0644\u0633\u0639\u0631 \u0627\u0644\u0623\u0633\u0627\u0633\u064a \u0641\u0642\u0637.'
+                'إذا كان للنمط مقاسات: فعّل "له مقاسات" وأضفها في جدول "مقاسات النمط" أدناه. '
+                'وإلا أدخل السعر الأساسي فقط.'
             )
         }),
     )
@@ -697,22 +697,22 @@ class PatternAdmin(SortableAdminMixin, admin.ModelAdmin):
 
     def base_price_display(self, obj):
         if obj.base_price:
-            return format_html('<b style="color:#28a745;">{} \u062c.\u0645</b>', obj.base_price)
-        return '\u2014'
-    base_price_display.short_description = '\u0627\u0644\u0633\u0639\u0631 \u0627\u0644\u0623\u0633\u0627\u0633\u064a'
+            return format_html('<b style="color:#28a745;">{} ج.م</b>', obj.base_price)
+        return '—'
+    base_price_display.short_description = 'السعر الأساسي'
     base_price_display.admin_order_field = 'base_price'
 
     def sizes_count(self, obj):
         count = obj.pattern_sizes.count()
-        return format_html('<span style="color:#17a2b8;">{} \u0645\u0642\u0627\u0633</span>', count) if count else '\u2014'
-    sizes_count.short_description = '\u0627\u0644\u0645\u0642\u0627\u0633\u0627\u062a'
+        return format_html('<span style="color:#17a2b8;">{} مقاس</span>', count) if count else '—'
+    sizes_count.short_description = 'المقاسات'
 
     def variants_count(self, obj):
         count = ProductVariant.objects.filter(pattern=obj).count()
         if count > 0:
             return format_html('<span style="color:#28a745;font-weight:bold;">{} متغير</span>', count)
         return format_html('<span style="color:#dc3545;">{}</span>', 'لا يوجد')
-    variants_count.short_description = '\u0627\u0644\u0645\u062a\u063a\u064a\u0631\u0627\u062a'
+    variants_count.short_description = 'المتغيرات'
 
     def save_formset(self, request, form, formset, change):
         """
@@ -762,8 +762,8 @@ class PatternAdmin(SortableAdminMixin, admin.ModelAdmin):
                     )
                     if created:
                         total += 1
-        self.message_user(request, f'\u062a\u0645 \u0625\u0646\u0634\u0627\u0621 {total} \u0645\u062a\u063a\u064a\u0631 \u062c\u062f\u064a\u062f', messages.SUCCESS)
-    auto_generate_variants.short_description = '\u0625\u0646\u0634\u0627\u0621 \u0627\u0644\u0645\u062a\u063a\u064a\u0631\u0627\u062a \u062a\u0644\u0642\u0627\u0626\u064a\u0627\u064b \u0645\u0646 \u0627\u0644\u0645\u0642\u0627\u0633\u0627\u062a \u0648\u0627\u0644\u0623\u0644\u0648\u0627\u0646'
+        self.message_user(request, f'تم إنشاء {total} متغير جديد', messages.SUCCESS)
+    auto_generate_variants.short_description = 'إنشاء المتغيرات تلقائياً من المقاسات والألوان'
 
 
 # ================================================
@@ -783,11 +783,11 @@ class ProductVariantAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_select_related = ['product', 'pattern', 'color', 'size']
 
     fieldsets = (
-        ('\u0627\u0644\u0631\u0628\u0637', {
+        ('الربط', {
             'fields': ('product', 'pattern', 'color', 'size', 'sku', 'order'),
-            'description': '\u0627\u0631\u0628\u0637 \u0647\u0630\u0627 \u0627\u0644\u0645\u062a\u063a\u064a\u0631 \u0628\u0645\u0646\u062a\u062c \u0648\u0646\u0645\u0637 \u0648\u0644\u0648\u0646 \u0648\u0645\u0642\u0627\u0633.'
+            'description': 'اربط هذا المتغير بمنتج ونمط ولون ومقاس.'
         }),
-        ('\u0627\u0644\u0645\u062e\u0632\u0648\u0646 \u0648\u0627\u0644\u0633\u0639\u0631', {
+        ('المخزون والسعر', {
             'fields': ('stock', 'price'),
         }),
     )
@@ -796,39 +796,39 @@ class ProductVariantAdmin(SortableAdminMixin, admin.ModelAdmin):
         if obj.color:
             if obj.color.code:
                 return format_html(
-                    '<span style="display:inline-block;width:14px;height:14px;background:{};'                    'border-radius:50%;border:1px solid #ccc;margin-left:4px;vertical-align:middle;"></span> {}',
+                    '<span style="display:inline-block;width:14px;height:14px;background:{};border-radius:50%;border:1px solid #ccc;margin-left:4px;vertical-align:middle;"></span> {}',
                     obj.color.code, obj.color.name
                 )
             return obj.color.name
-        return '\u2014'
-    color_badge.short_description = '\u0627\u0644\u0644\u0648\u0646'
+        return '—'
+    color_badge.short_description = 'اللون'
 
     def price_display(self, obj):
         price = obj.get_price()
-        return format_html('<b style="color:#28a745;">{} \u062c.\u0645</b>', price)
-    price_display.short_description = '\u0627\u0644\u0633\u0639\u0631'
+        return format_html('<b style="color:#28a745;">{} ج.م</b>', price)
+    price_display.short_description = 'السعر'
 
     def stock_badge(self, obj):
         if obj.stock > 10:
-            color, label = '#28a745', f'\u2713 {obj.stock}'
+            color, label = '#28a745', f'✓ {obj.stock}'
         elif obj.stock > 0:
-            color, label = '#ffc107', f'\u26a0 {obj.stock}'
+            color, label = '#ffc107', f'⚠ {obj.stock}'
         else:
-            color, label = '#dc3545', '\u2717 \u0646\u0641\u062f'
+            color, label = '#dc3545', '✗ نفد'
         return format_html('<span style="color:{};font-weight:bold;">{}</span>', color, label)
-    stock_badge.short_description = '\u0627\u0644\u0645\u062e\u0632\u0648\u0646'
+    stock_badge.short_description = 'المخزون'
 
     actions = ['reset_stock', 'set_stock_ten']
 
     def reset_stock(self, request, queryset):
         queryset.update(stock=0)
-        self.message_user(request, '\u062a\u0645 \u062a\u0635\u0641\u064a\u0631 \u0627\u0644\u0645\u062e\u0632\u0648\u0646', messages.SUCCESS)
-    reset_stock.short_description = '\u062a\u0635\u0641\u064a\u0631 \u0627\u0644\u0645\u062e\u0632\u0648\u0646'
+        self.message_user(request, 'تم تصفير المخزون', messages.SUCCESS)
+    reset_stock.short_description = 'تصفير المخزون'
 
     def set_stock_ten(self, request, queryset):
         queryset.update(stock=10)
-        self.message_user(request, '\u062a\u0645 \u0636\u0628\u0637 \u0627\u0644\u0645\u062e\u0632\u0648\u0646 \u0639\u0644\u0649 10', messages.SUCCESS)
-    set_stock_ten.short_description = '\u0636\u0628\u0637 \u0627\u0644\u0645\u062e\u0632\u0648\u0646 \u0639\u0644\u0649 10'
+        self.message_user(request, 'تم ضبط المخزون على 10', messages.SUCCESS)
+    set_stock_ten.short_description = 'ضبط المخزون على 10'
 
 
 # ================================================
@@ -849,11 +849,11 @@ class ProductColorAdmin(SortableAdminMixin, admin.ModelAdmin):
     def color_badge(self, obj):
         if obj.color.code:
             return format_html(
-                '<span style="display:inline-block;width:16px;height:16px;background:{};'                'border-radius:50%;border:1px solid #ccc;margin-left:5px;vertical-align:middle;"></span> {}',
+                '<span style="display:inline-block;width:16px;height:16px;background:{};border-radius:50%;border:1px solid #ccc;margin-left:5px;vertical-align:middle;"></span> {}',
                 obj.color.code, obj.color.name
             )
         return obj.color.name
-    color_badge.short_description = '\u0627\u0644\u0644\u0648\u0646'
+    color_badge.short_description = 'اللون'
 
 
 @admin.register(ProductSize)
@@ -868,8 +868,8 @@ class ProductSizeAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_select_related = ['product', 'size']
 
     def price_display(self, obj):
-        return format_html('<b style="color:#28a745;">{} \u062c.\u0645</b>', obj.price)
-    price_display.short_description = '\u0627\u0644\u0633\u0639\u0631'
+        return format_html('<b style="color:#28a745;">{} ج.م</b>', obj.price)
+    price_display.short_description = 'السعر'
 
 
 @admin.register(PatternSize)
@@ -884,19 +884,19 @@ class PatternSizeAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_select_related = ['pattern', 'pattern__product', 'size']
 
     fieldsets = (
-        ('\u0627\u0644\u0631\u0628\u0637', {'fields': ('pattern', 'size', 'order')}),
-        ('\u0627\u0644\u0633\u0639\u0631 \u0648\u0627\u0644\u0645\u062e\u0632\u0648\u0646', {'fields': ('price', 'stock')}),
+        ('الربط', {'fields': ('pattern', 'size', 'order')}),
+        ('السعر والمخزون', {'fields': ('price', 'stock')}),
     )
 
     def price_display(self, obj):
-        return format_html('<b style="color:#28a745;">{} \u062c.\u0645</b>', obj.price)
-    price_display.short_description = '\u0627\u0644\u0633\u0639\u0631'
+        return format_html('<b style="color:#28a745;">{} ج.م</b>', obj.price)
+    price_display.short_description = 'السعر'
 
     def stock_badge(self, obj):
         if obj.stock > 0:
-            return format_html('<span style="color:#28a745;font-weight:bold;">\u2713 {}</span>', obj.stock)
-        return format_html('<span style="color:#dc3545;font-weight:bold;">{} {}</span>', '\u2717', '\u0646\u0641\u062f')
-    stock_badge.short_description = '\u0627\u0644\u0645\u062e\u0632\u0648\u0646'
+            return format_html('<span style="color:#28a745;font-weight:bold;">✓ {}</span>', obj.stock)
+        return format_html('<span style="color:#dc3545;font-weight:bold;">✗ نفد</span>')
+    stock_badge.short_description = 'المخزون'
 
 
 @admin.register(ProductImage)
@@ -916,17 +916,17 @@ class ProductImageAdmin(SortableAdminMixin, admin.ModelAdmin):
                 '<img src="{}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;" />',
                 obj.image.url
             )
-        return '\u2014'
+        return '—'
     preview.short_description = ''
 
     def color_badge(self, obj):
         if obj.color and obj.color.code:
             return format_html(
-                '<span style="display:inline-block;width:14px;height:14px;background:{};'                'border-radius:50%;border:1px solid #ccc;margin-left:4px;vertical-align:middle;"></span> {}',
+                '<span style="display:inline-block;width:14px;height:14px;background:{};border-radius:50%;border:1px solid #ccc;margin-left:4px;vertical-align:middle;"></span> {}',
                 obj.color.code, obj.color.name
             )
-        return obj.color.name if obj.color else '\u2014'
-    color_badge.short_description = '\u0627\u0644\u0644\u0648\u0646'
+        return obj.color.name if obj.color else '—'
+    color_badge.short_description = 'اللون'
 
 
 @admin.register(ProductSpecification)
@@ -954,8 +954,7 @@ class PatternColorAdmin(SortableAdminMixin, admin.ModelAdmin):
     def color_badge(self, obj):
         if obj.color and obj.color.code:
             return format_html(
-                '<span style="display:inline-block;width:16px;height:16px;background:{};'
-                'border-radius:50%;border:1px solid #ccc;margin-left:5px;vertical-align:middle;"></span> {}',
+                '<span style="display:inline-block;width:16px;height:16px;background:{};border-radius:50%;border:1px solid #ccc;margin-left:5px;vertical-align:middle;"></span> {}',
                 obj.color.code, obj.color.name
             )
         return obj.color.name if obj.color else '—'
@@ -985,8 +984,7 @@ class PatternImageAdmin(SortableAdminMixin, admin.ModelAdmin):
     def color_badge(self, obj):
         if obj.color and obj.color.code:
             return format_html(
-                '<span style="display:inline-block;width:14px;height:14px;background:{};'
-                'border-radius:50%;border:1px solid #ccc;margin-left:4px;vertical-align:middle;"></span> {}',
+                '<span style="display:inline-block;width:14px;height:14px;background:{};border-radius:50%;border:1px solid #ccc;margin-left:4px;vertical-align:middle;"></span> {}',
                 obj.color.code, obj.color.name
             )
         return obj.color.name if obj.color else '—'
