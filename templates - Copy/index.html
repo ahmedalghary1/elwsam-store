@@ -96,24 +96,24 @@
           /* شاشات متوسطة إلى كبيرة للهاتف */
           @media (min-width: 481px) and (max-width: 768px) {
             .hero-slider {
-              --dots-gap: 3px;
-              --dot-size: 8px;
+              --dots-gap: 4px;
+              --dot-size: 9px;
               --dots-offset-y: 10px;
             }
             .hero-slider .dot {
-              padding: 4px;        /* مساحة لمس 32px (8 + 4×2 + gap) */
+              padding: 3px;        /* مساحة لمس أصغر لتقليل المسافات */
             }
           }
           
           /* شاشات صغيرة للهاتف */
           @media (min-width: 375px) and (max-width: 480px) {
             .hero-slider {
-              --dots-gap: 2px;
-              --dot-size: 7px;
+              --dots-gap: 3px;
+              --dot-size: 8px;
               --dots-offset-y: 10px;
             }
             .hero-slider .dot {
-              padding: 4px;        /* مساحة لمس 30px (7 + 4×2 + gap) */
+              padding: 2px;        /* مساحة لمس أصغر لتقليل المسافات */
             }
           }
           
@@ -121,11 +121,11 @@
           @media (max-width: 374px) {
             .hero-slider {
               --dots-gap: 2px;
-              --dot-size: 6px;
+              --dot-size: 7px;
               --dots-offset-y: 10px;
             }
             .hero-slider .dot {
-              padding: 3px;        /* مساحة لمس 26px (6 + 3×2 + gap) */
+              padding: 3px;        /* مساحة لمس مناسبة */
             }
           }
         </style>
