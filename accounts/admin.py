@@ -87,16 +87,16 @@ class UserAdmin(BaseUserAdmin):
 
     def account_type(self, obj):
         if obj.is_superuser:
-            return format_html('<span style="background:#6f42c1;color:white;padding:2px 8px;border-radius:12px;font-size:0.8em;">مشرف عام</span>')
+            return format_html('<span style="background:#6f42c1;color:white;padding:2px 8px;border-radius:12px;font-size:0.8em;">مشرف عام</span>','')
         elif obj.is_staff:
-            return format_html('<span style="background:#fd7e14;color:white;padding:2px 8px;border-radius:12px;font-size:0.8em;">موظف</span>')
-        return format_html('<span style="background:#17a2b8;color:white;padding:2px 8px;border-radius:12px;font-size:0.8em;">عميل</span>')
+            return format_html('<span style="background:#fd7e14;color:white;padding:2px 8px;border-radius:12px;font-size:0.8em;">موظف</span>','')
+        return format_html('<span style="background:#17a2b8;color:white;padding:2px 8px;border-radius:12px;font-size:0.8em;">عميل</span>','')
     account_type.short_description = 'نوع الحساب'
 
     def is_active_badge(self, obj):
         if obj.is_active:
-            return format_html('<span style="color:#28a745;font-weight:bold;">✓ مفعّل</span>')
-        return format_html('<span style="color:#dc3545;font-weight:bold;">✗ موقوف</span>')
+            return format_html('<span style="color:#28a745;font-weight:bold;">✓ مفعّل</span>','')
+        return format_html('<span style="color:#dc3545;font-weight:bold;">✗ موقوف</span>','')
     is_active_badge.short_description = 'الحالة'
     is_active_badge.admin_order_field = 'is_active'
 

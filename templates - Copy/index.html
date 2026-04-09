@@ -93,25 +93,39 @@
           }
 
           /* ======= تعديلات الهاتف ======= */
-          @media (max-width: 768px) {
+          /* شاشات متوسطة إلى كبيرة للهاتف */
+          @media (min-width: 481px) and (max-width: 768px) {
             .hero-slider {
-              --dots-gap: 2px;     /* تقليل المسافة بين النقاط للهاتف */
-              --dot-size: 7px;     /* تصغير حجم النقاط للهاتف */
+              --dots-gap: 3px;
+              --dot-size: 8px;
               --dots-offset-y: 10px;
             }
             .hero-slider .dot {
-              padding: 6px;        /* مساحة لمس مناسبة للهاتف (32px total) */
+              padding: 4px;        /* مساحة لمس 32px (8 + 4×2 + gap) */
             }
           }
           
-          /* تحسينات إضافية للشاشات الصغيرة جداً */
-          @media (max-width: 480px) {
+          /* شاشات صغيرة للهاتف */
+          @media (min-width: 375px) and (max-width: 480px) {
             .hero-slider {
-              --dots-gap: 1px;     /* مسافة أقل للشاشات الصغيرة جداً */
-              --dot-size: 6px;     /* نقاط أصغر للشاشات الصغيرة */
+              --dots-gap: 2px;
+              --dot-size: 7px;
+              --dots-offset-y: 10px;
             }
             .hero-slider .dot {
-              padding: 7px;        /* الحفاظ على مساحة لمس كافية */
+              padding: 4px;        /* مساحة لمس 30px (7 + 4×2 + gap) */
+            }
+          }
+          
+          /* شاشات صغيرة جداً */
+          @media (max-width: 374px) {
+            .hero-slider {
+              --dots-gap: 2px;
+              --dot-size: 6px;
+              --dots-offset-y: 10px;
+            }
+            .hero-slider .dot {
+              padding: 3px;        /* مساحة لمس 26px (6 + 3×2 + gap) */
             }
           }
         </style>
