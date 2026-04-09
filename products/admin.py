@@ -458,9 +458,7 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
         if (not obj.check_if_has_patterns() 
             and not obj.check_if_has_product_level_sizes() 
             and not obj.has_colors):
-            return format_html(
-                '<span style="background:#28a745;color:white;padding:4px 10px;border-radius:4px;font-size:0.85em;">منتج بسيط</span>'
-            )
+            return format_html('<span style="background:#28a745;color:white;padding:4px 10px;border-radius:4px;font-size:0.85em;">منتج بسيط</span>')
         elif obj.check_if_has_patterns():
             return format_html(
                 '<span style="background:#007bff;color:white;padding:4px 10px;border-radius:4px;font-size:0.85em;">له أنماط</span>'
