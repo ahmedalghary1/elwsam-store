@@ -450,7 +450,7 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
             else:
                 return format_html('<span style="color:#dc3545;font-weight:bold;">✗ نفد</span>', obj.stock)
         else:
-            return format_html('<span style="color:#6c757d;">—</span>', obj.stock)
+            return format_html('<span style="color:#6c757d;">—</span>','لا يوجد')
     stock_badge.short_description = 'المخزون'
 
     # def product_type_info(self, obj):
