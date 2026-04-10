@@ -338,6 +338,7 @@ class CategoryAdmin(SortableAdminMixin, admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
+    sortable_field_name = "order"
     list_display = [
         'thumb', 'name', 'category', 'price_display',
         'discount_badge', 'stock_badge', 'variants_count', 'is_active', 'is_hot', 'is_new', 'order'
@@ -350,7 +351,6 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
     readonly_fields = ['created_at', 'updated_at', 'image_preview', 'discount_info']
     list_per_page = 25
     list_select_related = ['category']
-
     fieldsets = (
         ('\u0645\u0639\u0644\u0648\u0645\u0627\u062a \u0627\u0644\u0645\u0646\u062a\u062c', {
             'fields': ('name', 'slug', 'category', 'description')
