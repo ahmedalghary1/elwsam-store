@@ -11,8 +11,7 @@
   --color-primary-light: #fff4b3;
   --color-black: #0a0a0a;
   --color-white: #ffffff;
-  --color-gray-100: #f8f8f8;
-  --color-gray-150: #eeeeee;
+  --color-gray-100: #eeeeee;
   --color-gray-200: #efefef;
   --color-gray-300: #e0e0e0;
   --color-gray-400: #bdbdbd;
@@ -1092,7 +1091,7 @@ h4 { font-size: 1rem; font-weight: 600; }
 .product-image-wrap {
   position: relative;
   overflow: hidden;
-  background: var(--color-gray-150);
+  background: var(--color-gray-100);
   aspect-ratio: 1 / 1;
 }
 
@@ -5097,7 +5096,7 @@ h4 { font-size: 1rem; font-weight: 600; }
   position: relative;
   aspect-ratio: 1 / 1;
   overflow: hidden;
-  background: var(--color-gray-150);
+  background: var(--color-gray-100);
 }
 
 .product-image-wrap img {
