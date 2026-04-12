@@ -104,6 +104,7 @@
                   data-action="add-to-cart" data-product-id="{{ product.id }}" data-quantity="1"
                   data-product-name="{{ product.name }}" data-product-price="{{ product.price }}"
                   data-product-image="{% if images %}{{ images.0.image.url }}{% elif product.image %}{{ product.image.url }}{% endif %}"
+                  data-is-simple="{{ product.is_simple_product|yesno:'true,false' }}"
                   aria-label="أضف إلى سلة التسوق">
                   <i class="fas fa-cart-plus"></i> أضف إلى السلة
               </button>
@@ -153,9 +154,6 @@
             <p style="color:var(--color-gray-500); text-align: center; padding: 20px;">لا توجد مواصفات متاحة</p>
           {% endif %}
         </div>
-
-
-
 
       </div>
 
