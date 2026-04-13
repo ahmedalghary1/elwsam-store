@@ -5583,7 +5583,7 @@ h4 { font-size: 1rem; font-weight: 600; }
 
   /* === شبكة الفئات === */
   .categories-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .cat-icon { width: 80px; height: 80px; font-size: 1.3rem; }
+  .cat-icon { width: 150px; height: 150px; font-size: 1.3rem; }
   .category-card { padding: 14px 8px; }
 
   /* === العروض === */
