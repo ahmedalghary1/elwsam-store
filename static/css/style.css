@@ -1027,15 +1027,24 @@ h4 { font-size: 1rem; font-weight: 600; }
   overflow: visible;
   position: relative;
   z-index: 1;
-  min-height: 330px;
+  min-height: 280px;
 }
 
 /* تحسين padding على الهاتف */
+@media (max-width: 767px) {
+  .category-card {
+    padding: 12px 10px;
+    gap: 8px;
+    min-height: 200px;
+  }
+}
+
+/* شاشات الهاتف الصغيرة جداً */
 @media (max-width: 480px) {
   .category-card {
-    padding: 16px 12px;
-    gap: 10px;
-    min-height: 350px;
+    padding: 10px 8px;
+    gap: 6px;
+    min-height: 180px;
   }
 }
 
@@ -1071,21 +1080,30 @@ h4 { font-size: 1rem; font-weight: 600; }
   flex-shrink: 0;
 }
 
-/* أحجام أكبر على شاشات الهاتف */
-@media (min-width: 360px) and (max-width: 480px) {
+/* أحجام مناسبة للهاتف */
+@media (max-width: 767px) {
   .cat-icon {
-    width: 210px;
-    height: 210px;
-    font-size: 2.3rem;
+    width: 140px;
+    height: 140px;
+    font-size: 1.8rem;
   }
 }
 
-/* شاشات الهاتف المتوسطة */
-@media (min-width: 481px) and (max-width: 767px) {
+/* شاشات الهاتف الصغيرة جداً */
+@media (max-width: 480px) {
   .cat-icon {
-    width: 220px;
-    height: 220px;
-    font-size: 2.4rem;
+    width: 120px;
+    height: 120px;
+    font-size: 1.6rem;
+  }
+}
+
+/* شاشات الهاتف الصغيرة جداً جداً */
+@media (max-width: 360px) {
+  .cat-icon {
+    width: 100px;
+    height: 100px;
+    font-size: 1.4rem;
   }
 }
 
@@ -1107,8 +1125,15 @@ h4 { font-size: 1rem; font-weight: 600; }
 }
 
 .category-card:hover .cat-icon {
-  transform: scale(1.25);
+  transform: scale(1.15);
   box-shadow: var(--shadow-lg);
+}
+
+/* تأثير hover أقل حدة على الهاتف */
+@media (max-width: 767px) {
+  .category-card:hover .cat-icon {
+    transform: scale(1.1);
+  }
 }
 
 .category-card:hover .cat-icon img {
@@ -1133,11 +1158,25 @@ h4 { font-size: 1rem; font-weight: 600; }
   transition: var(--transition);
 }
 
+/* نصوص أصغر على الهاتف */
+@media (max-width: 767px) {
+  .cat-name {
+    font-size: 0.8rem;
+  }
+}
+
 .cat-count {
   font-size: 0.95rem;
   color: var(--color-gray-500);
   font-weight: 600;
   margin-top: 4px;
+}
+
+/* نصوص أصغر على الهاتف */
+@media (max-width: 767px) {
+  .cat-count {
+    font-size: 0.7rem;
+  }
 }
 
 /* ============ Product Card ============ */
