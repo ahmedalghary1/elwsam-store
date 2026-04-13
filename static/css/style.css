@@ -1013,7 +1013,7 @@ h4 { font-size: 1rem; font-weight: 600; }
 .category-card {
   background: var(--color-gray-100);
   border-radius: var(--radius-md);
-  padding: 32px 20px;
+  padding: 20px 14px;
   text-align: center;
   cursor: pointer;
   transition: var(--transition);
@@ -1021,21 +1021,21 @@ h4 { font-size: 1rem; font-weight: 600; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   text-decoration: none;
   color: inherit;
   overflow: visible;
   position: relative;
   z-index: 1;
-  min-height: 420px;
+  min-height: 330px;
 }
 
 /* تحسين padding على الهاتف */
 @media (max-width: 480px) {
   .category-card {
-    padding: 24px 16px;
-    gap: 14px;
-    min-height: 450px;
+    padding: 16px 12px;
+    gap: 10px;
+    min-height: 350px;
   }
 }
 
@@ -1055,14 +1055,14 @@ h4 { font-size: 1rem; font-weight: 600; }
 }
 
 .cat-icon {
-  width: 320px;
-  height: 320px;
+  width: 200px;
+  height: 200px;
   background: var(--color-white);
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 3.2rem;
+  font-size: 2.2rem;
   box-shadow: var(--shadow-sm);
   transition: var(--transition);
   overflow: visible;
@@ -1074,27 +1074,27 @@ h4 { font-size: 1rem; font-weight: 600; }
 /* أحجام أكبر على شاشات الهاتف */
 @media (min-width: 360px) and (max-width: 480px) {
   .cat-icon {
-    width: 360px;
-    height: 360px;
-    font-size: 3.4rem;
+    width: 210px;
+    height: 210px;
+    font-size: 2.3rem;
   }
 }
 
 /* شاشات الهاتف المتوسطة */
 @media (min-width: 481px) and (max-width: 767px) {
   .cat-icon {
-    width: 380px;
-    height: 380px;
-    font-size: 3.5rem;
+    width: 220px;
+    height: 220px;
+    font-size: 2.4rem;
   }
 }
 
 /* الحواسيب اللوحية والشاشات الكبيرة */
 @media (min-width: 768px) {
   .cat-icon {
-    width: 340px;
-    height: 340px;
-    font-size: 3.4rem;
+    width: 210px;
+    height: 210px;
+    font-size: 2.3rem;
   }
 }
 
@@ -1107,7 +1107,7 @@ h4 { font-size: 1rem; font-weight: 600; }
 }
 
 .category-card:hover .cat-icon {
-  transform: scale(1.5);
+  transform: scale(1.25);
   box-shadow: var(--shadow-lg);
 }
 
@@ -1126,7 +1126,7 @@ h4 { font-size: 1rem; font-weight: 600; }
 }
 
 .cat-name {
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: var(--color-gray-700);
   margin-top: 6px;
