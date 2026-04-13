@@ -1026,6 +1026,7 @@ h4 { font-size: 1rem; font-weight: 600; }
   color: inherit;
   overflow: visible;
   position: relative;
+  z-index: 1;
 }
 
 /* تحسين padding على الهاتف */
@@ -1103,7 +1104,7 @@ h4 { font-size: 1rem; font-weight: 600; }
 }
 
 .category-card:hover .cat-icon {
-  transform: scale(1.35);
+  transform: scale(1.5);
   box-shadow: var(--shadow-lg);
 }
 
@@ -1111,11 +1112,22 @@ h4 { font-size: 1rem; font-weight: 600; }
   filter: brightness(1.1);
 }
 
+.category-card:hover .cat-name {
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+.category-card:hover .cat-count {
+  font-size: 0.65rem;
+  opacity: 0.7;
+}
+
 .cat-name {
   font-size: 0.82rem;
   font-weight: 700;
   color: var(--color-gray-700);
   margin-top: 4px;
+  transition: var(--transition);
 }
 
 .cat-count {
