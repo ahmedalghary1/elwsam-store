@@ -1013,7 +1013,7 @@ h4 { font-size: 1rem; font-weight: 600; }
 .category-card {
   background: var(--color-gray-100);
   border-radius: var(--radius-md);
-  padding: 20px 12px;
+  padding: 16px 12px;
   text-align: center;
   cursor: pointer;
   transition: var(--transition);
@@ -1021,9 +1021,17 @@ h4 { font-size: 1rem; font-weight: 600; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   text-decoration: none;
   color: inherit;
+}
+
+/* تحسين padding على الهاتف */
+@media (max-width: 480px) {
+  .category-card {
+    padding: 12px 10px;
+    gap: 6px;
+  }
 }
 
 .category-card:hover {
@@ -1042,8 +1050,8 @@ h4 { font-size: 1rem; font-weight: 600; }
 }
 
 .cat-icon {
-  width: 135px;
-  height: 135px;
+  width: 120px;
+  height: 120px;
   background: var(--color-white);
   border-radius: var(--radius-md);
   display: flex;
@@ -1054,20 +1062,55 @@ h4 { font-size: 1rem; font-weight: 600; }
   transition: var(--transition);
 }
 
+/* أحجام أكبر على شاشات الهاتف */
+@media (min-width: 360px) and (max-width: 480px) {
+  .cat-icon {
+    width: 140px;
+    height: 140px;
+    font-size: 1.8rem;
+  }
+}
+
+/* شاشات الهاتف المتوسطة */
+@media (min-width: 481px) and (max-width: 767px) {
+  .cat-icon {
+    width: 150px;
+    height: 150px;
+    font-size: 1.8rem;
+  }
+}
+
+/* الحواسيب اللوحية والشاشات الكبيرة */
+@media (min-width: 768px) {
+  .cat-icon {
+    width: 135px;
+    height: 135px;
+  }
+}
+
+.cat-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 8px;
+}
+
 .category-card:hover .cat-icon {
-  transform: scale(1.1);
+  transform: scale(1.08);
 }
 
 .cat-name {
   font-size: 0.82rem;
   font-weight: 700;
   color: var(--color-gray-700);
+  margin-top: 4px;
 }
 
 .cat-count {
   font-size: 0.72rem;
   color: var(--color-gray-500);
   font-weight: 600;
+  margin-top: 2px;
 }
 
 /* ============ Product Card ============ */
