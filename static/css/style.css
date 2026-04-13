@@ -985,10 +985,11 @@ h4 { font-size: 1rem; font-weight: 600; }
   padding: 48px 0;
 }
 
+/* === شبكة الأقسام - محسّنة للهاتف === */
 .categories-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
+  gap: 8px !important;
 }
 
 @media (min-width: 480px) {
@@ -1010,10 +1011,11 @@ h4 { font-size: 1rem; font-weight: 600; }
   }
 }
 
+/* === بطاقات الأقسام - محسّنة للهاتف === */
 .category-card {
   background: var(--color-gray-100);
   border-radius: var(--radius-md);
-  padding: 16px 12px;
+  padding: 16px 12px !important;
   text-align: center;
   cursor: pointer;
   transition: var(--transition);
@@ -1021,30 +1023,30 @@ h4 { font-size: 1rem; font-weight: 600; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 10px !important;
   text-decoration: none;
   color: inherit;
   overflow: visible;
   position: relative;
   z-index: 1;
-  min-height: 260px;
+  min-height: 260px !important;
 }
 
 /* تحسين padding على الهاتف */
 @media (max-width: 767px) {
   .category-card {
-    padding: 8px 6px;
-    gap: 6px;
-    min-height: 180px;
+    padding: 8px 6px !important;
+    gap: 6px !important;
+    min-height: 180px !important;
   }
 }
 
 /* شاشات الهاتف الصغيرة جداً */
 @media (max-width: 480px) {
   .category-card {
-    padding: 6px 4px;
-    gap: 4px;
-    min-height: 160px;
+    padding: 6px 4px !important;
+    gap: 4px !important;
+    min-height: 160px !important;
   }
 }
 
@@ -1063,9 +1065,10 @@ h4 { font-size: 1rem; font-weight: 600; }
   color: var(--color-black);
 }
 
+/* === صور الأقسام - أحجام محسّنة للهاتف === */
 .cat-icon {
-  width: 200px;
-  height: 200px;
+  width: 200px !important;
+  height: 200px !important;
   background: var(--color-white);
   border-radius: var(--radius-md);
   display: flex;
@@ -1080,59 +1083,59 @@ h4 { font-size: 1rem; font-weight: 600; }
   flex-shrink: 0;
 }
 
-/* أحجام أكبر قليلاً على الهاتف */
-@media (max-width: 767px) {
+/* الحواسيب اللوحية والشاشات الكبيرة */
+@media (min-width: 768px) {
   .cat-icon {
-    width: 160px;
-    height: 160px;
-    font-size: 1.9rem;
+    width: 210px !important;
+    height: 210px !important;
+    font-size: 2.3rem !important;
   }
 }
 
-/* شاشات الهاتف الصغيرة جداً */
+/* شاشات الهاتف المتوسطة واللوحية الصغيرة */
+@media (max-width: 767px) {
+  .cat-icon {
+    width: 160px !important;
+    height: 160px !important;
+    font-size: 1.9rem !important;
+  }
+}
+
+/* شاشات الهاتف الصغيرة */
 @media (max-width: 480px) {
   .cat-icon {
-    width: 140px;
-    height: 140px;
-    font-size: 1.7rem;
+    width: 140px !important;
+    height: 140px !important;
+    font-size: 1.7rem !important;
   }
 }
 
 /* شاشات الهاتف الصغيرة جداً جداً */
 @media (max-width: 360px) {
   .cat-icon {
-    width: 120px;
-    height: 120px;
-    font-size: 1.5rem;
-  }
-}
-
-/* الحواسيب اللوحية والشاشات الكبيرة */
-@media (min-width: 768px) {
-  .cat-icon {
-    width: 210px;
-    height: 210px;
-    font-size: 2.3rem;
+    width: 120px !important;
+    height: 120px !important;
+    font-size: 1.5rem !important;
   }
 }
 
 .cat-icon img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  padding: 4px;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  padding: 4px !important;
   transition: var(--transition);
 }
 
 .category-card:hover .cat-icon {
-  transform: scale(1.15);
-  box-shadow: var(--shadow-lg);
+  transform: scale(1.15) !important;
+  box-shadow: var(--shadow-lg) !important;
 }
 
 /* تأثير hover أقل حدة على الهاتف */
 @media (max-width: 767px) {
   .category-card:hover .cat-icon {
-    transform: scale(1.1);
+    transform: scale(1.1) !important;
   }
 }
 
@@ -1151,8 +1154,8 @@ h4 { font-size: 1rem; font-weight: 600; }
 }
 
 .cat-name {
-  font-size: 0.95rem;
-  font-weight: 700;
+  font-size: 0.95rem !important;
+  font-weight: 700 !important;
   color: var(--color-gray-700);
   margin-top: 6px;
   transition: var(--transition);
@@ -1161,12 +1164,12 @@ h4 { font-size: 1rem; font-weight: 600; }
 /* نصوص أصغر على الهاتف */
 @media (max-width: 767px) {
   .cat-name {
-    font-size: 0.8rem;
+    font-size: 0.8rem !important;
   }
 }
 
 .cat-count {
-  font-size: 0.95rem;
+  font-size: 0.95rem !important;
   color: var(--color-gray-500);
   font-weight: 600;
   margin-top: 4px;
@@ -1175,7 +1178,7 @@ h4 { font-size: 1rem; font-weight: 600; }
 /* نصوص أصغر على الهاتف */
 @media (max-width: 767px) {
   .cat-count {
-    font-size: 0.7rem;
+    font-size: 0.7rem !important;
   }
 }
 
@@ -5692,7 +5695,7 @@ h4 { font-size: 1rem; font-weight: 600; }
 
   /* === شبكة الفئات === */
   .categories-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
-  /* تم تحديث الأحجام في media queries أسفل - لا تحتاج تعارض هنا */
+  /* الأحجام محدثة في أعلى الملف مع !important - لا تحتاج تعارض هنا */
   /* === العروض === */
   .offers-grid { grid-template-columns: 1fr; }
   .offer-card { min-height: 140px; padding: 22px 18px; }
@@ -5775,7 +5778,7 @@ h4 { font-size: 1rem; font-weight: 600; }
   .categories-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  /* أحجام الصور محدثة في الـ media queries بالأعلى */
+  /* الأحجام محدثة في أعلى الملف مع !important */
   /* === صفحة الهيرو === */
   .hero-content { padding: 24px var(--container-padding) 16px; }
   .hero-stats { flex-direction: column; gap: 10px; border-top: none; padding: 16px var(--container-padding); }
