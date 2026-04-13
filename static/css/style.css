@@ -5582,9 +5582,9 @@ h4 { font-size: 1rem; font-weight: 600; }
   .hero-actions .btn { width: 100%; justify-content: center; }
 
   /* === شبكة الفئات === */
-  .categories-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .categories-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .cat-icon { width: 1500px; height: 1500px; font-size: 1.3rem; }
-  .category-card { padding: 14px 8px; }
+  .category-card { padding: 6px 3px; }
 
   /* === العروض === */
   .offers-grid { grid-template-columns: 1fr; }
