@@ -129,18 +129,25 @@
             }
           }
           @media (max-width: 767px) {
+
             .cat-icon {
-              height: 90px !important;
+              height: 100px !important;
+              display: flex;
+              align-items: center;
+              justify-content: center;
             }
 
             .cat-icon img {
               width: 100px !important;
-              height: 100px !important;
+              height: auto !important; /* 👈 أهم تعديل */
+              max-height: 100px;
+              object-fit: contain;
             }
 
             .category-card {
               padding: 10px !important;
             }
+
           }
         </style>
           <div class="hero-slider-wrap">
