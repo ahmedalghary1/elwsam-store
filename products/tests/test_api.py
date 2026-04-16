@@ -519,6 +519,19 @@ class ProductTypeColorImagesAPITestCase(TestCase):
         self.assertEqual(len(data['colors']), 1)
         self.assertEqual(data['colors'][0]['name'], 'Black')
 
+    def test_variant_info_allows_valid_type_color_without_variant(self):
+        """Variant info should not fail for valid type/color selections without ProductVariant rows."""
+        url = f'/api/variant-info/{self.product.id}/?type_id={self.type_catalog.id}&color_id={self.color.id}'
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+
+        self.assertTrue(data['success'])
+        self.assertTrue(data['variant']['available'])
+        self.assertIsNone(data['variant']['id'])
+        self.assertEqual(data['variant']['price'], '135.00')
+
 
 class StockAwareFilteringTestCase(TestCase):
     """Test that stock-aware filtering works correctly"""

@@ -645,7 +645,11 @@ class VariantSelector {
             this.addToCartBtn.disabled = false;
             this.buyNowBtn.disabled = false;
             this.addToCartBtn.innerHTML = '<i class="fas fa-cart-plus"></i> أضف إلى السلة';
-            this.addToCartBtn.dataset.variantId = variant.id;
+            if (variant.id !== null && variant.id !== undefined) {
+                this.addToCartBtn.dataset.variantId = variant.id;
+            } else {
+                delete this.addToCartBtn.dataset.variantId;
+            }
             this.addToCartBtn.dataset.productPrice = price.toFixed(2);
             if (this.selectedOptions.type) {
                 this.addToCartBtn.dataset.productTypeId = this.selectedOptions.type;

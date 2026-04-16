@@ -267,6 +267,39 @@ class VariantValidatorTestCase(TestCase):
         self.assertFalse(validation['valid'])
         self.assertIn('stock', validation['errors'])
 
+    def test_get_variant_or_validate_allows_type_color_without_variant_row(self):
+        """Type/color selections should stay valid even without a dedicated ProductVariant row."""
+        product = Product.objects.create(
+            name='Typed Only Product',
+            slug='typed-only-product',
+            category=self.category,
+            price=90.00
+        )
+        product_type = Type.objects.create(name='Modern')
+        ProductType.objects.create(
+            product=product,
+            type=product_type,
+            price=110.00,
+            description='Modern type',
+            image='product-types/modern.png'
+        )
+        color = Color.objects.create(name='Olive', code='#556b2f')
+        ProductTypeColor.objects.create(
+            product_type=ProductType.objects.get(product=product, type=product_type),
+            color=color
+        )
+
+        variant, validation = VariantValidator.get_variant_or_validate(
+            product.id,
+            pattern_id=None,
+            color_id=color.id,
+            size_id=None,
+            type_id=product_type.id
+        )
+
+        self.assertIsNone(variant)
+        self.assertTrue(validation['valid'])
+
 
 class CartValidatorTestCase(TestCase):
     """Test CartValidator class"""

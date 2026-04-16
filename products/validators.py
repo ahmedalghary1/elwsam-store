@@ -223,6 +223,9 @@ class VariantValidator:
             return variant, {'valid': True, 'message': '', 'field': None, 'errors': {}}
             
         except ProductVariant.DoesNotExist:
+            if not pattern_id and not size_id:
+                return None, {'valid': True, 'message': '', 'field': None, 'errors': {}}
+
             return None, {
                 'valid': False,
                 'message': 'هذا التركيب غير متوفر',

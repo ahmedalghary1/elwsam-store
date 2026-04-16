@@ -400,6 +400,7 @@ def get_variant_options(request, product_id):
         
         pattern_id = request.GET.get('pattern_id')
         color_id = request.GET.get('color_id')
+        type_id = request.GET.get('type_id')
         
         # Get ALL variants (not just in-stock)
         variants_qs = ProductVariant.objects.filter(
@@ -616,8 +617,6 @@ def get_variant_info(request, product_id):
         
         pattern_id = request.GET.get('pattern_id')
         color_id = request.GET.get('color_id')
-        type_id = request.GET.get('type_id')
-        type_id = request.GET.get('type_id')
         size_id = request.GET.get('size_id')
         type_id = request.GET.get('type_id')
         
@@ -640,15 +639,14 @@ def get_variant_info(request, product_id):
                 'available': False
             })
         
+        price = product.get_price(
+            pattern_id=pattern_id,
+            size_id=size_id,
+            color_id=color_id,
+            type_id=type_id
+        )
+
         if variant:
-            # Calculate dynamic price
-            price = product.get_price(
-                pattern_id=pattern_id,
-                size_id=size_id,
-                color_id=color_id,
-                type_id=type_id
-            )
-            
             return JsonResponse({
                 'success': True,
                 'variant': {
@@ -659,18 +657,17 @@ def get_variant_info(request, product_id):
                 },
                 'validation': {'valid': True, 'message': '', 'field': None, 'errors': {}}
             })
-        else:
-            return JsonResponse({
-                'success': False,
-                'message': 'هذا التركيب غير متوفر',
-                'validation': {
-                    'valid': False,
-                    'message': 'التركيبة المحددة غير موجودة',
-                    'field': None,
-                    'errors': {'variant': 'غير موجود'}
-                },
-                'available': False
-            })
+
+        return JsonResponse({
+            'success': True,
+            'variant': {
+                'id': None,
+                'price': str(price),
+                'stock': None,
+                'available': True
+            },
+            'validation': {'valid': True, 'message': '', 'field': None, 'errors': {}}
+        })
             
     except Exception as e:
         return JsonResponse({
