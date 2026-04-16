@@ -79,7 +79,7 @@
 
           <div class="product-divider"></div>
 
-          <p style="font-size:0.9rem;color:var(--color-gray-600);line-height:1.8;">
+          <p id="product-description-main" style="font-size:0.9rem;color:var(--color-gray-600);line-height:1.8;">
             {{ product.description }}
           </p>
 
@@ -137,7 +137,7 @@
         </div>
 
         <div class="tab-content active" id="tab-description" role="tabpanel">
-          <p>{{ product.description }}</p>
+          <p id="product-description-tab">{{ product.description }}</p>
         </div>
 
         <div class="tab-content" id="tab-specs" role="tabpanel">
