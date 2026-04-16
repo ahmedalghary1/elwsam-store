@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.core.exceptions import ValidationError
 from decimal import Decimal
 from products.models import (
-    Product, Category, Pattern, Size, ProductSize, 
+    Product, Category, Pattern, Size, Type, ProductSize, ProductType,
     PatternSize, ProductVariant, Color
 )
 
@@ -337,3 +337,44 @@ class PatternSizeTestCase(TestCase):
                 price=Decimal('190.00'),
                 stock=5
             )
+
+
+class ProductTypeTestCase(TestCase):
+    """Test ProductType model and price resolution"""
+
+    def setUp(self):
+        self.category = Category.objects.create(name='Test Category')
+        self.product = Product.objects.create(
+            name='Typed Product',
+            category=self.category,
+            price=Decimal('100.00')
+        )
+        self.type = Type.objects.create(name='Classic')
+
+    def test_product_type_overrides_base_price(self):
+        """Selected product type should override the base product price"""
+        product_type = ProductType.objects.create(
+            product=self.product,
+            type=self.type,
+            price=Decimal('145.00'),
+            description='Classic product type',
+            image='product-types/classic.png'
+        )
+
+        price = self.product.get_price(type_id=self.type.id)
+        self.assertEqual(price, Decimal('145.00'))
+        self.assertEqual(product_type.type.name, 'Classic')
+
+    def test_product_type_relation_check(self):
+        """Product should detect related product types"""
+        self.assertFalse(self.product.check_if_has_product_types())
+
+        ProductType.objects.create(
+            product=self.product,
+            type=self.type,
+            price=Decimal('145.00'),
+            description='Classic product type',
+            image='product-types/classic.png'
+        )
+
+        self.assertTrue(self.product.check_if_has_product_types())

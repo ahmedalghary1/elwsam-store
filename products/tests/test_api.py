@@ -6,7 +6,7 @@ from decimal import Decimal
 import json
 
 from products.models import (
-    Product, Category, Pattern, Size, ProductSize, 
+    Product, Category, Pattern, Size, Type, ProductSize, ProductType,
     PatternSize, ProductVariant, Color, ProductColor
 )
 
@@ -65,6 +65,29 @@ class ProductConfigAPITestCase(TestCase):
         self.assertEqual(data['configuration_type'], 'size_based')
         self.assertEqual(len(data['product_sizes']), 2)
         self.assertTrue(data['has_product_level_sizes'])
+
+    def test_product_types_are_included_in_config(self):
+        """Test product types are returned by product config endpoint"""
+        product_type = Type.objects.create(name='Classic')
+        ProductType.objects.create(
+            product=self.product,
+            type=product_type,
+            price=Decimal('140.00'),
+            description='Classic type description',
+            image='product-types/classic.png'
+        )
+
+        url = f'/api/product-config/{self.product.id}/'
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+
+        self.assertTrue(data['has_product_types'])
+        self.assertEqual(len(data['product_types']), 1)
+        self.assertEqual(data['product_types'][0]['name'], 'Classic')
+        self.assertEqual(data['product_types'][0]['price'], '140.00')
+        self.assertEqual(data['product_types'][0]['description'], 'Classic type description')
     
     def test_pattern_based_product_config(self):
         """Test configuration for pattern-based product"""
@@ -349,6 +372,32 @@ class VariantInfoAPITestCase(TestCase):
         self.assertTrue(data['validation']['valid'])
         self.assertEqual(data['variant']['id'], self.variant.id)
         self.assertTrue(data['variant']['available'])
+
+    def test_selected_type_changes_returned_price(self):
+        """Test variant info uses selected product type price when provided"""
+        product_type = Type.objects.create(name='Classic')
+        ProductType.objects.create(
+            product=self.product,
+            type=product_type,
+            price=Decimal('210.00'),
+            description='Classic type description',
+            image='product-types/classic.png'
+        )
+
+        url = f'/api/variant-info/{self.product.id}/'
+        params = (
+            f'?pattern_id={self.pattern.id}'
+            f'&color_id={self.color.id}'
+            f'&size_id={self.size.id}'
+            f'&type_id={product_type.id}'
+        )
+        response = self.client.get(url + params)
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+
+        self.assertTrue(data['success'])
+        self.assertEqual(data['variant']['price'], '210.00')
     
     def test_out_of_stock_variant(self):
         """Test response for out-of-stock variant"""

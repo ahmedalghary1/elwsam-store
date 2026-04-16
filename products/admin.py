@@ -6,8 +6,8 @@ from django.contrib import messages
 from django import forms
 from adminsortable2.admin import SortableAdminMixin, SortableInlineAdminMixin
 from .models import (
-    Category, Product, Pattern, Color, ProductColor, Size, ProductSize,
-    ProductImage, ProductVariant, ProductSpecification, PatternSize,
+    Category, Product, Pattern, Color, ProductColor, Size, Type, ProductSize,
+    ProductType, ProductImage, ProductVariant, ProductSpecification, PatternSize,
     PatternColor, PatternImage
 )
 
@@ -65,6 +65,16 @@ class ProductSizeInline(SortableInlineAdminMixin, admin.TabularInline):
     verbose_name = '\u0645\u0642\u0627\u0633'
     verbose_name_plural = '\u0627\u0644\u0645\u0642\u0627\u0633\u0627\u062a'
     autocomplete_fields = ['size']
+
+
+class ProductTypeInline(SortableInlineAdminMixin, admin.TabularInline):
+    model = ProductType
+    extra = 1
+    fields = ['type', 'image', 'price', 'description']
+    ordering = ['order']
+    verbose_name = 'نوع'
+    verbose_name_plural = 'الأنواع'
+    autocomplete_fields = ['type']
 
 
 class ProductImageInline(SortableInlineAdminMixin, admin.TabularInline):
@@ -383,6 +393,7 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
         PatternInline,
         ProductColorInline,
         ProductSizeInline,
+        ProductTypeInline,
         SimpleProductVariantInline,  # NEW: Direct variant creation without Pattern
         ProductImageInline,
         ProductSpecificationInline,
@@ -672,6 +683,19 @@ class SizeAdmin(admin.ModelAdmin):
     patterns_count.short_description = '\u0627\u0644\u0623\u0646\u0645\u0627\u0637'
 
 
+@admin.register(Type)
+class TypeAdmin(admin.ModelAdmin):
+    list_display = ['name', 'products_count']
+    list_display_links = ['name']
+    search_fields = ['name']
+    list_per_page = 30
+
+    def products_count(self, obj):
+        count = obj.producttype_set.count()
+        return format_html('<span style="color:#28a745;">{}</span>', count) if count else '\u2014'
+    products_count.short_description = '\u0627\u0644\u0645\u0646\u062a\u062c\u0627\u062a'
+
+
 # ================================================
 # Pattern Admin — central hub for variant management
 # ================================================
@@ -875,6 +899,31 @@ class ProductSizeAdmin(SortableAdminMixin, admin.ModelAdmin):
     autocomplete_fields = ['product', 'size']
     list_per_page = 30
     list_select_related = ['product', 'size']
+
+    def price_display(self, obj):
+        return format_html('<b style="color:#28a745;">{} \u062c.\u0645</b>', obj.price)
+    price_display.short_description = '\u0627\u0644\u0633\u0639\u0631'
+
+
+@admin.register(ProductType)
+class ProductTypeAdmin(SortableAdminMixin, admin.ModelAdmin):
+    list_display = ['preview', 'product', 'type', 'price_display', 'order']
+    list_display_links = ['product']
+    list_editable = []
+    list_filter = ['type', 'product__category']
+    search_fields = ['product__name', 'type__name', 'description']
+    autocomplete_fields = ['product', 'type']
+    list_per_page = 30
+    list_select_related = ['product', 'type']
+
+    def preview(self, obj):
+        if obj.image:
+            return format_html(
+                '<img src="{}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;" />',
+                obj.image.url
+            )
+        return '\u2014'
+    preview.short_description = ''
 
     def price_display(self, obj):
         return format_html('<b style="color:#28a745;">{} \u062c.\u0645</b>', obj.price)

@@ -4,7 +4,7 @@ Comprehensive validation for product variants, cart operations, and user selecti
 """
 
 from django.core.exceptions import ValidationError
-from .models import Product, Pattern, PatternSize, ProductVariant, ProductColor, ProductSize, PatternColor
+from .models import Product, Pattern, PatternSize, ProductVariant, ProductColor, ProductSize, ProductType, PatternColor
 
 
 class VariantValidator:
@@ -13,7 +13,7 @@ class VariantValidator:
     """
     
     @staticmethod
-    def validate_variant_selection(product, pattern_id=None, color_id=None, size_id=None):
+    def validate_variant_selection(product, pattern_id=None, color_id=None, size_id=None, type_id=None):
         """
         Comprehensive validation of variant selection.
         
@@ -26,6 +26,14 @@ class VariantValidator:
             }
         """
         errors = {}
+
+        if type_id:
+            product_type_exists = ProductType.objects.filter(
+                product=product,
+                type_id=type_id
+            ).exists()
+            if not product_type_exists:
+                errors['type'] = 'النوع المحدد غير متوفر لهذا المنتج'
         
         # Check if product has patterns and pattern is required
         has_patterns = product.check_if_has_patterns()
@@ -97,7 +105,7 @@ class VariantValidator:
         # Build response
         if errors:
             # Determine primary field and message
-            field_priority = ['pattern', 'color', 'size']
+            field_priority = ['pattern', 'color', 'size', 'type']
             primary_field = next((f for f in field_priority if f in errors), None)
             primary_message = errors.get(primary_field, 'يجب إكمال جميع الخيارات المطلوبة')
             
@@ -158,7 +166,7 @@ class VariantValidator:
             }
     
     @staticmethod
-    def get_variant_or_validate(product_id, pattern_id=None, color_id=None, size_id=None):
+    def get_variant_or_validate(product_id, pattern_id=None, color_id=None, size_id=None, type_id=None):
         """
         Get variant if valid, or return validation errors.
         
@@ -177,7 +185,7 @@ class VariantValidator:
         
         # Validate selection
         validation = VariantValidator.validate_variant_selection(
-            product, pattern_id, color_id, size_id
+            product, pattern_id, color_id, size_id, type_id
         )
         
         if not validation['valid']:

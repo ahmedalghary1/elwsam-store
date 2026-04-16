@@ -30,12 +30,16 @@ class VariantSelector {
         this.productId = this.addToCartBtn?.dataset.productId;
         this.defaultPrice = this.addToCartBtn?.dataset.productPrice;
         this.defaultImageUrl = document.getElementById('main-product-image')?.src;
+        this.descriptionElement = document.getElementById('product-description-main');
+        this.tabDescriptionElement = document.getElementById('product-description-tab');
+        this.defaultDescription = this.descriptionElement?.textContent?.trim() || '';
         
         // State
         this.selectedOptions = {
             pattern: null,
             color: null,
-            size: null
+            size: null,
+            type: null
         };
         
         this.currentPrice = parseFloat(this.defaultPrice) || 0;
@@ -113,6 +117,10 @@ class VariantSelector {
         
         // Clear container
         this.container.innerHTML = '';
+
+        if (this.config.has_product_types && this.config.product_types?.length > 0) {
+            this.renderTypeGroup(this.config.product_types);
+        }
         
         switch (this.config.configuration_type) {
             case 'pattern_based':
@@ -167,6 +175,37 @@ class VariantSelector {
         }
         
         // Don't render colors or sizes initially - they will appear after pattern selection
+    }
+
+    renderTypeGroup(types) {
+        const groupId = 'group-type';
+        let group = document.getElementById(groupId);
+
+        const innerContent = `
+            <div class="variant-label">
+                <i class="fas fa-tags"></i> النوع
+            </div>
+            <div class="variant-options" role="radiogroup" aria-label="اختر النوع">
+                ${types.map(type => `
+                    <button class="variant-btn"
+                            data-variant-type="type"
+                            data-value="${type.id}"
+                            role="radio"
+                            aria-checked="false">
+                        <span>${type.name}</span>
+                    </button>
+                `).join('')}
+            </div>`;
+
+        if (group) {
+            group.innerHTML = innerContent;
+        } else {
+            const newGroup = document.createElement('div');
+            newGroup.className = 'variant-group';
+            newGroup.id = groupId;
+            newGroup.innerHTML = innerContent;
+            this.container.appendChild(newGroup);
+        }
     }
     
     renderSizeBasedUI() {
@@ -304,6 +343,9 @@ class VariantSelector {
                 // Pattern deselected - remove colors and sizes
                 this.removeColorGroup();
                 this.removeSizeGroup();
+                if (this.selectedOptions.type) {
+                    this.applySelectedType(this.getSelectedType());
+                }
             }
         } else if (type === 'color') {
             // Clear size selection when color changes
@@ -314,7 +356,17 @@ class VariantSelector {
                 this.updateImages(this.selectedOptions.color);
                 // Don't update sizes - they are already displayed with the pattern
             } else {
-                this.resetImages();
+                if (this.selectedOptions.type) {
+                    this.applySelectedType(this.getSelectedType());
+                } else {
+                    this.resetImages();
+                }
+            }
+        } else if (type === 'type') {
+            if (this.selectedOptions.type) {
+                this.applySelectedType(this.getSelectedType());
+            } else {
+                this.resetTypeDisplay();
             }
         }
         
@@ -385,6 +437,75 @@ class VariantSelector {
         const group = document.getElementById('group-color');
         if (group) group.remove();
     }
+
+    getSelectedType() {
+        if (!this.selectedOptions.type || !this.config?.product_types) return null;
+        return this.config.product_types.find(type => type.id === this.selectedOptions.type) || null;
+    }
+
+    applySelectedType(selectedType) {
+        if (!selectedType) return;
+
+        this.updateDescriptions(selectedType.description || this.defaultDescription);
+
+        if (selectedType.image) {
+            const mainImage = document.getElementById('main-product-image');
+            const galleryThumbs = document.querySelector('.gallery-thumbs');
+
+            if (mainImage) {
+                mainImage.src = selectedType.image;
+            }
+
+            if (galleryThumbs) {
+                galleryThumbs.innerHTML = `
+                    <div class="gallery-thumb active" data-src="${selectedType.image}">
+                        <img src="${selectedType.image}" alt="${selectedType.name}">
+                    </div>`;
+            }
+
+            if (this.addToCartBtn) {
+                this.addToCartBtn.dataset.productImage = selectedType.image;
+            }
+        }
+
+        if (this.addToCartBtn) {
+            this.addToCartBtn.dataset.productTypeId = selectedType.id;
+        }
+    }
+
+    resetTypeDisplay() {
+        this.updateDescriptions(this.defaultDescription);
+
+        if (this.selectedOptions.color) {
+            this.updateImages(this.selectedOptions.color);
+        } else {
+            this.resetImages();
+        }
+
+        if (this.addToCartBtn) {
+            if (this.defaultImageUrl) {
+                this.addToCartBtn.dataset.productImage = this.defaultImageUrl;
+            }
+            delete this.addToCartBtn.dataset.productTypeId;
+        }
+    }
+
+    updateDescriptions(description) {
+        if (this.descriptionElement) {
+            this.descriptionElement.textContent = description;
+        }
+        if (this.tabDescriptionElement) {
+            this.tabDescriptionElement.textContent = description;
+        }
+    }
+
+    getDisplayBasePrice() {
+        const selectedType = this.getSelectedType();
+        if (selectedType?.price) {
+            return parseFloat(selectedType.price);
+        }
+        return parseFloat(this.defaultPrice);
+    }
     
     clearActiveState(type) {
         this.container.querySelectorAll(`[data-variant-type="${type}"]`)
@@ -420,6 +541,7 @@ class VariantSelector {
             if (this.selectedOptions.pattern) params.append('pattern_id', this.selectedOptions.pattern);
             if (this.selectedOptions.color) params.append('color_id', this.selectedOptions.color);
             if (this.selectedOptions.size) params.append('size_id', this.selectedOptions.size);
+            if (this.selectedOptions.type) params.append('type_id', this.selectedOptions.type);
             
             const response = await fetch(`/api/variant-info/${this.productId}/?${params}`, {
                 signal: this.abortController.signal
@@ -463,12 +585,17 @@ class VariantSelector {
             this.addToCartBtn.innerHTML = '<i class="fas fa-cart-plus"></i> أضف إلى السلة';
             this.addToCartBtn.dataset.variantId = variant.id;
             this.addToCartBtn.dataset.productPrice = price.toFixed(2);
+            if (this.selectedOptions.type) {
+                this.addToCartBtn.dataset.productTypeId = this.selectedOptions.type;
+            } else {
+                delete this.addToCartBtn.dataset.productTypeId;
+            }
             
             this.updateTotalPrice();
             this.announcePriceChange(price.toFixed(2));
                 } else if (configType === 'color_only' && colorSelected) {
             // Color-only product with color selected - use base price
-            const price = parseFloat(this.config.base_price);
+            const price = this.getDisplayBasePrice();
             this.currentPrice = price;
             this.priceElement.textContent = `${price.toFixed(2)} ج.م`;
             this.addToCartBtn.disabled = false;
@@ -477,16 +604,21 @@ class VariantSelector {
             // For color-only, we still need a variant ID - it will be fetched from the server
             delete this.addToCartBtn.dataset.variantId;
             this.addToCartBtn.dataset.productPrice = price.toFixed(2);
+            if (this.selectedOptions.type) {
+                this.addToCartBtn.dataset.productTypeId = this.selectedOptions.type;
+            } else {
+                delete this.addToCartBtn.dataset.productTypeId;
+            }
             this.updateTotalPrice();
             this.hideMessage();
         } else {
             // No valid variant or incomplete selection
             this.addToCartBtn.disabled = true;
             this.buyNowBtn.disabled = true;
-            this.currentPrice = parseFloat(this.defaultPrice);
+            this.currentPrice = this.getDisplayBasePrice();
             this.priceElement.textContent = `${this.currentPrice.toFixed(2)} ج.م`;
             
-            const hasAnySelection = this.selectedOptions.pattern || this.selectedOptions.color || this.selectedOptions.size;
+            const hasAnySelection = this.selectedOptions.pattern || this.selectedOptions.color || this.selectedOptions.size || this.selectedOptions.type;
             
             let btnText = '<i class="fas fa-check-square"></i> اختر الخيارات';
             if (configType !== 'simple' && hasAnySelection && variant === null) {
@@ -495,7 +627,12 @@ class VariantSelector {
             this.addToCartBtn.innerHTML = btnText;
             
             delete this.addToCartBtn.dataset.variantId;
-            this.addToCartBtn.dataset.productPrice = this.defaultPrice;
+            this.addToCartBtn.dataset.productPrice = this.currentPrice.toFixed(2);
+            if (this.selectedOptions.type) {
+                this.addToCartBtn.dataset.productTypeId = this.selectedOptions.type;
+            } else {
+                delete this.addToCartBtn.dataset.productTypeId;
+            }
             this.updateTotalPrice();
         }
     }

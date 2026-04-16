@@ -141,10 +141,11 @@ class Product(models.Model):
         """الحصول على أول صورة للمنتج"""
         return self.images.first()
     
-    def get_price(self, pattern_id=None, size_id=None, color_id=None):
+    def get_price(self, pattern_id=None, size_id=None, color_id=None, type_id=None):
         """
         Dynamic price resolution using hierarchy:
-        1. PatternSize (pattern + size) - highest priority
+        0. ProductType (product + type) - highest priority
+        1. PatternSize (pattern + size)
         2. ProductSize (product + size)
         3. Pattern.base_price
         4. Product.price (base price) - fallback
@@ -153,10 +154,22 @@ class Product(models.Model):
             pattern_id: Optional pattern ID
             size_id: Optional size ID
             color_id: Optional color ID (for future use)
+            type_id: Optional product type ID
         
         Returns:
             Decimal: Calculated price based on hierarchy
         """
+        # Priority 0: ProductType (product + type)
+        if type_id:
+            try:
+                product_type = ProductType.objects.get(
+                    product=self,
+                    type_id=type_id
+                )
+                return product_type.price
+            except ProductType.DoesNotExist:
+                pass
+
         # Priority 1: PatternSize (pattern + size)
         if pattern_id and size_id:
             try:
@@ -202,6 +215,10 @@ class Product(models.Model):
     def check_if_has_product_level_sizes(self):
         """Check if product has product-level sizes"""
         return self.product_sizes.exists()
+
+    def check_if_has_product_types(self):
+        """Check if product has product-level types"""
+        return self.product_types.exists()
     
     def get_configuration_type(self):
         """
@@ -384,6 +401,17 @@ class Size(models.Model):
         return self.name
 
 
+class Type(models.Model):
+    name = models.CharField(max_length=50)
+
+    class Meta:
+        verbose_name = 'نوع'
+        verbose_name_plural = 'الأنواع'
+
+    def __str__(self):
+        return self.name
+
+
 # =========================
 # ProductSize (ترتيب المقاسات لكل منتج)
 # =========================
@@ -415,6 +443,33 @@ class ProductSize(models.Model):
 # =========================
 # PatternSize (مقاسات النمط مع الأسعار)
 # =========================
+class ProductType(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="product_types")
+    type = models.ForeignKey(Type, on_delete=models.CASCADE)
+    order = models.PositiveIntegerField(default=0)
+    image = models.ImageField(upload_to='product-types/')
+    price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        help_text='السعر لهذا النوع على مستوى المنتج'
+    )
+    description = models.TextField(
+        help_text='الوصف الخاص بهذا النوع'
+    )
+
+    class Meta:
+        ordering = ['order']
+        unique_together = ('product', 'type')
+        verbose_name = 'نوع منتج'
+        verbose_name_plural = 'أنواع المنتجات'
+        indexes = [
+            models.Index(fields=['product', 'type']),
+        ]
+
+    def __str__(self):
+        return f"{self.product.name} - {self.type.name} ({self.price} ج.م)"
+
+
 class PatternSize(models.Model):
     """Pattern-specific size pricing (highest priority in price hierarchy)"""
     pattern = models.ForeignKey(Pattern, on_delete=models.CASCADE, related_name="pattern_sizes")

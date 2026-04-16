@@ -6,7 +6,7 @@ from django.db.models import Q, Exists, OuterRef
 from django.core.cache import cache
 from .models import (
     Product, Category, ProductVariant, ProductImage, ProductColor,
-    ProductSize, Pattern, ProductSpecification, PatternSize, Size, Color,
+    ProductSize, ProductType, Pattern, ProductSpecification, PatternSize, Size, Color,
     PatternColor, PatternImage
 )
 
@@ -126,6 +126,7 @@ class ProductDetailView(View):
         
         # كل المقاسات المتاحة للمنتج
         product_sizes = ProductSize.objects.filter(product=product).order_by('order')
+        product_types = ProductType.objects.filter(product=product).select_related('type').order_by('order')
         
         # كل الأنماط (Patterns)
         patterns = Pattern.objects.filter(product=product).order_by('order')
@@ -156,6 +157,7 @@ class ProductDetailView(View):
             'images': images,
             'colors': product_colors,
             'sizes': product_sizes,
+            'types': product_types,
             'patterns': patterns,
             'variants': variants,
             'specs': specs,
@@ -296,6 +298,17 @@ def get_product_config(request, product_id):
                 }
                 for ps in product_sizes
             ]
+
+        product_types_data = [
+            {
+                'id': pt.type.id,
+                'name': pt.type.name,
+                'price': str(pt.price),
+                'description': pt.description,
+                'image': pt.image.url if pt.image else None
+            }
+            for pt in ProductType.objects.filter(product=product).select_related('type').order_by('order')
+        ]
         
         # Get colors: for non-pattern products use ProductColor;
         # for pattern-based products colors are embedded per-pattern above
@@ -318,10 +331,12 @@ def get_product_config(request, product_id):
             'configuration_type': config_type,
             'patterns': patterns_data,
             'product_sizes': product_sizes_data,
+            'product_types': product_types_data,
             'colors': colors_data,
             'base_price': str(product.get_price()),
             'has_patterns': has_patterns,
             'has_product_level_sizes': has_product_sizes,
+            'has_product_types': len(product_types_data) > 0,
             'has_colors': len(colors_data) > 0
         }
         
@@ -543,15 +558,17 @@ def get_variant_info(request, product_id):
         pattern_id = request.GET.get('pattern_id')
         color_id = request.GET.get('color_id')
         size_id = request.GET.get('size_id')
+        type_id = request.GET.get('type_id')
         
         # Convert to int if provided
         pattern_id = int(pattern_id) if pattern_id else None
         color_id = int(color_id) if color_id else None
         size_id = int(size_id) if size_id else None
+        type_id = int(type_id) if type_id else None
         
         # Use comprehensive validator
         variant, validation = VariantValidator.get_variant_or_validate(
-            product_id, pattern_id, color_id, size_id
+            product_id, pattern_id, color_id, size_id, type_id
         )
         
         if not validation['valid']:
@@ -567,7 +584,8 @@ def get_variant_info(request, product_id):
             price = product.get_price(
                 pattern_id=pattern_id,
                 size_id=size_id,
-                color_id=color_id
+                color_id=color_id,
+                type_id=type_id
             )
             
             return JsonResponse({
