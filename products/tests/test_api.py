@@ -7,7 +7,7 @@ import json
 
 from products.models import (
     Product, Category, Pattern, Size, Type, ProductSize, ProductType,
-    PatternSize, ProductVariant, Color, ProductColor
+    ProductTypeColor, ProductTypeImage, PatternSize, ProductVariant, Color, ProductColor
 )
 
 
@@ -88,6 +88,38 @@ class ProductConfigAPITestCase(TestCase):
         self.assertEqual(data['product_types'][0]['name'], 'Classic')
         self.assertEqual(data['product_types'][0]['price'], '140.00')
         self.assertEqual(data['product_types'][0]['description'], 'Classic type description')
+
+    def test_product_type_colors_and_images_are_nested_in_config(self):
+        """Test product config returns colors and images nested under each product type."""
+        type_catalog = Type.objects.create(name='Classic')
+        product_type = ProductType.objects.create(
+            product=self.product,
+            type=type_catalog,
+            price=Decimal('140.00'),
+            description='Classic type description',
+            image='product-types/classic.png'
+        )
+        color = Color.objects.create(name='Black', code='#111111')
+        ProductTypeColor.objects.create(product_type=product_type, color=color)
+        ProductTypeImage.objects.create(
+            product_type=product_type,
+            color=color,
+            image='product-types/classic-black.png'
+        )
+
+        url = f'/api/product-config/{self.product.id}/'
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+
+        self.assertTrue(data['has_type_colors'])
+        self.assertEqual(len(data['product_types'][0]['colors']), 1)
+        color_data = data['product_types'][0]['colors'][0]
+        self.assertEqual(color_data['name'], 'Black')
+        self.assertEqual(color_data['code'], '#111111')
+        self.assertEqual(len(color_data['images']), 1)
+        self.assertIn('classic-black.png', color_data['images'][0])
     
     def test_pattern_based_product_config(self):
         """Test configuration for pattern-based product"""
@@ -428,6 +460,64 @@ class VariantInfoAPITestCase(TestCase):
         
         self.assertFalse(data['success'])
         self.assertFalse(data['validation']['valid'])
+
+
+class ProductTypeColorImagesAPITestCase(TestCase):
+    """Test type-scoped color image APIs."""
+
+    def setUp(self):
+        self.client = Client()
+        self.category = Category.objects.create(name='Test Category')
+        self.product = Product.objects.create(
+            name='Typed Product',
+            category=self.category,
+            price=Decimal('100.00'),
+            is_active=True
+        )
+        self.type_catalog = Type.objects.create(name='Classic')
+        self.product_type = ProductType.objects.create(
+            product=self.product,
+            type=self.type_catalog,
+            price=Decimal('135.00'),
+            description='Classic type description',
+            image='product-types/classic.png'
+        )
+        self.color = Color.objects.create(name='Black', code='#111111')
+        ProductTypeColor.objects.create(product_type=self.product_type, color=self.color)
+        ProductTypeImage.objects.create(
+            product_type=self.product_type,
+            color=self.color,
+            image='product-types/classic-black-1.png'
+        )
+        ProductTypeImage.objects.create(
+            product_type=self.product_type,
+            color=self.color,
+            image='product-types/classic-black-2.png'
+        )
+
+    def test_product_images_endpoint_prefers_type_color_images(self):
+        """Image endpoint should return images scoped to selected type color."""
+        url = f'/api/product-images/{self.product.id}/{self.color.id}/?type_id={self.type_catalog.id}'
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+
+        self.assertTrue(data['success'])
+        self.assertEqual(len(data['images']), 2)
+        self.assertIn('classic-black-1.png', data['images'][0])
+
+    def test_variant_options_returns_type_scoped_colors(self):
+        """Variant options should expose colors attached to the selected type."""
+        url = f'/api/variant-options/{self.product.id}/?type_id={self.type_catalog.id}'
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+
+        self.assertTrue(data['success'])
+        self.assertEqual(len(data['colors']), 1)
+        self.assertEqual(data['colors'][0]['name'], 'Black')
 
 
 class StockAwareFilteringTestCase(TestCase):

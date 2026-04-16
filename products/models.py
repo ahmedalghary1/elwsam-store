@@ -470,6 +470,59 @@ class ProductType(models.Model):
         return f"{self.product.name} - {self.type.name} ({self.price} ج.م)"
 
 
+class ProductTypeColor(models.Model):
+    product_type = models.ForeignKey(
+        ProductType,
+        on_delete=models.CASCADE,
+        related_name="type_colors"
+    )
+    color = models.ForeignKey(
+        Color,
+        on_delete=models.CASCADE,
+        related_name="product_type_colors"
+    )
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+        unique_together = ('product_type', 'color')
+        verbose_name = 'لون نوع المنتج'
+        verbose_name_plural = 'ألوان أنواع المنتجات'
+        indexes = [
+            models.Index(fields=['product_type', 'color']),
+        ]
+
+    def __str__(self):
+        return f"{self.product_type.product.name} - {self.product_type.type.name} - {self.color.name}"
+
+
+class ProductTypeImage(models.Model):
+    product_type = models.ForeignKey(
+        ProductType,
+        on_delete=models.CASCADE,
+        related_name="type_images"
+    )
+    color = models.ForeignKey(
+        Color,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="product_type_images",
+        help_text='اختياري: اربط الصورة بلون معين لهذا النوع'
+    )
+    image = models.ImageField(upload_to='product-types/')
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+        verbose_name = 'صورة نوع المنتج'
+        verbose_name_plural = 'صور أنواع المنتجات'
+
+    def __str__(self):
+        color_part = f" - {self.color.name}" if self.color else ""
+        return f"صورة {self.product_type.product.name} - {self.product_type.type.name}{color_part}"
+
+
 class PatternSize(models.Model):
     """Pattern-specific size pricing (highest priority in price hierarchy)"""
     pattern = models.ForeignKey(Pattern, on_delete=models.CASCADE, related_name="pattern_sizes")

@@ -4,7 +4,7 @@ Comprehensive validation for product variants, cart operations, and user selecti
 """
 
 from django.core.exceptions import ValidationError
-from .models import Product, Pattern, PatternSize, ProductVariant, ProductColor, ProductSize, ProductType, PatternColor
+from .models import Product, Pattern, PatternSize, ProductVariant, ProductColor, ProductSize, ProductType, ProductTypeColor, PatternColor
 
 
 class VariantValidator:
@@ -26,6 +26,7 @@ class VariantValidator:
             }
         """
         errors = {}
+        has_type_colors = False
 
         if type_id:
             product_type_exists = ProductType.objects.filter(
@@ -34,6 +35,16 @@ class VariantValidator:
             ).exists()
             if not product_type_exists:
                 errors['type'] = 'النوع المحدد غير متوفر لهذا المنتج'
+            else:
+                type_colors = ProductTypeColor.objects.filter(
+                    product_type__product=product,
+                    product_type__type_id=type_id
+                )
+                has_type_colors = type_colors.exists()
+                if has_type_colors and not color_id:
+                    errors['color'] = 'يجب اختيار اللون'
+                elif color_id and not type_colors.filter(color_id=color_id).exists():
+                    errors['color'] = 'اللون المحدد غير متوفر لهذا النوع'
         
         # Check if product has patterns and pattern is required
         has_patterns = product.check_if_has_patterns()
@@ -79,9 +90,9 @@ class VariantValidator:
                 pass
         else:
             has_colors = ProductColor.objects.filter(product=product).exists()
-            if has_colors and not color_id:
+            if has_colors and not color_id and not has_type_colors:
                 errors['color'] = 'يجب اختيار اللون'
-            if color_id and not pattern_id:
+            if color_id and not pattern_id and not has_type_colors:
                 if not ProductColor.objects.filter(product=product, color_id=color_id).exists():
                     errors['color'] = 'اللون المحدد غير متوفر لهذا المنتج'
 

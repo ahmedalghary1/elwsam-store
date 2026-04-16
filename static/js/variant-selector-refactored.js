@@ -129,7 +129,7 @@ class VariantSelector {
                 break;
             case 'size_based':
                 // Render colors first for size-based products
-                if (this.config.has_colors) {
+                if (this.config.has_colors && !this.config.has_product_types) {
                     this.renderColorGroup(this.config.colors);
                 }
                 this.renderSizeBasedUI();
@@ -137,7 +137,7 @@ class VariantSelector {
             case 'color_only':
                 // Only colors required - render color selector and enable add to cart when color selected
                 this.updateUI({ available: true, price: this.config.base_price });
-                if (this.config.has_colors) {
+                if (this.config.has_colors && !this.config.has_product_types) {
                     this.renderColorGroup(this.config.colors);
                 }
                 break;
@@ -334,6 +334,7 @@ class VariantSelector {
         if (type === 'pattern') {
             this.selectedOptions.color = null;
             this.selectedOptions.size = null;
+            this.clearActiveState('color');
             this.resetImages();
             
             // Load colors and sizes for the selected pattern
@@ -341,7 +342,7 @@ class VariantSelector {
                 await this.loadPatternOptions(value);
             } else {
                 // Pattern deselected - remove colors and sizes
-                this.removeColorGroup();
+                await this.renderColorsForCurrentState();
                 this.removeSizeGroup();
                 if (this.selectedOptions.type) {
                     this.applySelectedType(this.getSelectedType());
@@ -363,10 +364,15 @@ class VariantSelector {
                 }
             }
         } else if (type === 'type') {
+            this.selectedOptions.color = null;
+            this.clearActiveState('color');
+
             if (this.selectedOptions.type) {
                 this.applySelectedType(this.getSelectedType());
+                await this.renderColorsForCurrentState();
             } else {
                 this.resetTypeDisplay();
+                await this.renderColorsForCurrentState();
             }
         }
         
@@ -376,7 +382,12 @@ class VariantSelector {
     
     async loadPatternOptions(patternId) {
         try {
-            const response = await fetch(`/api/variant-options/${this.productId}/?pattern_id=${patternId}`);
+            const params = new URLSearchParams({ pattern_id: patternId });
+            if (this.selectedOptions.type) {
+                params.append('type_id', this.selectedOptions.type);
+            }
+
+            const response = await fetch(`/api/variant-options/${this.productId}/?${params.toString()}`);
             const data = await response.json();
             
             if (data.success) {
@@ -443,29 +454,80 @@ class VariantSelector {
         return this.config.product_types.find(type => type.id === this.selectedOptions.type) || null;
     }
 
+    getCurrentTypeColors() {
+        return this.getSelectedType()?.colors || [];
+    }
+
+    getSelectedTypeColor(colorId) {
+        return this.getCurrentTypeColors().find(color => color.id === colorId) || null;
+    }
+
+    async renderColorsForCurrentState() {
+        if (this.selectedOptions.pattern) {
+            await this.loadPatternOptions(this.selectedOptions.pattern);
+            return;
+        }
+
+        const typeColors = this.getCurrentTypeColors();
+
+        if (typeColors.length > 0) {
+            this.renderColorGroup(typeColors);
+            return;
+        }
+
+        if (this.config?.colors?.length > 0) {
+            this.renderColorGroup(this.config.colors);
+            return;
+        }
+
+        this.removeColorGroup();
+    }
+
+    applyImageSet(images) {
+        const validImages = (images || []).filter(Boolean);
+        if (validImages.length === 0) return;
+
+        const mainImage = document.getElementById('main-product-image');
+        const galleryThumbs = document.querySelector('.gallery-thumbs');
+
+        if (mainImage) {
+            mainImage.style.opacity = '0';
+            setTimeout(() => {
+                mainImage.src = validImages[0];
+                mainImage.style.opacity = '1';
+            }, 150);
+        }
+
+        if (galleryThumbs) {
+            galleryThumbs.innerHTML = validImages.map((url, i) =>
+                `<div class="gallery-thumb ${i === 0 ? 'active' : ''}" data-src="${url}">
+                    <img src="${url}" alt="Product Image" loading="lazy">
+                </div>`
+            ).join('');
+
+            galleryThumbs.querySelectorAll('.gallery-thumb').forEach(thumb => {
+                thumb.addEventListener('click', (e) => {
+                    if (mainImage) {
+                        mainImage.src = e.currentTarget.dataset.src;
+                    }
+                    galleryThumbs.querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
+                    e.currentTarget.classList.add('active');
+                });
+            });
+        }
+
+        if (this.addToCartBtn) {
+            this.addToCartBtn.dataset.productImage = validImages[0];
+        }
+    }
+
     applySelectedType(selectedType) {
         if (!selectedType) return;
 
         this.updateDescriptions(selectedType.description || this.defaultDescription);
 
         if (selectedType.image) {
-            const mainImage = document.getElementById('main-product-image');
-            const galleryThumbs = document.querySelector('.gallery-thumbs');
-
-            if (mainImage) {
-                mainImage.src = selectedType.image;
-            }
-
-            if (galleryThumbs) {
-                galleryThumbs.innerHTML = `
-                    <div class="gallery-thumb active" data-src="${selectedType.image}">
-                        <img src="${selectedType.image}" alt="${selectedType.name}">
-                    </div>`;
-            }
-
-            if (this.addToCartBtn) {
-                this.addToCartBtn.dataset.productImage = selectedType.image;
-            }
+            this.applyImageSet([selectedType.image]);
         }
 
         if (this.addToCartBtn) {
@@ -671,14 +733,28 @@ class VariantSelector {
         const galleryThumbs = document.querySelector('.gallery-thumbs');
         
         if (!mainImage || !galleryThumbs) return;
+
+        const selectedTypeColor = this.getSelectedTypeColor(colorId);
+        if (selectedTypeColor?.images?.length) {
+            this.applyImageSet(selectedTypeColor.images);
+            return;
+        }
         
         // Show skeleton loader
         this.showImageSkeleton(mainImage, galleryThumbs);
         
         try {
-            let url = `/api/product-images/${this.productId}/${colorId}/`;
+            const params = new URLSearchParams();
             if (this.selectedOptions.pattern) {
-                url += `?pattern_id=${this.selectedOptions.pattern}`;
+                params.append('pattern_id', this.selectedOptions.pattern);
+            }
+            if (this.selectedOptions.type) {
+                params.append('type_id', this.selectedOptions.type);
+            }
+
+            let url = `/api/product-images/${this.productId}/${colorId}/`;
+            if (params.toString()) {
+                url += `?${params.toString()}`;
             }
             const response = await fetch(url);
             const data = await response.json();
@@ -689,28 +765,7 @@ class VariantSelector {
                 return;
             }
             
-            // Update images with fade effect
-            mainImage.style.opacity = '0';
-            setTimeout(() => {
-                mainImage.src = data.images[0];
-                mainImage.style.opacity = '1';
-            }, 150);
-            
-            galleryThumbs.innerHTML = data.images.map((url, i) => 
-                `<div class="gallery-thumb ${i === 0 ? 'active' : ''}" data-src="${url}">
-                    <img src="${url}" alt="Product Image" loading="lazy">
-                </div>`
-            ).join('');
-            
-            // Reattach thumbnail click handlers
-            galleryThumbs.querySelectorAll('.gallery-thumb').forEach(thumb => {
-                thumb.addEventListener('click', (e) => {
-                    mainImage.src = e.currentTarget.dataset.src;
-                    galleryThumbs.querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
-                    e.currentTarget.classList.add('active');
-                });
-            });
-            
+            this.applyImageSet(data.images);
             this.hideImageSkeleton(mainImage, galleryThumbs);
         } catch (error) {
             console.error('Error fetching images:', error);
@@ -763,7 +818,8 @@ class VariantSelector {
         const typeNames = {
             pattern: 'النمط',
             color: 'اللون',
-            size: 'المقاس'
+            size: 'المقاس',
+            type: 'النوع'
         };
         
         if (this.liveRegion) {

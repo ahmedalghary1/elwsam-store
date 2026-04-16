@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from decimal import Decimal
 from products.models import (
     Product, Category, Pattern, Size, Type, ProductSize, ProductType,
-    PatternSize, ProductVariant, Color
+    ProductTypeColor, ProductTypeImage, PatternSize, ProductVariant, Color
 )
 
 
@@ -378,3 +378,24 @@ class ProductTypeTestCase(TestCase):
         )
 
         self.assertTrue(self.product.check_if_has_product_types())
+
+    def test_product_type_can_group_colors_and_images(self):
+        """Product type should support scoped colors and color images."""
+        product_type = ProductType.objects.create(
+            product=self.product,
+            type=self.type,
+            price=Decimal('145.00'),
+            description='Classic product type',
+            image='product-types/classic.png'
+        )
+        color = Color.objects.create(name='Black', code='#111111')
+        ProductTypeColor.objects.create(product_type=product_type, color=color)
+        ProductTypeImage.objects.create(
+            product_type=product_type,
+            color=color,
+            image='product-types/classic-black-1.png'
+        )
+
+        self.assertEqual(product_type.type_colors.count(), 1)
+        self.assertEqual(product_type.type_images.count(), 1)
+        self.assertEqual(product_type.type_colors.first().color.name, 'Black')

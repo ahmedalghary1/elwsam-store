@@ -7,7 +7,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from products.models import (
     Category, Product, Pattern, PatternSize, Color, Size,
-    Type, ProductColor, ProductSize, ProductType, ProductVariant
+    Type, ProductColor, ProductSize, ProductType, ProductTypeColor, ProductVariant
 )
 from products.validators import VariantValidator, CartValidator, AuthValidator
 
@@ -170,6 +170,33 @@ class VariantValidatorTestCase(TestCase):
 
         self.assertFalse(result['valid'])
         self.assertIn('type', result['errors'])
+
+    def test_validate_color_must_belong_to_selected_type(self):
+        """Test validation fails when color is not linked to selected product type."""
+        product_type = Type.objects.create(name='Classic')
+        ProductType.objects.create(
+            product=self.product,
+            type=product_type,
+            price=150.00,
+            description='Classic type',
+            image='product-types/classic.png'
+        )
+        allowed_color = Color.objects.create(name='Black', code='#111111')
+        ProductTypeColor.objects.create(
+            product_type=ProductType.objects.get(product=self.product, type=product_type),
+            color=allowed_color
+        )
+
+        result = VariantValidator.validate_variant_selection(
+            self.product,
+            pattern_id=self.pattern.id,
+            color_id=self.color.id,
+            size_id=self.size_s.id,
+            type_id=product_type.id
+        )
+
+        self.assertFalse(result['valid'])
+        self.assertIn('color', result['errors'])
 
     def test_validate_stock_availability_in_stock(self):
         """Test stock validation for available variant"""

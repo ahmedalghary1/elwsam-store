@@ -6,8 +6,8 @@ from django.db.models import Q, Exists, OuterRef
 from django.core.cache import cache
 from .models import (
     Product, Category, ProductVariant, ProductImage, ProductColor,
-    ProductSize, ProductType, Pattern, ProductSpecification, PatternSize, Size, Color,
-    PatternColor, PatternImage
+    ProductSize, ProductType, ProductTypeColor, ProductTypeImage, Pattern,
+    ProductSpecification, PatternSize, Size, Color, PatternColor, PatternImage
 )
 
 
@@ -169,6 +169,42 @@ class ProductDetailView(View):
         return render(request, self.template_name, context)
 
 
+def serialize_product_type(product_type):
+    """Serialize product type with nested colors and color-specific images."""
+    fallback_images = [
+        type_image.image.url
+        for type_image in product_type.type_images.all()
+        if not type_image.color_id
+    ]
+    images_by_color = {}
+    for type_image in product_type.type_images.all():
+        if type_image.color_id:
+            images_by_color.setdefault(type_image.color_id, []).append(type_image.image.url)
+
+    colors = []
+    for type_color in product_type.type_colors.all():
+        color_images = images_by_color.get(type_color.color_id, []) or fallback_images[:]
+        primary_image = color_images[0] if color_images else (product_type.image.url if product_type.image else None)
+        colors.append({
+            'id': type_color.color.id,
+            'name': type_color.color.name,
+            'code': type_color.color.code or '#ccc',
+            'images': color_images,
+            'primary_image': primary_image
+        })
+
+    return {
+        'id': product_type.type.id,
+        'product_type_id': product_type.id,
+        'name': product_type.type.name,
+        'price': str(product_type.price),
+        'description': product_type.description,
+        'image': product_type.image.url if product_type.image else None,
+        'colors': colors,
+        'has_colors': len(colors) > 0
+    }
+
+
 # =========================
 # Helper: Validate Selection
 # =========================
@@ -299,16 +335,14 @@ def get_product_config(request, product_id):
                 for ps in product_sizes
             ]
 
-        product_types_data = [
-            {
-                'id': pt.type.id,
-                'name': pt.type.name,
-                'price': str(pt.price),
-                'description': pt.description,
-                'image': pt.image.url if pt.image else None
-            }
-            for pt in ProductType.objects.filter(product=product).select_related('type').order_by('order')
-        ]
+        product_types = ProductType.objects.filter(
+            product=product
+        ).select_related('type').prefetch_related(
+            'type_colors__color',
+            'type_images__color'
+        ).order_by('order')
+        product_types_data = [serialize_product_type(product_type) for product_type in product_types]
+        has_type_colors = any(product_type['colors'] for product_type in product_types_data)
         
         # Get colors: for non-pattern products use ProductColor;
         # for pattern-based products colors are embedded per-pattern above
@@ -337,7 +371,8 @@ def get_product_config(request, product_id):
             'has_patterns': has_patterns,
             'has_product_level_sizes': has_product_sizes,
             'has_product_types': len(product_types_data) > 0,
-            'has_colors': len(colors_data) > 0
+            'has_colors': len(colors_data) > 0 or has_type_colors,
+            'has_type_colors': has_type_colors
         }
         
         # Cache for 5 minutes
@@ -401,7 +436,31 @@ def get_variant_options(request, product_id):
         # Get colors with availability
         # If pattern selected and has PatternColors → use those; else use variant-derived colors
         colors_data = []
-        if pattern_id:
+        type_colors = None
+        if type_id:
+            type_colors = ProductTypeColor.objects.filter(
+                product_type__product=product,
+                product_type__type_id=type_id
+            ).select_related('color').order_by('order')
+
+        if type_colors and type_colors.exists():
+            for type_color in type_colors:
+                filter_kwargs = {
+                    'product': product,
+                    'color': type_color.color,
+                    'stock__gt': 0
+                }
+                if pattern_id:
+                    filter_kwargs['pattern_id'] = pattern_id
+
+                has_stock = ProductVariant.objects.filter(**filter_kwargs).exists()
+                colors_data.append({
+                    'id': type_color.color.id,
+                    'name': type_color.color.name,
+                    'code': type_color.color.code or '#ccc',
+                    'available': has_stock
+                })
+        elif pattern_id:
             try:
                 sel_pattern = Pattern.objects.get(id=pattern_id)
                 p_colors = PatternColor.objects.filter(
@@ -557,6 +616,8 @@ def get_variant_info(request, product_id):
         
         pattern_id = request.GET.get('pattern_id')
         color_id = request.GET.get('color_id')
+        type_id = request.GET.get('type_id')
+        type_id = request.GET.get('type_id')
         size_id = request.GET.get('size_id')
         type_id = request.GET.get('type_id')
         
@@ -667,10 +728,35 @@ def product_images_by_color(request, product_id, color_id):
     try:
         product = get_object_or_404(Product, id=product_id, is_active=True)
         pattern_id = request.GET.get('pattern_id')
+        type_id = request.GET.get('type_id')
 
         image_urls = []
 
-        if pattern_id:
+        if type_id:
+            type_images = ProductTypeImage.objects.filter(
+                product_type__product=product,
+                product_type__type_id=type_id,
+                color_id=color_id
+            ).order_by('order')
+
+            if not type_images.exists():
+                type_images = ProductTypeImage.objects.filter(
+                    product_type__product=product,
+                    product_type__type_id=type_id,
+                    color__isnull=True
+                ).order_by('order')
+
+            image_urls = [type_image.image.url for type_image in type_images]
+
+            if not image_urls:
+                product_type = ProductType.objects.filter(
+                    product=product,
+                    type_id=type_id
+                ).first()
+                if product_type and product_type.image:
+                    image_urls = [product_type.image.url]
+
+        if not image_urls and pattern_id:
             pattern_images = PatternImage.objects.filter(
                 pattern_id=pattern_id,
                 color_id=color_id
