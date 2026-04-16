@@ -201,6 +201,12 @@ class VariantValidator:
         
         if not validation['valid']:
             return None, validation
+
+        # Product types are currently a presentation/pricing layer, not a stock-tracked
+        # ProductVariant dimension. When only type/color is selected, legacy variant rows
+        # should not invalidate an otherwise valid selection.
+        if type_id and not pattern_id and not size_id:
+            return None, {'valid': True, 'message': '', 'field': None, 'errors': {}}
         
         # Try to find matching variant
         try:

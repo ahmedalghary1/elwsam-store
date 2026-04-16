@@ -300,6 +300,41 @@ class VariantValidatorTestCase(TestCase):
         self.assertIsNone(variant)
         self.assertTrue(validation['valid'])
 
+    def test_get_variant_or_validate_ignores_legacy_color_variant_for_type_selection(self):
+        """Type/color selections should not be rejected by old color-only ProductVariant rows."""
+        product = Product.objects.create(
+            name='Typed Variant Product',
+            slug='typed-variant-product',
+            category=self.category,
+            price=90.00,
+            is_active=True
+        )
+        type_catalog = Type.objects.create(name='Classic')
+        product_type = ProductType.objects.create(
+            product=product,
+            type=type_catalog,
+            price=110.00,
+            description='Classic type',
+            image='product-types/classic.png'
+        )
+        color = Color.objects.create(name='Black', code='#111111')
+        ProductTypeColor.objects.create(product_type=product_type, color=color)
+        ProductVariant.objects.create(
+            product=product,
+            color=color,
+            price=90.00,
+            stock=0
+        )
+
+        variant, validation = VariantValidator.get_variant_or_validate(
+            product.id,
+            color_id=color.id,
+            type_id=type_catalog.id
+        )
+
+        self.assertIsNone(variant)
+        self.assertTrue(validation['valid'])
+
 
 class CartValidatorTestCase(TestCase):
     """Test CartValidator class"""

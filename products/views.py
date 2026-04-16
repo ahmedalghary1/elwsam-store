@@ -446,15 +446,16 @@ def get_variant_options(request, product_id):
 
         if type_colors and type_colors.exists():
             for type_color in type_colors:
-                filter_kwargs = {
-                    'product': product,
-                    'color': type_color.color,
-                    'stock__gt': 0
-                }
+                has_stock = True
                 if pattern_id:
-                    filter_kwargs['pattern_id'] = pattern_id
+                    color_variants = ProductVariant.objects.filter(
+                        product=product,
+                        pattern_id=pattern_id,
+                        color=type_color.color
+                    )
+                    if color_variants.exists():
+                        has_stock = color_variants.filter(stock__gt=0).exists()
 
-                has_stock = ProductVariant.objects.filter(**filter_kwargs).exists()
                 colors_data.append({
                     'id': type_color.color.id,
                     'name': type_color.color.name,

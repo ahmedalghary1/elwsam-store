@@ -532,6 +532,45 @@ class ProductTypeColorImagesAPITestCase(TestCase):
         self.assertIsNone(data['variant']['id'])
         self.assertEqual(data['variant']['price'], '135.00')
 
+    def test_variant_info_ignores_legacy_color_variant_for_type_selection(self):
+        """Legacy ProductVariant rows should not mark a valid type/color selection unavailable."""
+        ProductVariant.objects.create(
+            product=self.product,
+            color=self.color,
+            price=Decimal('100.00'),
+            stock=0
+        )
+
+        url = f'/api/variant-info/{self.product.id}/?type_id={self.type_catalog.id}&color_id={self.color.id}'
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+
+        self.assertTrue(data['success'])
+        self.assertTrue(data['variant']['available'])
+        self.assertIsNone(data['variant']['id'])
+        self.assertEqual(data['variant']['price'], '135.00')
+
+    def test_variant_options_keep_type_colors_available_without_pattern_stock(self):
+        """Type colors should stay selectable when availability is not pattern/size-stock-driven."""
+        ProductVariant.objects.create(
+            product=self.product,
+            color=self.color,
+            price=Decimal('100.00'),
+            stock=0
+        )
+
+        url = f'/api/variant-options/{self.product.id}/?type_id={self.type_catalog.id}'
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+
+        self.assertTrue(data['success'])
+        self.assertEqual(len(data['colors']), 1)
+        self.assertTrue(data['colors'][0]['available'])
+
 
 class StockAwareFilteringTestCase(TestCase):
     """Test that stock-aware filtering works correctly"""
