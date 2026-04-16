@@ -447,14 +447,14 @@ class ProductType(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="product_types")
     type = models.ForeignKey(Type, on_delete=models.CASCADE)
     order = models.PositiveIntegerField(default=0)
-    image = models.ImageField(upload_to='product-types/')
+    image = models.ImageField(upload_to='product-types/',null=True, blank=True)
     price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         help_text='السعر لهذا النوع على مستوى المنتج'
     )
     description = models.TextField(
-        help_text='الوصف الخاص بهذا النوع'
+        help_text='الوصف الخاص بهذا النوع', null=True, blank=True
     )
 
     class Meta:
