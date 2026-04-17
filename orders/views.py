@@ -6,9 +6,15 @@ from django.views import View
 from django.http import JsonResponse
 from django.db import transaction
 from .models import Cart, CartItem, Order, OrderItem
-from products.models import Product, ProductVariant
+from products.models import Product, ProductType, ProductVariant
 from accounts.models import Address
 import json
+
+
+def _get_product_type(product, product_type_id):
+    if not product_type_id:
+        return None
+    return get_object_or_404(ProductType, id=product_type_id, product=product)
 
 
 # =========================
@@ -22,7 +28,12 @@ class CartView(View):
             # للمستخدمين المسجلين
             try:
                 cart = request.user.cart
-                cart_items = cart.items.all().select_related('product', 'variant')
+                cart_items = cart.items.all().select_related(
+                    'product',
+                    'variant',
+                    'product_type',
+                    'product_type__type',
+                )
             except Cart.DoesNotExist:
                 cart = None
                 cart_items = []
@@ -47,6 +58,7 @@ def add_to_cart(request):
     if request.method == 'POST':
         product_id = request.POST.get('product_id')
         variant_id = request.POST.get('variant_id')
+        product_type_id = request.POST.get('product_type_id')
         quantity = int(request.POST.get('quantity', 1))
 
         try:
@@ -57,11 +69,13 @@ def add_to_cart(request):
                 variant = None
                 if variant_id:
                     variant = get_object_or_404(ProductVariant, id=variant_id, product=product)
+                product_type = _get_product_type(product, product_type_id)
 
                 cart_item, created = CartItem.objects.get_or_create(
                     cart=cart,
                     product=product,
                     variant=variant,
+                    product_type=product_type,
                     defaults={'quantity': quantity}
                 )
                 if not created:
@@ -153,7 +167,12 @@ class CheckoutView(View):
         if request.user.is_authenticated:
             try:
                 cart = request.user.cart
-                cart_items = cart.items.all().select_related('product', 'variant')
+                cart_items = cart.items.all().select_related(
+                    'product',
+                    'variant',
+                    'product_type',
+                    'product_type__type',
+                )
 
                 if not cart_items:
                     messages.warning(request, "سلة التسوق فارغة")
@@ -186,7 +205,12 @@ class CheckoutView(View):
     def _authenticated_checkout(self, request):
         try:
             cart = request.user.cart
-            cart_items = cart.items.all().select_related('product', 'variant')
+            cart_items = cart.items.all().select_related(
+                'product',
+                'variant',
+                'product_type',
+                'product_type__type',
+            )
 
             if not cart_items:
                 messages.error(request, "سلة التسوق فارغة")
@@ -226,8 +250,10 @@ class CheckoutView(View):
                         order=order,
                         product=cart_item.product,
                         variant=v,
+                        product_type=cart_item.product_type,
                         quantity=cart_item.quantity,
-                        price=cart_item.get_total_price() / cart_item.quantity,
+                        price=cart_item.get_unit_price(),
+                        type_name=cart_item.get_selected_type_name(),
                         pattern_name=v.pattern.name if v and v.pattern else None,
                         color_name=v.color.name if v and v.color else None,
                         color_code=v.color.code if v and v.color else None,
@@ -289,10 +315,21 @@ class CheckoutView(View):
                 try:
                     product = Product.objects.get(id=item['product_id'], is_active=True)
                     variant = None
+                    product_type = None
                     if item.get('variant_id'):
                         variant = ProductVariant.objects.get(id=item['variant_id'], product=product)
+                    if item.get('product_type_id'):
+                        product_type = ProductType.objects.get(
+                            id=item['product_type_id'],
+                            product=product
+                        )
 
-                    price = variant.get_price() if variant else product.price
+                    price = product.get_price(
+                        pattern_id=variant.pattern_id if variant else None,
+                        size_id=variant.size_id if variant else None,
+                        color_id=variant.color_id if variant else None,
+                        type_id=product_type.type_id if product_type else None,
+                    )
                     quantity = int(item.get('quantity', 1))
                     item_total = price * quantity
                     total_price += item_total
@@ -300,10 +337,12 @@ class CheckoutView(View):
                     order_items_data.append({
                         'product': product,
                         'variant': variant,
+                        'product_type': product_type,
                         'quantity': quantity,
-                        'price': price
+                        'price': price,
+                        'type_name': item.get('product_type_name'),
                     })
-                except (Product.DoesNotExist, ProductVariant.DoesNotExist, ValueError):
+                except (Product.DoesNotExist, ProductType.DoesNotExist, ProductVariant.DoesNotExist, ValueError):
                     continue
 
             if not order_items_data:
@@ -330,12 +369,15 @@ class CheckoutView(View):
                 # إنشاء عناصر الطلب
                 for item_data in order_items_data:
                     v = item_data['variant']
+                    product_type = item_data['product_type']
                     OrderItem.objects.create(
                         order=order,
                         product=item_data['product'],
                         variant=v,
+                        product_type=product_type,
                         quantity=item_data['quantity'],
                         price=item_data['price'],
+                        type_name=product_type.type.name if product_type else item_data.get('type_name'),
                         pattern_name=v.pattern.name if v and v.pattern else None,
                         color_name=v.color.name if v and v.color else None,
                         color_code=v.color.code if v and v.color else None,
@@ -359,7 +401,7 @@ def order_success(request, order_id):
         return redirect('accounts:login')
     
     order = get_object_or_404(Order, id=order_id, user=request.user)
-    order_items = order.items.all().select_related('product', 'variant')
+    order_items = order.items.all().select_related('product', 'variant', 'product_type', 'product_type__type')
 
     return render(request, 'orders/order_success.html', {
         'order': order,
@@ -372,7 +414,7 @@ def order_success(request, order_id):
 # =========================
 def guest_order_success(request, order_id):
     order = get_object_or_404(Order, id=order_id, user=None)
-    order_items = order.items.all().select_related('product', 'variant')
+    order_items = order.items.all().select_related('product', 'variant', 'product_type', 'product_type__type')
 
     return render(request, 'orders/guest_order_success.html', {
         'order': order,
@@ -386,7 +428,7 @@ def guest_order_success(request, order_id):
 @login_required
 def order_detail(request, order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user)
-    order_items = order.items.all().select_related('product', 'variant')
+    order_items = order.items.all().select_related('product', 'variant', 'product_type', 'product_type__type')
 
     return render(request, 'orders/order_detail.html', {
         'order': order,
@@ -596,6 +638,7 @@ def sync_cart_from_localstorage(request):
             for item in cart_data:
                 product_id = item.get('product_id')
                 variant_id = item.get('variant_id')
+                product_type_id = item.get('product_type_id')
                 quantity = item.get('quantity', 1)
 
                 try:
@@ -604,11 +647,15 @@ def sync_cart_from_localstorage(request):
                     variant = None
                     if variant_id:
                         variant = ProductVariant.objects.get(id=variant_id, product=product)
+                    product_type = None
+                    if product_type_id:
+                        product_type = ProductType.objects.get(id=product_type_id, product=product)
 
                     cart_item, created = CartItem.objects.get_or_create(
                         cart=cart,
                         product=product,
                         variant=variant,
+                        product_type=product_type,
                         defaults={'quantity': quantity}
                     )
 
@@ -616,7 +663,7 @@ def sync_cart_from_localstorage(request):
                         cart_item.quantity += quantity
                         cart_item.save()
 
-                except (Product.DoesNotExist, ProductVariant.DoesNotExist):
+                except (Product.DoesNotExist, ProductType.DoesNotExist, ProductVariant.DoesNotExist):
                     continue
 
             return JsonResponse({'success': True})

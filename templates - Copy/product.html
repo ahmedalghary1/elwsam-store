@@ -357,6 +357,8 @@
         const quantity = qtyInput ? parseInt(qtyInput.value, 10) : 1;
         const productId = addToCartBtn ? addToCartBtn.dataset.productId : null;
         const variantId = addToCartBtn ? addToCartBtn.dataset.variantId : null;
+        const productTypeId = addToCartBtn ? addToCartBtn.dataset.productTypeId : null;
+        const productTypeName = addToCartBtn ? addToCartBtn.dataset.productTypeName : '';
         const productName = addToCartBtn ? addToCartBtn.dataset.productName : '';
         const productPrice = addToCartBtn ? addToCartBtn.dataset.productPrice : 0;
         
@@ -370,12 +372,14 @@
         try {
           // إضافة المنتج إلى السلة باستخدام CartManager
           if (window.cartManager.isAuthenticated()) {
-            await window.cartManager.addToCartAjax(productId, variantId, quantity);
+            await window.cartManager.addToCartAjax(productId, variantId, quantity, productTypeId);
           } else {
             await window.cartManager.addToCart(productId, variantId, quantity, {
               name: productName,
               price: parseFloat(productPrice),
-              image: document.getElementById('main-product-image')?.src || ''
+              image: document.getElementById('main-product-image')?.src || '',
+              product_type_id: productTypeId,
+              product_type_name: productTypeName
             });
           }
           // بعد الإضافة الناجحة، التوجيه إلى صفحة الدفع

@@ -685,6 +685,7 @@ function renderGuestCartSummary() {
       const price = parseFloat(item.price) || 0;
       const quantity = parseInt(item.quantity) || 1;
       const itemTotal = price * quantity;
+      const typeHtml = item.product_type_name ? `<p class="variant-info">النوع: ${item.product_type_name}</p>` : '';
       total += itemTotal;
       
       itemsHtml += `
@@ -694,6 +695,7 @@ function renderGuestCartSummary() {
           </div>
           <div class="item-details">
             <h3>${item.name || 'منتج'}</h3>
+            ${typeHtml}
             <p class="item-price">${price.toFixed(2)} جنيه × ${quantity}</p>
           </div>
           <div class="item-total">

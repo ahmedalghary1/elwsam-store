@@ -5,7 +5,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from orders.models import Cart, CartItem
-from products.models import Category, Color, Pattern, PatternSize, Product, ProductVariant, Size
+from products.models import Category, Color, Pattern, PatternSize, Product, ProductType, ProductVariant, Size, Type
 
 
 class CartVariantPricingTests(TestCase):
@@ -72,3 +72,55 @@ class CartVariantPricingTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '180.00')
         self.assertNotContains(response, '999.99')
+
+
+class CartProductTypePricingTests(TestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        self.user = user_model.objects.create_user(
+            email='type@example.com',
+            username='type-user',
+            password='secret123'
+        )
+        self.category = Category.objects.create(name='Type Category')
+        self.product = Product.objects.create(
+            name='Typed Product',
+            category=self.category,
+            description='Typed product',
+            price=Decimal('5.00'),
+            is_active=True
+        )
+        self.type = Type.objects.create(name='Premium')
+        self.product_type = ProductType.objects.create(
+            product=self.product,
+            type=self.type,
+            price=Decimal('10.00')
+        )
+        self.cart = Cart.objects.create(user=self.user)
+
+    def test_cart_item_uses_selected_product_type_price(self):
+        cart_item = CartItem.objects.create(
+            cart=self.cart,
+            product=self.product,
+            product_type=self.product_type,
+            quantity=2
+        )
+
+        self.assertEqual(cart_item.get_unit_price(), Decimal('10.00'))
+        self.assertEqual(cart_item.get_total_price(), Decimal('20.00'))
+        self.assertEqual(cart_item.get_variant_display(), 'النوع: Premium')
+
+    def test_cart_view_displays_selected_product_type(self):
+        CartItem.objects.create(
+            cart=self.cart,
+            product=self.product,
+            product_type=self.product_type,
+            quantity=1
+        )
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse('orders:checkout'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'النوع: Premium')
+        self.assertContains(response, '10.00')

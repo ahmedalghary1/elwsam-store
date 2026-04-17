@@ -531,7 +531,8 @@ class VariantSelector {
         }
 
         if (this.addToCartBtn) {
-            this.addToCartBtn.dataset.productTypeId = selectedType.id;
+            this.addToCartBtn.dataset.productTypeId = selectedType.product_type_id;
+            this.addToCartBtn.dataset.productTypeName = selectedType.name;
         }
     }
 
@@ -549,6 +550,7 @@ class VariantSelector {
                 this.addToCartBtn.dataset.productImage = this.defaultImageUrl;
             }
             delete this.addToCartBtn.dataset.productTypeId;
+            delete this.addToCartBtn.dataset.productTypeName;
         }
     }
 
@@ -636,6 +638,7 @@ class VariantSelector {
     updateUI(variant) {
         const configType = this.config?.configuration_type;
         const colorSelected = this.selectedOptions.color !== null;
+        const selectedType = this.getSelectedType();
         
         if (variant && variant.available) {
             // Valid variant found
@@ -651,10 +654,12 @@ class VariantSelector {
                 delete this.addToCartBtn.dataset.variantId;
             }
             this.addToCartBtn.dataset.productPrice = price.toFixed(2);
-            if (this.selectedOptions.type) {
-                this.addToCartBtn.dataset.productTypeId = this.selectedOptions.type;
+            if (selectedType) {
+                this.addToCartBtn.dataset.productTypeId = selectedType.product_type_id;
+                this.addToCartBtn.dataset.productTypeName = selectedType.name;
             } else {
                 delete this.addToCartBtn.dataset.productTypeId;
+                delete this.addToCartBtn.dataset.productTypeName;
             }
             
             this.updateTotalPrice();
@@ -670,10 +675,12 @@ class VariantSelector {
             // For color-only, we still need a variant ID - it will be fetched from the server
             delete this.addToCartBtn.dataset.variantId;
             this.addToCartBtn.dataset.productPrice = price.toFixed(2);
-            if (this.selectedOptions.type) {
-                this.addToCartBtn.dataset.productTypeId = this.selectedOptions.type;
+            if (selectedType) {
+                this.addToCartBtn.dataset.productTypeId = selectedType.product_type_id;
+                this.addToCartBtn.dataset.productTypeName = selectedType.name;
             } else {
                 delete this.addToCartBtn.dataset.productTypeId;
+                delete this.addToCartBtn.dataset.productTypeName;
             }
             this.updateTotalPrice();
             this.hideMessage();
@@ -694,10 +701,12 @@ class VariantSelector {
             
             delete this.addToCartBtn.dataset.variantId;
             this.addToCartBtn.dataset.productPrice = this.currentPrice.toFixed(2);
-            if (this.selectedOptions.type) {
-                this.addToCartBtn.dataset.productTypeId = this.selectedOptions.type;
+            if (selectedType) {
+                this.addToCartBtn.dataset.productTypeId = selectedType.product_type_id;
+                this.addToCartBtn.dataset.productTypeName = selectedType.name;
             } else {
                 delete this.addToCartBtn.dataset.productTypeId;
+                delete this.addToCartBtn.dataset.productTypeName;
             }
             this.updateTotalPrice();
         }

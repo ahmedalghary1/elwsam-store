@@ -69,13 +69,16 @@
         addToCart(productId, variantId = null, quantity = 1, productData = {}) {
             return new Promise((resolve) => {
                 const cart = this.getCart();
-                const existingItem = cart.find(item => item.product_id == productId && item.variant_id == variantId);
+                const productTypeId = productData.product_type_id ?? null;
+                const existingItem = cart.find(item => item.product_id == productId && item.variant_id == variantId && (item.product_type_id ?? null) == productTypeId);
                 if (existingItem) {
                     existingItem.quantity += quantity;
                 } else {
                     const newItem = {
                         product_id: productId,
                         variant_id: variantId,
+                        product_type_id: productTypeId,
+                        product_type_name: productData.product_type_name || '',
                         quantity: quantity,
                         name: productData.name || 'منتج',
                         price: parseFloat(productData.price) || 0,
@@ -93,10 +96,11 @@
         // ==============================
         // Authenticated Add (returns Promise)
         // ==============================
-        addToCartAjax(productId, variantId = null, quantity = 1) {
+        addToCartAjax(productId, variantId = null, quantity = 1, productTypeId = null) {
             const formData = new URLSearchParams();
             formData.append('product_id', productId);
             if (variantId) formData.append('variant_id', variantId);
+            if (productTypeId) formData.append('product_type_id', productTypeId);
             formData.append('quantity', quantity);
 
             return fetch('/orders/cart/add/', {
@@ -131,22 +135,24 @@
         }
 
         // دالة مساعدة لمقارنة المتغيرات
-        _findCartItem(cart, productId, variantId) {
+        _findCartItem(cart, productId, variantId, productTypeId = null) {
             const normalizedVariant = (variantId === '' || variantId === undefined || variantId === null) ? null : variantId;
+            const normalizedType = (productTypeId === '' || productTypeId === undefined || productTypeId === null) ? null : productTypeId;
             return cart.find(item => {
                 // تحويل product_id إلى سلسلة للمقارنة الآمنة
                 const itemProductId = String(item.product_id);
                 const searchProductId = String(productId);
                 const matchProduct = itemProductId === searchProductId;
                 const matchVariant = item.variant_id === normalizedVariant;
-                return matchProduct && matchVariant;
+                const matchType = (item.product_type_id ?? null) === normalizedType;
+                return matchProduct && matchVariant && matchType;
             });
         }
 
-        updateGuestQuantity(productId, variantId, quantity) {
-            console.log('updateGuestQuantity called', productId, variantId, quantity);
+        updateGuestQuantity(productId, variantId, quantity, productTypeId = null) {
+            console.log('updateGuestQuantity called', productId, variantId, quantity, productTypeId);
             const cart = this.getCart();
-            const item = this._findCartItem(cart, productId, variantId);
+            const item = this._findCartItem(cart, productId, variantId, productTypeId);
             if (item) {
                 item.quantity = Math.max(1, quantity);
                 this.saveCart(cart);
@@ -156,15 +162,17 @@
             }
         }
 
-        removeFromGuestCart(productId, variantId) {
-            console.log('removeFromGuestCart called', productId, variantId);
+        removeFromGuestCart(productId, variantId, productTypeId = null) {
+            console.log('removeFromGuestCart called', productId, variantId, productTypeId);
             const cart = this.getCart();
             const newCart = cart.filter(item => {
                 const matchProduct = String(item.product_id) === String(productId);
                 const normalizedVariant = (variantId === '' || variantId === undefined || variantId === null) ? null : variantId;
                 const matchVariant = item.variant_id === normalizedVariant;
+                const normalizedType = (productTypeId === '' || productTypeId === undefined || productTypeId === null) ? null : productTypeId;
+                const matchType = (item.product_type_id ?? null) === normalizedType;
                 // نريد الاحتفاظ بالعناصر التي لا تطابق
-                return !(matchProduct && matchVariant);
+                return !(matchProduct && matchVariant && matchType);
             });
             this.saveCart(newCart);
             this.showToast('تم حذف المنتج');
@@ -334,17 +342,20 @@
 
                 // Get variant ID if available (from new variant selector)
                 const variantId = btn.dataset.variantId || null;
+                const productTypeId = btn.dataset.productTypeId || null;
 
                 const productData = {
                     name: btn.dataset.productName || 'منتج',
                     price: parseFloat(btn.dataset.productPrice) || 0,
-                    image: btn.dataset.productImage || ''
+                    image: btn.dataset.productImage || '',
+                    product_type_id: productTypeId,
+                    product_type_name: btn.dataset.productTypeName || ''
                 };
 
                 let promise;
                 if (this.isAuthenticated()) {
                     // محاولة AJAX أولاً، مع fallback إلى localStorage عند الفشل
-                    promise = this.addToCartAjax(productId, variantId, quantity).then(result => {
+                    promise = this.addToCartAjax(productId, variantId, quantity, productTypeId).then(result => {
                         // إذا كان هناك خطأ أو فشل، استخدم localStorage
                         if (!result || result === false || (result && result.error)) {
                             console.log('AJAX failed, using localStorage fallback');
@@ -396,6 +407,7 @@
                     if (!itemDiv) return;
                     const productId = itemDiv.getAttribute('data-product-id');
                     const variantId = itemDiv.getAttribute('data-variant-id') || '';
+                    const productTypeId = itemDiv.getAttribute('data-product-type-id') || '';
                     const input = itemDiv.querySelector('.quantity-input');
                     let qty = parseInt(input.value, 10);
                     if (btn.classList.contains('minus')) {
@@ -404,7 +416,7 @@
                         qty = qty + 1;
                     }
                     input.value = qty;
-                    this.updateGuestQuantity(productId, variantId, qty);
+                    this.updateGuestQuantity(productId, variantId, qty, productTypeId);
                 }
                 const removeBtn = e.target.closest('.remove-btn');
                 if (removeBtn) {
@@ -413,7 +425,8 @@
                     if (!itemDiv) return;
                     const productId = itemDiv.getAttribute('data-product-id');
                     const variantId = itemDiv.getAttribute('data-variant-id') || '';
-                    this.removeFromGuestCart(productId, variantId);
+                    const productTypeId = itemDiv.getAttribute('data-product-type-id') || '';
+                    this.removeFromGuestCart(productId, variantId, productTypeId);
                 }
             };
             container.addEventListener('click', this._guestDelegationHandler);
@@ -496,18 +509,22 @@
             container.innerHTML = cart.map((item, index) => {
                 const qty = item.quantity && !isNaN(item.quantity) ? item.quantity : 1;
                 const price = item.price && !isNaN(item.price) ? item.price : 0;
+                const typeName = escapeHtml(item.product_type_name) || '';
                 const name = escapeHtml(item.name) || 'منتج';
                 // استخدام الصورة المخزنة أو الافتراضية
                 const imgSrc = item.image && item.image.trim() !== '' ? item.image : defaultSvg;
                 const variantIdAttr = (item.variant_id !== null && item.variant_id !== undefined) ? item.variant_id : '';
                 const hasVariant = item.variant_id !== null && item.variant_id !== undefined;
+                const productTypeIdAttr = (item.product_type_id !== null && item.product_type_id !== undefined) ? item.product_type_id : '';
+                const hasSelectionDetails = hasVariant || !!typeName;
                 return `
-                    <div class="cart-item" data-product-id="${item.product_id}" data-variant-id="${variantIdAttr}" data-cart-index="${index}">
+                    <div class="cart-item" data-product-id="${item.product_id}" data-variant-id="${variantIdAttr}" data-product-type-id="${productTypeIdAttr}" data-cart-index="${index}">
                         <div class="item-image">
                             <img src="${imgSrc}" alt="${name}" onerror="this.onerror=null;this.src='${defaultSvg}';">
                         </div>
                         <div class="item-details">
                             <h3>${name}</h3>
+                            ${typeName ? `<p class="variant-info">النوع: ${typeName}</p>` : ''}
                             <p class="item-price">${price.toFixed(2)} جنيه / قطعة</p>
                         </div>
                         <div class="item-details-btn">
