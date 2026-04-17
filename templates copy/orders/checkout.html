@@ -1,14 +1,14 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% load static %}
-{% block title %}الدفع والشراء | متجر الوسام{% endblock title %}
+{% block title %}Ø§Ù„Ø¯ÙØ¹ ÙˆØ§Ù„Ø´Ø±Ø§Ø¡ | Ù…ØªØ¬Ø± Ø§Ù„ÙˆØ³Ø§Ù…{% endblock title %}
 
 {% block content %}
 <main>
   <div class="checkout-page">
     <div class="container">
       <div class="checkout-header">
-        <h1>الدفع والشراء</h1>
-        <p>أكمل طلبك واختر طريقة الدفع</p>
+        <h1>Ø§Ù„Ø¯ÙØ¹ ÙˆØ§Ù„Ø´Ø±Ø§Ø¡</h1>
+        <p>Ø£ÙƒÙ…Ù„ Ø·Ù„Ø¨Ùƒ ÙˆØ§Ø®ØªØ± Ø·Ø±ÙŠÙ‚Ø© Ø§Ù„Ø¯ÙØ¹</p>
       </div>
 
       <form method="post" class="checkout-form" id="checkout-form">
@@ -18,7 +18,7 @@
         <div class="checkout-content">
           <!-- Order Summary -->
           <div class="order-summary">
-            <h2>ملخص الطلب</h2>
+            <h2>Ù…Ù„Ø®Øµ Ø§Ù„Ø·Ù„Ø¨</h2>
 
             <div class="order-items">
               {% for item in cart_items %}
@@ -43,11 +43,11 @@
                         </p>
                       {% endif %}
                     {% endwith %}
-                    <p class="item-price">{% if item.variant and item.variant.price %}{{ item.variant.price|floatformat:2 }}{% else %}{{ item.product.price|floatformat:2 }}{% endif %} جنيه × {{ item.quantity }}</p>
+                    <p class="item-price">{{ item.get_unit_price|floatformat:2 }} Ø¬Ù†ÙŠÙ‡ Ã— {{ item.quantity }}</p>
                   </div>
 
                   <div class="item-total">
-                    <p>{{ item.get_total_price }} جنيه</p>
+                    <p>{{ item.get_total_price }} Ø¬Ù†ÙŠÙ‡</p>
                   </div>
                 </div>
               {% endfor %}
@@ -55,16 +55,16 @@
 
             <div class="order-totals">
               <div class="total-row">
-                <span>المجموع الفرعي:</span>
-                <span>{{ cart.get_subtotal }} جنيه</span>
+                <span>Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹ Ø§Ù„ÙØ±Ø¹ÙŠ:</span>
+                <span>{{ cart.get_subtotal }} Ø¬Ù†ÙŠÙ‡</span>
               </div>
               <div class="total-row">
-                <span>الشحن:</span>
-                <span>0 جنيه</span>
+                <span>Ø§Ù„Ø´Ø­Ù†:</span>
+                <span>0 Ø¬Ù†ÙŠÙ‡</span>
               </div>
               <div class="total-row final">
-                <span>المجموع الكلي:</span>
-                <span>{{ cart.get_total_price }} جنيه</span>
+                <span>Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹ Ø§Ù„ÙƒÙ„ÙŠ:</span>
+                <span>{{ cart.get_total_price }} Ø¬Ù†ÙŠÙ‡</span>
               </div>
             </div>
           </div>
@@ -74,32 +74,32 @@
             {% if is_guest %}
             <!-- Guest Checkout Form -->
             <div class="checkout-section">
-              <h2>معلومات الشحن</h2>
+              <h2>Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø§Ù„Ø´Ø­Ù†</h2>
               <div class="form-group">
-                <label for="full_name">الاسم الكامل *</label>
+                <label for="full_name">Ø§Ù„Ø§Ø³Ù… Ø§Ù„ÙƒØ§Ù…Ù„ *</label>
                 <input type="text" id="full_name" name="full_name" class="form-control" required>
               </div>
               <div class="form-group">
-                <label for="phone">رقم الهاتف *</label>
+                <label for="phone">Ø±Ù‚Ù… Ø§Ù„Ù‡Ø§ØªÙ *</label>
                 <input type="tel" id="phone" name="phone" class="form-control" required minlength="10">
               </div>
               <div class="form-group">
-                <label for="email">البريد الإلكتروني (اختياري)</label>
+                <label for="email">Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ (Ø§Ø®ØªÙŠØ§Ø±ÙŠ)</label>
                 <input type="email" id="email" name="email" class="form-control">
               </div>
               <div class="form-group">
-                <label for="city">المحافظة *</label>
+                <label for="city">Ø§Ù„Ù…Ø­Ø§ÙØ¸Ø© *</label>
                 <input type="text" id="city" name="city" class="form-control" required>
               </div>
               <div class="form-group">
-                <label for="address">العنوان التفصيلي *</label>
+                <label for="address">Ø§Ù„Ø¹Ù†ÙˆØ§Ù† Ø§Ù„ØªÙØµÙŠÙ„ÙŠ *</label>
                 <textarea id="address" name="address" class="form-control" rows="3" required></textarea>
               </div>
             </div>
             {% else %}
             <!-- Shipping Address -->
             <div class="checkout-section">
-              <h2>عنوان الشحن</h2>
+              <h2>Ø¹Ù†ÙˆØ§Ù† Ø§Ù„Ø´Ø­Ù†</h2>
 
               {% if addresses %}
                 <div class="address-selection">
@@ -110,14 +110,14 @@
                         <div class="address-header">
                           <span class="address-name">{{ address.full_name }}</span>
                           {% if address.is_default %}
-                            <span class="default-badge">افتراضي</span>
+                            <span class="default-badge">Ø§ÙØªØ±Ø§Ø¶ÙŠ</span>
                           {% endif %}
                         </div>
                         <p>{{ address.street }}</p>
                         <p>{{ address.city }}, {{ address.country }}</p>
                         <p>{{ address.phone }}</p>
                         {% if address.postal_code %}
-                          <p>الرمز البريدي: {{ address.postal_code }}</p>
+                          <p>Ø§Ù„Ø±Ù…Ø² Ø§Ù„Ø¨Ø±ÙŠØ¯ÙŠ: {{ address.postal_code }}</p>
                         {% endif %}
                       </div>
                     </label>
@@ -125,12 +125,12 @@
                 </div>
 
                 <div class="add-address">
-                  <a href="{% url 'accounts:address_create' %}?next={{ request.path }}" class="btn btn-outline">إضافة عنوان جديد</a>
+                  <a href="{% url 'accounts:address_create' %}?next={{ request.path }}" class="btn btn-outline">Ø¥Ø¶Ø§ÙØ© Ø¹Ù†ÙˆØ§Ù† Ø¬Ø¯ÙŠØ¯</a>
                 </div>
               {% else %}
                 <div class="no-address">
-                  <p>لا توجد عناوين محفوظة</p>
-                  <a href="{% url 'accounts:address_create' %}?next={{ request.path }}" class="btn btn-primary">إضافة عنوان أول</a>
+                  <p>Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¹Ù†Ø§ÙˆÙŠÙ† Ù…Ø­ÙÙˆØ¸Ø©</p>
+                  <a href="{% url 'accounts:address_create' %}?next={{ request.path }}" class="btn btn-primary">Ø¥Ø¶Ø§ÙØ© Ø¹Ù†ÙˆØ§Ù† Ø£ÙˆÙ„</a>
                 </div>
               {% endif %}
             </div>
@@ -138,7 +138,7 @@
 
             <!-- Payment Method -->
             <div class="checkout-section">
-              <h2>طريقة الدفع</h2>
+              <h2>Ø·Ø±ÙŠÙ‚Ø© Ø§Ù„Ø¯ÙØ¹</h2>
 
               <div class="payment-methods">
                 <label class="payment-option">
@@ -146,9 +146,9 @@
                   <div class="payment-content">
                     <div class="payment-header">
                       <i class="fas fa-money-bill-wave"></i>
-                      <span>الدفع عند الاستلام</span>
+                      <span>Ø§Ù„Ø¯ÙØ¹ Ø¹Ù†Ø¯ Ø§Ù„Ø§Ø³ØªÙ„Ø§Ù…</span>
                     </div>
-                    <p>ادفع عند استلام الطلب في باب المنزل</p>
+                    <p>Ø§Ø¯ÙØ¹ Ø¹Ù†Ø¯ Ø§Ø³ØªÙ„Ø§Ù… Ø§Ù„Ø·Ù„Ø¨ ÙÙŠ Ø¨Ø§Ø¨ Ø§Ù„Ù…Ù†Ø²Ù„</p>
                   </div>
                 </label>
 
@@ -157,9 +157,9 @@
                   <div class="payment-content">
                     <div class="payment-header">
                       <i class="fas fa-credit-card"></i>
-                      <span>بطاقة الائتمان</span>
+                      <span>Ø¨Ø·Ø§Ù‚Ø© Ø§Ù„Ø§Ø¦ØªÙ…Ø§Ù†</span>
                     </div>
-                    <p>ادفع الآن ببطاقة الائتمان أو الخصم</p>
+                    <p>Ø§Ø¯ÙØ¹ Ø§Ù„Ø¢Ù† Ø¨Ø¨Ø·Ø§Ù‚Ø© Ø§Ù„Ø§Ø¦ØªÙ…Ø§Ù† Ø£Ùˆ Ø§Ù„Ø®ØµÙ…</p>
                   </div>
                 </label>
               </div>
@@ -167,8 +167,8 @@
 
             <!-- Contact Method -->
             <div class="checkout-section">
-              <h2>طريقة التواصل المفضلة</h2>
-              <p class="section-description">اختر الطريقة المفضلة للتواصل معك بخصوص الطلب</p>
+              <h2>Ø·Ø±ÙŠÙ‚Ø© Ø§Ù„ØªÙˆØ§ØµÙ„ Ø§Ù„Ù…ÙØ¶Ù„Ø©</h2>
+              <p class="section-description">Ø§Ø®ØªØ± Ø§Ù„Ø·Ø±ÙŠÙ‚Ø© Ø§Ù„Ù…ÙØ¶Ù„Ø© Ù„Ù„ØªÙˆØ§ØµÙ„ Ù…Ø¹Ùƒ Ø¨Ø®ØµÙˆØµ Ø§Ù„Ø·Ù„Ø¨</p>
 
               <div class="contact-methods">
                 <label class="contact-option">
@@ -178,8 +178,8 @@
                       <i class="fab fa-whatsapp"></i>
                     </div>
                     <div class="contact-info">
-                      <span class="contact-name">واتساب</span>
-                      <p>التواصل عبر تطبيق واتساب</p>
+                      <span class="contact-name">ÙˆØ§ØªØ³Ø§Ø¨</span>
+                      <p>Ø§Ù„ØªÙˆØ§ØµÙ„ Ø¹Ø¨Ø± ØªØ·Ø¨ÙŠÙ‚ ÙˆØ§ØªØ³Ø§Ø¨</p>
                     </div>
                   </div>
                 </label>
@@ -191,8 +191,8 @@
                       <i class="fas fa-phone-alt"></i>
                     </div>
                     <div class="contact-info">
-                      <span class="contact-name">مكالمة هاتفية</span>
-                      <p>التواصل عبر المكالمات الهاتفية</p>
+                      <span class="contact-name">Ù…ÙƒØ§Ù„Ù…Ø© Ù‡Ø§ØªÙÙŠØ©</span>
+                      <p>Ø§Ù„ØªÙˆØ§ØµÙ„ Ø¹Ø¨Ø± Ø§Ù„Ù…ÙƒØ§Ù„Ù…Ø§Øª Ø§Ù„Ù‡Ø§ØªÙÙŠØ©</p>
                     </div>
                   </div>
                 </label>
@@ -201,8 +201,8 @@
 
             <!-- Order Notes -->
             <div class="checkout-section">
-              <h2>ملاحظات الطلب</h2>
-              <p class="section-description">أي ملاحظات أو طلبات خاصة بالطلب (اختياري)</p>
+              <h2>Ù…Ù„Ø§Ø­Ø¸Ø§Øª Ø§Ù„Ø·Ù„Ø¨</h2>
+              <p class="section-description">Ø£ÙŠ Ù…Ù„Ø§Ø­Ø¸Ø§Øª Ø£Ùˆ Ø·Ù„Ø¨Ø§Øª Ø®Ø§ØµØ© Ø¨Ø§Ù„Ø·Ù„Ø¨ (Ø§Ø®ØªÙŠØ§Ø±ÙŠ)</p>
               
               <div class="form-group">
                 <textarea id="order_notes" name="order_notes" class="form-control" rows="4" ></textarea>
@@ -211,8 +211,8 @@
 
             <!-- Place Order -->
             <div class="checkout-actions">
-              <a href="{% url 'orders:cart' %}" class="btn btn-outline">العودة للسلة</a>
-              <button type="submit" class="btn btn-primary" id="submit-order-btn">تأكيد الطلب</button>
+              <a href="{% url 'orders:cart' %}" class="btn btn-outline">Ø§Ù„Ø¹ÙˆØ¯Ø© Ù„Ù„Ø³Ù„Ø©</a>
+              <button type="submit" class="btn btn-primary" id="submit-order-btn">ØªØ£ÙƒÙŠØ¯ Ø§Ù„Ø·Ù„Ø¨</button>
             </div>
           </div>
         </div>
@@ -649,13 +649,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const cart = JSON.parse(cartData);
         if (!cart || cart.length === 0) {
           e.preventDefault();
-          alert('سلة التسوق فارغة');
+          alert('Ø³Ù„Ø© Ø§Ù„ØªØ³ÙˆÙ‚ ÙØ§Ø±ØºØ©');
           window.location.href = '{% url "orders:cart" %}';
           return false;
         }
       } catch(err) {
         e.preventDefault();
-        alert('حدث خطأ في بيانات السلة');
+        alert('Ø­Ø¯Ø« Ø®Ø·Ø£ ÙÙŠ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø³Ù„Ø©');
         return false;
       }
     });
@@ -693,11 +693,11 @@ function renderGuestCartSummary() {
             <img src="${item.image || '/static/image/no-image.png'}" alt="${item.name}" onerror="this.src='/static/image/no-image.png'">
           </div>
           <div class="item-details">
-            <h3>${item.name || 'منتج'}</h3>
-            <p class="item-price">${price.toFixed(2)} جنيه × ${quantity}</p>
+            <h3>${item.name || 'Ù…Ù†ØªØ¬'}</h3>
+            <p class="item-price">${price.toFixed(2)} Ø¬Ù†ÙŠÙ‡ Ã— ${quantity}</p>
           </div>
           <div class="item-total">
-            <p>${itemTotal.toFixed(2)} جنيه</p>
+            <p>${itemTotal.toFixed(2)} Ø¬Ù†ÙŠÙ‡</p>
           </div>
         </div>
       `;
@@ -708,16 +708,16 @@ function renderGuestCartSummary() {
     if (orderTotalsContainer) {
       orderTotalsContainer.innerHTML = `
         <div class="total-row">
-          <span>المجموع الفرعي:</span>
-          <span>${total.toFixed(2)} جنيه</span>
+          <span>Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹ Ø§Ù„ÙØ±Ø¹ÙŠ:</span>
+          <span>${total.toFixed(2)} Ø¬Ù†ÙŠÙ‡</span>
         </div>
         <div class="total-row">
-          <span>الشحن:</span>
-          <span>0 جنيه</span>
+          <span>Ø§Ù„Ø´Ø­Ù†:</span>
+          <span>0 Ø¬Ù†ÙŠÙ‡</span>
         </div>
         <div class="total-row final">
-          <span>المجموع الكلي:</span>
-          <span>${total.toFixed(2)} جنيه</span>
+          <span>Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹ Ø§Ù„ÙƒÙ„ÙŠ:</span>
+          <span>${total.toFixed(2)} Ø¬Ù†ÙŠÙ‡</span>
         </div>
       `;
     }

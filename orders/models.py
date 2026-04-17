@@ -60,11 +60,15 @@ class CartItem(models.Model):
             return f"{self.quantity} x {self.product.name} ({variant_info})"
         return f"{self.quantity} x {self.product.name}"
 
+    def get_unit_price(self):
+        """Return the effective unit price for the current selection."""
+        if self.variant:
+            return self.variant.get_price()
+        return self.product.price
+
     def get_total_price(self):
         """حساب السعر الإجمالي لهذا العنصر"""
-        if self.variant and self.variant.price:
-            return self.variant.price * self.quantity
-        return self.product.price * self.quantity
+        return self.get_unit_price() * self.quantity
     
     def get_variant_display(self):
         """

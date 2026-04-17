@@ -11,6 +11,25 @@ class VariantValidator:
     """
     Validates product variant selections and enforces business rules.
     """
+
+    @staticmethod
+    def _variant_color_queryset(product, pattern_id=None):
+        filters = {
+            'product': product,
+            'color_id__isnull': False,
+        }
+        if pattern_id is None:
+            filters['pattern_id__isnull'] = True
+        else:
+            filters['pattern_id'] = pattern_id
+        return ProductVariant.objects.filter(**filters)
+
+    @staticmethod
+    def _selection_has_variant_color(product, color_id, pattern_id=None):
+        return VariantValidator._variant_color_queryset(
+            product,
+            pattern_id=pattern_id
+        ).filter(color_id=color_id).exists()
     
     @staticmethod
     def validate_variant_selection(product, pattern_id=None, color_id=None, size_id=None, type_id=None):
@@ -79,21 +98,40 @@ class VariantValidator:
             try:
                 pattern_obj = Pattern.objects.get(id=pattern_id, product=product)
                 has_pattern_colors = PatternColor.objects.filter(pattern=pattern_obj).exists()
-                if has_pattern_colors and not color_id:
+                has_variant_colors = VariantValidator._variant_color_queryset(
+                    product,
+                    pattern_id=pattern_obj.id
+                ).exists()
+                if (has_pattern_colors or has_variant_colors) and not color_id:
                     errors['color'] = 'يجب اختيار اللون'
-                if color_id and has_pattern_colors:
-                    if not PatternColor.objects.filter(
+                if color_id:
+                    color_in_pattern = has_pattern_colors and PatternColor.objects.filter(
                         pattern=pattern_obj, color_id=color_id
-                    ).exists():
+                    ).exists()
+                    color_in_variants = VariantValidator._selection_has_variant_color(
+                        product,
+                        color_id,
+                        pattern_id=pattern_obj.id
+                    )
+                    if not color_in_pattern and not color_in_variants:
                         errors['color'] = 'اللون المحدد غير متوفر لهذا النمط'
             except Pattern.DoesNotExist:
                 pass
         else:
             has_colors = ProductColor.objects.filter(product=product).exists()
-            if has_colors and not color_id and not has_type_colors:
+            has_variant_colors = VariantValidator._variant_color_queryset(product).exists()
+            if (has_colors or has_variant_colors) and not color_id and not has_type_colors:
                 errors['color'] = 'يجب اختيار اللون'
             if color_id and not pattern_id and not has_type_colors:
-                if not ProductColor.objects.filter(product=product, color_id=color_id).exists():
+                color_in_product = ProductColor.objects.filter(
+                    product=product,
+                    color_id=color_id
+                ).exists()
+                color_in_variants = VariantValidator._selection_has_variant_color(
+                    product,
+                    color_id
+                )
+                if not color_in_product and not color_in_variants:
                     errors['color'] = 'اللون المحدد غير متوفر لهذا المنتج'
 
         # Check if product has product-level sizes (not pattern-based)

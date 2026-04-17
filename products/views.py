@@ -701,7 +701,7 @@ def get_variant_detail(request, variant_id):
                 'color_name': variant.color.name if variant.color else None,
                 'color_code': variant.color.code if variant.color else None,
                 'size_name': variant.size.name if variant.size else None,
-                'price': str(variant.price) if variant.price else None,
+                'price': str(variant.get_price()),
                 'sku': variant.sku,
                 'stock': variant.stock,
                 'available': variant.is_available()
@@ -797,7 +797,7 @@ def search_products(request):
     
     if query:
         products = Product.objects.filter(
-            Q(name__icontains=query) | 
+            Q(name__icontains=query) |
             Q(description__icontains=query) |
             Q(category__name__icontains=query),
             is_active=True

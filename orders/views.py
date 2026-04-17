@@ -292,7 +292,7 @@ class CheckoutView(View):
                     if item.get('variant_id'):
                         variant = ProductVariant.objects.get(id=item['variant_id'], product=product)
 
-                    price = variant.price if variant else product.price
+                    price = variant.get_price() if variant else product.price
                     quantity = int(item.get('quantity', 1))
                     item_total = price * quantity
                     total_price += item_total

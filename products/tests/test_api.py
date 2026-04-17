@@ -462,6 +462,50 @@ class VariantInfoAPITestCase(TestCase):
         self.assertFalse(data['validation']['valid'])
 
 
+class VariantDerivedColorAPITestCase(TestCase):
+    """Ensure variant-info accepts colors sourced directly from ProductVariant rows."""
+
+    def setUp(self):
+        self.client = Client()
+        self.category = Category.objects.create(name='Variant Color Category')
+        self.product = Product.objects.create(
+            name='Variant Color Product',
+            category=self.category,
+            description='Variant color test',
+            price=Decimal('90.00'),
+            is_active=True
+        )
+        self.size = Size.objects.create(name='L')
+        self.color = Color.objects.create(name='Olive', code='#556B2F')
+        ProductSize.objects.create(
+            product=self.product,
+            size=self.size,
+            price=Decimal('120.00')
+        )
+        self.variant = ProductVariant.objects.create(
+            product=self.product,
+            color=self.color,
+            size=self.size,
+            price=Decimal('999.99'),
+            stock=3
+        )
+
+    def test_variant_info_accepts_variant_derived_color_without_product_color(self):
+        url = f'/api/variant-info/{self.product.id}/'
+        response = self.client.get(url, {
+            'color_id': self.color.id,
+            'size_id': self.size.id,
+        })
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+
+        self.assertTrue(data['success'])
+        self.assertTrue(data['validation']['valid'])
+        self.assertEqual(data['variant']['id'], self.variant.id)
+        self.assertEqual(data['variant']['price'], '120.00')
+
+
 class ProductTypeColorImagesAPITestCase(TestCase):
     """Test type-scoped color image APIs."""
 
