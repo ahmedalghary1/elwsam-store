@@ -1,25 +1,25 @@
 ﻿{% extends "base.html" %}
 {% load static %}
 
-{% block title %}Ø³Ù„Ø© Ø§Ù„ØªØ³ÙˆÙ‚ | Ù…ØªØ¬Ø± Ø§Ù„ÙˆØ³Ø§Ù…{% endblock title %}
+{% block title %}سلة التسوق | متجر الوسام{% endblock title %}
 
 {% block content %}
 <main>
   <div class="cart-page">
     <div class="container">
       <div class="cart-header">
-        <h1>Ø³Ù„Ø© Ø§Ù„ØªØ³ÙˆÙ‚</h1>
+        <h1>سلة التسوق</h1>
         <p id="cart-count">
           {% if user.is_authenticated and cart_items %}
-            {{ cart_items|length }} Ù…Ù†ØªØ¬
+            {{ cart_items|length }} منتج
           {% else %}
-            0 Ù…Ù†ØªØ¬
+            0 منتج
           {% endif %}
         </p>
       </div>
 
       {% if user.is_authenticated %}
-        {# Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… Ù…Ø³Ø¬Ù„ â€“ Ù†Ø¹Ø±Ø¶ Ø§Ù„Ø³Ù„Ø© Ù…Ù† Ù‚Ø§Ø¹Ø¯Ø© Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª #}
+        {# المستخدم مسجل – نعرض السلة من قاعدة البيانات #}
         {% if cart_items %}
           <div class="cart-content">
             <!-- Cart Items -->
@@ -30,7 +30,7 @@
                     {% if item.product.image %}
                       <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
                     {% else %}
-                      <img src="{% static 'image/no-image.png' %}" alt="ØµÙˆØ±Ø© Ø§Ù„Ù…Ù†ØªØ¬">
+                      <img src="{% static 'image/no-image.png' %}" alt="صورة المنتج">
                     {% endif %}
                   </div>
 
@@ -46,12 +46,12 @@
                         </p>
                       {% endif %} -->
                     {% endwith %}
-                    <p class="item-price">{{ item.get_unit_price|floatformat:2 }} Ø¬Ù†ÙŠÙ‡ / Ù‚Ø·Ø¹Ø©</p>
+                    <p class="item-price">{{ item.get_unit_price|floatformat:2 }} جنيه / قطعة</p>
                   </div>
 
                   <div class="item-details-btn">
                     {% if item.variant %}
-                      <button class="details-btn" onclick="showVariantDetails({{ item.id }})">Ø§Ù„ØªÙØ§ØµÙŠÙ„</button>
+                      <button class="details-btn" onclick="showVariantDetails({{ item.id }})">التفاصيل</button>
                     {% endif %}
                   </div>
 
@@ -62,7 +62,7 @@
                   </div>
 
                   <div class="item-total">
-                    <p class="total-price">{{ item.get_total_price }} Ø¬Ù†ÙŠÙ‡</p>
+                    <p class="total-price">{{ item.get_total_price }} جنيه</p>
                   </div>
 
                   <div class="item-actions">
@@ -77,26 +77,26 @@
             <!-- Cart Summary -->
             <div class="cart-summary">
               <div class="summary-content">
-                <h3>Ù…Ù„Ø®Øµ Ø§Ù„Ø·Ù„Ø¨</h3>
+                <h3>ملخص الطلب</h3>
 
                 <div class="summary-row">
-                  <span>Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹ Ø§Ù„ÙØ±Ø¹ÙŠ:</span>
-                  <span id="subtotal">{{ cart.get_total_price }} Ø¬Ù†ÙŠÙ‡</span>
+                  <span>المجموع الفرعي:</span>
+                  <span id="subtotal">{{ cart.get_total_price }} جنيه</span>
                 </div>
 
                 <div class="summary-row">
-                  <span>Ø§Ù„Ø´Ø­Ù†:</span>
-                  <span id="shipping">0 Ø¬Ù†ÙŠÙ‡</span>
+                  <span>الشحن:</span>
+                  <span id="shipping">0 جنيه</span>
                 </div>
 
                 <div class="summary-row total">
-                  <span>Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹ Ø§Ù„ÙƒÙ„ÙŠ:</span>
-                  <span id="total">{{ cart.get_total_price }} Ø¬Ù†ÙŠÙ‡</span>
+                  <span>المجموع الكلي:</span>
+                  <span id="total">{{ cart.get_total_price }} جنيه</span>
                 </div>
 
                 <div class="checkout-actions">
-                  <a href="{% url 'category_list' %}" class="btn btn-outline">Ù…ØªØ§Ø¨Ø¹Ø© Ø§Ù„ØªØ³ÙˆÙ‚</a>
-                  <a href="{% url 'orders:checkout' %}" class="btn btn-primary">Ø§Ù„Ù…ØªØ§Ø¨Ø¹Ø© Ù„Ù„Ø¯ÙØ¹</a>
+                  <a href="{% url 'category_list' %}" class="btn btn-outline">متابعة التسوق</a>
+                  <a href="{% url 'orders:checkout' %}" class="btn btn-primary">المتابعة للدفع</a>
                 </div>
               </div>
             </div>
@@ -105,9 +105,9 @@
           <!-- Ø§Ù„Ø³Ù„Ø© ÙØ§Ø±ØºØ© Ù„Ù„Ù…Ø³ØªØ®Ø¯Ù… Ø§Ù„Ù…Ø³Ø¬Ù„ -->
           <div class="empty-cart">
             <div class="empty-cart-icon"><i class="fas fa-shopping-cart"></i></div>
-            <h2>Ø³Ù„Ø© Ø§Ù„ØªØ³ÙˆÙ‚ ÙØ§Ø±ØºØ©</h2>
-            <p>Ù„Ù… ØªÙ‚Ù… Ø¨Ø¥Ø¶Ø§ÙØ© Ø£ÙŠ Ù…Ù†ØªØ¬Ø§Øª Ù„Ù„Ø³Ù„Ø© Ø¨Ø¹Ø¯</p>
-            <a href="{% url 'category_list' %}" class="btn btn-primary">ØªØµÙØ­ Ø§Ù„Ø£Ù‚Ø³Ø§Ù…</a>
+            <h2>سلة التسوق فارغة</h2>
+            <p>لم تقم بإضافة أي منتجات إلى السلة بعد</p>
+            <a href="{% url 'category_list' %}" class="btn btn-primary">تصفح الأقسام</a>
           </div>
         {% endif %}
 
@@ -118,13 +118,13 @@
             <div class="cart-items" id="guest-cart-items"></div>
             <div class="cart-summary" id="cart-content-guest" style="display:none;">
               <div class="summary-content">
-                <h3>Ù…Ù„Ø®Øµ Ø§Ù„Ø·Ù„Ø¨</h3>
-                <div class="summary-row"><span>Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹ Ø§Ù„ÙØ±Ø¹ÙŠ:</span><span id="guest-subtotal">0 Ø¬Ù†ÙŠÙ‡</span></div>
-                <div class="summary-row"><span>Ø§Ù„Ø´Ø­Ù†:</span><span>0 Ø¬Ù†ÙŠÙ‡</span></div>
-                <div class="summary-row total"><span>Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹ Ø§Ù„ÙƒÙ„ÙŠ:</span><span id="guest-total">0 Ø¬Ù†ÙŠÙ‡</span></div>
+                <h3>ملخص الطلب</h3>
+                <div class="summary-row"><span>المجموع الفرعي:</span><span id="guest-subtotal">0 جنيه</span></div>
+                <div class="summary-row"><span>الشحن:</span><span>0 جنيه</span></div>
+                <div class="summary-row total"><span>المجموع الكلي:</span><span id="guest-total">0 جنيه</span></div>
                 <div class="checkout-actions">
-                  <a href="{% url 'category_list' %}" class="btn btn-outline">Ù…ØªØ§Ø¨Ø¹Ø© Ø§Ù„ØªØ³ÙˆÙ‚</a>
-                  <a href="{% url 'orders:checkout' %}" class="btn btn-primary">Ø§Ù„Ù…ØªØ§Ø¨Ø¹Ø© Ù„Ù„Ø¯ÙØ¹</a>
+                  <a href="{% url 'category_list' %}" class="btn btn-outline">متابعة التسوق</a>
+                  <a href="{% url 'orders:checkout' %}" class="btn btn-primary">المتابعة للدفع</a>
                 </div>
               </div>
             </div>
@@ -132,9 +132,9 @@
         </div>
         <div id="guest-empty-cart" class="empty-cart" style="display: none;">
           <div class="empty-cart-icon"><i class="fas fa-shopping-cart"></i></div>
-          <h2>Ø³Ù„Ø© Ø§Ù„ØªØ³ÙˆÙ‚ ÙØ§Ø±ØºØ©</h2>
-          <p>ÙŠÙ…ÙƒÙ†Ùƒ Ø¥Ø¶Ø§ÙØ© Ù…Ù†ØªØ¬Ø§Øª Ø¥Ù„Ù‰ Ø³Ù„ØªÙƒ Ø­ØªÙ‰ Ù„Ùˆ Ù„Ù… ØªÙƒÙ† Ù…Ø³Ø¬Ù„Ø§Ù‹ØŒ ÙˆØ³ÙŠØªÙ… Ø­ÙØ¸Ù‡Ø§ Ù…Ø¤Ù‚ØªÙ‹Ø§.</p>
-          <a href="{% url 'category_list' %}" class="btn btn-primary">ØªØµÙØ­ Ø§Ù„Ø£Ù‚Ø³Ø§Ù…</a>
+          <h2>سلة التسوق فارغة</h2>
+          <p>يمكنك إضافة منتجات إلى سلتك حتى لو لم تكن مسجلًا، وسيتم حفظها مؤقتًا.</p>
+          <a href="{% url 'category_list' %}" class="btn btn-primary">تصفح الأقسام</a>
         </div>
       {% endif %}
     </div>
@@ -144,7 +144,7 @@
   <div id="variant-modal" class="modal" style="display: none;">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ù…Ù†ØªØ¬</h3>
+        <h3>تفاصيل المنتج</h3>
         <button class="modal-close" onclick="closeVariantModal()">&times;</button>
       </div>
       <div class="modal-body" id="modal-variant-details">
@@ -159,9 +159,9 @@
   document.addEventListener('DOMContentLoaded', function() {
     const isAuthenticated = document.body.dataset.auth === 'true';
     if (!isAuthenticated && window.cartManager) {
-      // Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„ØªØµÙŠÙŠØ± ÙŠØ¯ÙˆÙŠØ§Ù‹ Ø¨Ø¹Ø¯ Ø§Ù„ØªØ£ÙƒØ¯ Ù…Ù† ÙˆØ¬ÙˆØ¯ Ø§Ù„Ø­Ø§ÙˆÙŠØ©
+      // إعادة التصيير يدوياً بعد التأكد من وجود الحاوية
       window.cartManager.renderGuestCart();
-      // ØªØ­Ø¯ÙŠØ« Ø§Ù„Ù…Ù„Ø®Øµ
+      // تحديث الملخص
       window.cartManager.updateGuestSummary();
     }
   });
@@ -197,14 +197,14 @@
       
       if (data.success && data.variant) {
         const v = data.variant;
-        let html = '<div class="variant-detail-item"><strong>Ø§Ù„Ù…Ù†ØªØ¬:</strong> ' + (item.name || 'Ù…Ù†ØªØ¬') + '</div>';
+        let html = '<div class="variant-detail-item"><strong>المنتج:</strong> ' + (item.name || 'منتج') + '</div>';
         
         if (v.pattern_name) {
-          html += '<div class="variant-detail-item"><strong>Ø§Ù„Ù†Ù…Ø·:</strong> ' + v.pattern_name + '</div>';
+          html += '<div class="variant-detail-item"><strong>النمط:</strong> ' + v.pattern_name + '</div>';
         }
         
         if (v.color_name) {
-          html += '<div class="variant-detail-item"><strong>Ø§Ù„Ù„ÙˆÙ†:</strong> ';
+          html += '<div class="variant-detail-item"><strong>اللون:</strong> ';
           if (v.color_code) {
             html += '<span class="color-dot" style="background:' + v.color_code + ';"></span> ';
           }
@@ -212,13 +212,13 @@
         }
         
         if (v.size_name) {
-          html += '<div class="variant-detail-item"><strong>Ø§Ù„Ù…Ù‚Ø§Ø³:</strong> ' + v.size_name + '</div>';
+          html += '<div class="variant-detail-item"><strong>المقاس:</strong> ' + v.size_name + '</div>';
         }
         
-        html += '<div class="variant-detail-item"><strong>Ø§Ù„Ø³Ø¹Ø±:</strong> ' + (item.price || 0).toFixed(2) + ' Ø¬Ù†ÙŠÙ‡</div>';
+        html += '<div class="variant-detail-item"><strong>السعر:</strong> ' + (item.price || 0).toFixed(2) + ' جنيه</div>';
         
         if (v.sku) {
-          html += '<div class="variant-detail-item"><strong>Ø±Ù‚Ù… Ø§Ù„Ù…Ù†ØªØ¬:</strong> ' + v.sku + '</div>';
+          html += '<div class="variant-detail-item"><strong>رقم المنتج:</strong> ' + v.sku + '</div>';
         }
 
         document.getElementById('modal-variant-details').innerHTML = html;
@@ -233,14 +233,14 @@
     const data = variantData[itemId];
     if (!data) return;
 
-    let html = '<div class="variant-detail-item"><strong>Ø§Ù„Ù…Ù†ØªØ¬:</strong> ' + data.product + '</div>';
+    let html = '<div class="variant-detail-item"><strong>المنتج:</strong> ' + data.product + '</div>';
     
     if (data.pattern) {
-      html += '<div class="variant-detail-item"><strong>Ø§Ù„Ù†Ù…Ø·:</strong> ' + data.pattern + '</div>';
+      html += '<div class="variant-detail-item"><strong>النمط:</strong> ' + data.pattern + '</div>';
     }
     
     if (data.color) {
-      html += '<div class="variant-detail-item"><strong>Ø§Ù„Ù„ÙˆÙ†:</strong> ';
+      html += '<div class="variant-detail-item"><strong>اللون:</strong> ';
       if (data.colorCode) {
         html += '<span class="color-dot" style="background:' + data.colorCode + ';"></span> ';
       }
@@ -248,13 +248,13 @@
     }
     
     if (data.size) {
-      html += '<div class="variant-detail-item"><strong>Ø§Ù„Ù…Ù‚Ø§Ø³:</strong> ' + data.size + '</div>';
+      html += '<div class="variant-detail-item"><strong>المقاس:</strong> ' + data.size + '</div>';
     }
     
-    html += '<div class="variant-detail-item"><strong>Ø§Ù„Ø³Ø¹Ø±:</strong> ' + data.price + ' Ø¬Ù†ÙŠÙ‡</div>';
+    html += '<div class="variant-detail-item"><strong>السعر:</strong> ' + data.price + ' جنيه</div>';
     
     if (data.sku) {
-      html += '<div class="variant-detail-item"><strong>Ø±Ù‚Ù… Ø§Ù„Ù…Ù†ØªØ¬:</strong> ' + data.sku + '</div>';
+      html += '<div class="variant-detail-item"><strong>رقم المنتج:</strong> ' + data.sku + '</div>';
     }
 
     document.getElementById('modal-variant-details').innerHTML = html;
@@ -275,7 +275,7 @@
 </script>
 
 <style>
-  /* ØªØ­Ø³ÙŠÙ† Ø§Ù„ØªØµÙ…ÙŠÙ… Ù„ÙŠÙƒÙˆÙ† Ù…ØªØ¬Ø§ÙˆØ¨Ù‹Ø§ Ù…Ø¹ Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø´Ø§Ø´Ø§Øª */
+  /* تحسين التصميم ليكون متجاوبًا مع جميع الشاشات */
   .cart-page {
     padding: 2rem 0;
     min-height: 60vh;
@@ -493,7 +493,7 @@
     color: var(--color-gray-500);
   }
 
-  /* ØªØ­Ø³ÙŠÙ†Ø§Øª Ù„Ù„Ø´Ø§Ø´Ø§Øª Ø§Ù„Ù…ØªÙˆØ³Ø·Ø© ÙˆØ§Ù„ØµØºÙŠØ±Ø© */
+  /* تحسينات للشاشات المتوسطة والصغيرة */
   @media (max-width: 992px) {
     .cart-content {
       grid-template-columns: 1fr;

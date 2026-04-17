@@ -300,7 +300,7 @@ class VariantSelector {
             mainImage.src = data.images[0];
             galleryThumbs.innerHTML = data.images.map((url, i) => 
                 `<div class="gallery-thumb ${i === 0 ? 'active' : ''}" data-src="${url}">
-                    <img src="${url}" alt="Product Image">
+                    <img src="${url}" alt="صورة المنتج">
                 </div>`
             ).join('');
             
@@ -328,7 +328,7 @@ class VariantSelector {
         if (galleryThumbs && this.defaultImageUrl) {
             galleryThumbs.innerHTML = `
                 <div class="gallery-thumb active" data-src="${this.defaultImageUrl}">
-                    <img src="${this.defaultImageUrl}" alt="Product Image">
+                    <img src="${this.defaultImageUrl}" alt="صورة المنتج">
                 </div>`;
         }
     }
