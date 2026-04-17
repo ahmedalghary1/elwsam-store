@@ -380,10 +380,10 @@ class PatternVariantInline(SortableInlineAdminMixin, admin.TabularInline):
 
 @admin.register(Category)
 class CategoryAdmin(SortableAdminMixin, admin.ModelAdmin):
-    list_display = ['cat_icon', 'name', 'product_count', 'is_hot', 'order']
+    list_display = ['cat_icon', 'name', 'product_count', 'is_active', 'is_hot', 'order']
     list_display_links = ['name']
-    list_editable = ['is_hot']
-    list_filter = ['is_hot']
+    list_editable = ['is_active', 'is_hot']
+    list_filter = ['is_active', 'is_hot']
     search_fields = ['name']
     ordering = ['order']
     list_per_page = 25
@@ -391,7 +391,7 @@ class CategoryAdmin(SortableAdminMixin, admin.ModelAdmin):
     fieldsets = (
         ('\u0645\u0639\u0644\u0648\u0645\u0627\u062a \u0627\u0644\u0642\u0633\u0645', {'fields': ('name', 'slug', 'description', 'icon')}),
         ('\u0627\u0644\u0635\u0648\u0631\u0629', {'fields': ('image',)}),
-        ('\u0627\u0644\u0625\u0639\u062f\u0627\u062f\u0627\u062a', {'fields': ('is_hot', 'order')}),
+        ('\u0627\u0644\u0625\u0639\u062f\u0627\u062f\u0627\u062a', {'fields': ('is_active', 'is_hot', 'order')}),
     )
 
     def cat_icon(self, obj):
@@ -404,7 +404,7 @@ class CategoryAdmin(SortableAdminMixin, admin.ModelAdmin):
     cat_icon.short_description = ''
 
     def product_count(self, obj):
-        count = obj.product_set.count()
+        count = obj.product_set.filter(is_active=True).count()
         color = '#28a745' if count > 0 else '#999'
         return format_html('<span style="color:{};font-weight:bold;">{}</span>', color, count)
     product_count.short_description = '\u0639\u062f\u062f \u0627\u0644\u0645\u0646\u062a\u062c\u0627\u062a'

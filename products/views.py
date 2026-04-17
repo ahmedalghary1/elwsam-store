@@ -21,7 +21,7 @@ class CategoryListView(ListView):
     ordering = ['order']
     
     def get_queryset(self):
-        return Category.objects.all().order_by('order').prefetch_related('product_set')
+        return Category.objects.filter(is_active=True).order_by('order').prefetch_related('product_set')
 
 
 def category_products(request, id, slug):
@@ -29,7 +29,7 @@ def category_products(request, id, slug):
     عرض جميع المنتجات الخاصة بقسم معين (حسب ID)
     مع إمكانية الفرز والتصفية
     """
-    category = get_object_or_404(Category, id=id)
+    category = get_object_or_404(Category, id=id, is_active=True)
     
     # الحصول على جميع المنتجات النشطة للقسم
     products = Product.objects.filter(
@@ -102,7 +102,7 @@ class ProductListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['categories'] = Category.objects.all().order_by('order')
+        context['categories'] = Category.objects.filter(is_active=True).order_by('order')
         context['sort_by'] = self.request.GET.get('sort', 'order')
         context['search_query'] = self.request.GET.get('q', '')
         context['selected_category'] = self.request.GET.get('category', '')

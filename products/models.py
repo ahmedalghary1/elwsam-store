@@ -12,6 +12,7 @@ class Category(models.Model):
     slug = models.CharField(max_length=255, unique=True, blank=True, db_index=True)
     icon = models.CharField(max_length=50, default='📁', help_text='أيقونة Emoji أو نص قصير')
     is_hot = models.BooleanField(default=False, help_text='هل هذا القسم من الأقسام المشهورة؟')
+    is_active = models.BooleanField(default=True, help_text='Active visibility flag for categories')
     order = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -40,7 +41,7 @@ class Category(models.Model):
     
     def get_product_count(self):
         """حساب عدد المنتجات في هذا القسم"""
-        return self.product_set.count()
+        return self.product_set.filter(is_active=True).count()
     
     def get_absolute_url(self):
         """الحصول على رابط القسم"""
