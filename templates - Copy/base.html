@@ -49,12 +49,25 @@
         </div>
         <div class="navbar-actions">
           <!-- <a href="{% url 'orders:wishlist' %}" class="nav-icon-btn" aria-label="المفضلة"><i class="far fa-heart"></i><span class="nav-badge wishlist-count" style="display:{% if wishlist_count > 0 %}flex{% else %}none{% endif %}">{{ wishlist_count }}</span></a> -->
-          <a href="{% url 'orders:cart' %}" class="nav-icon-btn" aria-label="السلة"><i class="fas fa-shopping-cart"></i><span class="nav-badge cart-count" style="display:{% if cart_count > 0 %}flex{% else %}none{% endif %}">{{ cart_count }}</span></a>
+          <a href="{% url 'orders:cart' %}" class="nav-icon-btn" aria-label="السلة">
+            <svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path fill="currentColor" d="M2.75 4.5a.75.75 0 0 1 .75-.75h1.48c.73 0 1.37.5 1.54 1.21l.19.79h12.02c1.08 0 1.88 1 1.64 2.05l-1.03 4.5a1.75 1.75 0 0 1-1.71 1.35H9.09a1.75 1.75 0 0 1-1.7-1.34L5.56 5.1a.26.26 0 0 0-.25-.2H3.5a.75.75 0 0 1-.75-.75Zm4.34 2.75 1.76 7.05a.25.25 0 0 0 .24.2h9.54a.25.25 0 0 0 .24-.2l1.03-4.5a.25.25 0 0 0-.24-.3H7.09Zm2.66 11a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm8 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z"/>
+            </svg>
+            <span class="nav-badge cart-count" style="display:{% if cart_count > 0 %}flex{% else %}none{% endif %}">{{ cart_count }}</span>
+          </a>
           <a href="{% if user.is_authenticated %}{% url 'accounts:profile' %}{% else %}{% url 'accounts:login' %}{% endif %}" 
              class="nav-icon-btn profile-btn" 
              aria-label="{% if user.is_authenticated %}البروفايل{% else %}تسجيل الدخول{% endif %}" 
              data-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}">
-             <i class="{% if user.is_authenticated %}fas fa-user{% else %}fas fa-sign-in-alt{% endif %}"></i>
+             {% if user.is_authenticated %}
+             <svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+               <path fill="currentColor" d="M12 12a4.25 4.25 0 1 0 0-8.5 4.25 4.25 0 0 0 0 8.5Zm0 1.5c-4.2 0-7.75 2.66-7.75 5.75 0 .41.34.75.75.75h14c.41 0 .75-.34.75-.75 0-3.09-3.55-5.75-7.75-5.75Z"/>
+             </svg>
+             {% else %}
+             <svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+               <path fill="currentColor" d="M10 4.75A.75.75 0 0 1 10.75 4h5.5A2.75 2.75 0 0 1 19 6.75v10.5A2.75 2.75 0 0 1 16.25 20h-5.5a.75.75 0 0 1 0-1.5h5.5c.69 0 1.25-.56 1.25-1.25V6.75c0-.69-.56-1.25-1.25-1.25h-5.5A.75.75 0 0 1 10 4.75Zm-5.78 7.78a.75.75 0 0 1 0-1.06l2.75-2.75a.75.75 0 0 1 1.28.53v1.5h6a.75.75 0 0 1 0 1.5h-6v1.5a.75.75 0 0 1-1.28.53l-2.75-2.75Z"/>
+             </svg>
+             {% endif %}
           </a>
         </div>
       </div>
@@ -196,6 +209,18 @@
         });
       });
     });
-  </script>
+</script>
+<style>
+  .nav-icon-svg {
+    width: 1.2rem;
+    height: 1.2rem;
+    display: block;
+    flex-shrink: 0;
+  }
+
+  .nav-icon-btn {
+    line-height: 0;
+  }
+</style>
 </body>
 </html>
