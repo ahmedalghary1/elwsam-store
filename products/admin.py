@@ -426,7 +426,7 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_display_links = ['name']
     list_editable = ['is_active', 'is_hot', 'is_new']
     list_filter = ['category', 'is_active', 'is_hot', 'is_new']
-    search_fields = ['name', 'category__name']
+    search_fields = ['name', 'seo_title', 'meta_description', 'category__name']
     ordering = ['order']
     readonly_fields = ['created_at', 'updated_at', 'image_preview', 'discount_info']
     list_per_page = 25
@@ -434,6 +434,21 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
     fieldsets = (
         ('معلومات المنتج', {
             'fields': ('name', 'slug', 'category', 'description')
+        }),
+        ('SEO', {
+            'fields': (
+                'seo_title',
+                'meta_description',
+                'seo_h1',
+                'seo_description',
+                'focus_keywords',
+                'seo_faq',
+                'seo_image_alt_texts',
+                'internal_linking_suggestions',
+                'schema_markup',
+            ),
+            'classes': ('collapse',),
+            'description': 'حقول SEO مخصصة لصفحة المنتج. عند تركها فارغة سيستخدم الموقع fallback تلقائي من اسم ووصف المنتج.'
         }),
         ('الصورة الرئيسية', {
             'fields': ('image', 'image_preview')

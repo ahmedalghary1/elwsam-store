@@ -1,5 +1,8 @@
+import json
+
 from django.db import models
-from django.utils.text import slugify
+from django.utils.html import strip_tags
+from django.utils.text import Truncator, slugify
 from accounts.models import User
 # =========================
 # Category (ترتيب الأقسام)
@@ -60,6 +63,15 @@ class Product(models.Model):
     description = models.TextField()
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     image = models.ImageField(upload_to='products/', blank=True, null=True)
+    seo_title = models.CharField(max_length=255, blank=True, help_text='عنوان SEO مخصص لصفحة المنتج')
+    meta_description = models.CharField(max_length=320, blank=True, help_text='وصف Meta Description مخصص')
+    seo_h1 = models.CharField(max_length=255, blank=True, help_text='عنوان H1 مخصص داخل صفحة المنتج')
+    seo_description = models.TextField(blank=True, help_text='وصف SEO طويل مخصص للظهور داخل صفحة المنتج')
+    focus_keywords = models.TextField(blank=True, help_text='الكلمات المفتاحية الأساسية والفرعية')
+    seo_faq = models.TextField(blank=True, help_text='FAQ منسق بصيغة: س: ... ثم ج: ...')
+    seo_image_alt_texts = models.TextField(blank=True, help_text='اقتراحات Alt Text للصور، سطر لكل اقتراح')
+    internal_linking_suggestions = models.TextField(blank=True, help_text='اقتراحات الربط الداخلي لكل منتج')
+    schema_markup = models.TextField(blank=True, help_text='Product JSON-LD schema جاهز إذا توفر')
     # معلومات الأسعار
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     old_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, help_text='السعر القديم (للخصم)')
@@ -273,6 +285,218 @@ class Product(models.Model):
         if self.is_simple_product():
             return self.stock
         return None
+
+    def _plain_text_description(self):
+        """Normalize long descriptions for SEO fallbacks."""
+        text = strip_tags(self.description or "")
+        return " ".join(text.split())
+
+    def get_seo_title(self):
+        """Return the SEO title with a sensible fallback."""
+        if self.seo_title:
+            return self.seo_title
+        return f"{self.name} | متجر الوسام"
+
+    def get_meta_description(self):
+        """Return a concise meta description suitable for search results."""
+        if self.meta_description:
+            return self.meta_description
+        text = self._plain_text_description()
+        if not text:
+            text = f"اشترِ {self.name} من متجر الوسام مع تفاصيل واضحة وسعر مناسب."
+        return Truncator(text).chars(160)
+
+    def get_seo_h1(self):
+        """Return the H1 used inside the product page."""
+        return self.seo_h1 or self.name
+
+    def get_seo_description(self):
+        """Return rich SEO content for the product page body."""
+        return self.seo_description or self.description
+
+    def get_focus_keywords_list(self):
+        """Split stored keywords into a clean list for admin or future templates."""
+        if not self.focus_keywords:
+            return []
+        raw_keywords = self.focus_keywords.replace("\r", "\n").replace("|", "\n")
+        return [item.strip() for item in raw_keywords.splitlines() if item.strip()]
+
+    def get_seo_image_alt_texts(self):
+        """Return image alt suggestions as a list, one item per line."""
+        if not self.seo_image_alt_texts:
+            return []
+        return [item.strip() for item in self.seo_image_alt_texts.splitlines() if item.strip()]
+
+    def get_primary_image_alt(self):
+        """Fallback alt text for product images."""
+        alt_texts = self.get_seo_image_alt_texts()
+        if alt_texts:
+            return alt_texts[0]
+        return self.get_seo_h1()
+
+    def get_faq_items(self):
+        """Parse the stored FAQ text into question/answer pairs."""
+        if not self.seo_faq:
+            return []
+
+        items = []
+        question = ""
+        answer_lines = []
+
+        for line in self.seo_faq.splitlines():
+            stripped = line.strip()
+            if not stripped:
+                if question and answer_lines:
+                    items.append({
+                        "question": question,
+                        "answer": " ".join(answer_lines).strip(),
+                    })
+                    question = ""
+                    answer_lines = []
+                continue
+
+            if stripped.startswith("س:"):
+                if question and answer_lines:
+                    items.append({
+                        "question": question,
+                        "answer": " ".join(answer_lines).strip(),
+                    })
+                    answer_lines = []
+                question = stripped[2:].strip()
+            elif stripped.startswith("ج:"):
+                answer_lines.append(stripped[2:].strip())
+            else:
+                answer_lines.append(stripped)
+
+        if question and answer_lines:
+            items.append({
+                "question": question,
+                "answer": " ".join(answer_lines).strip(),
+            })
+
+        return items
+
+    def build_product_schema(self, url=None, image_url=None):
+        """Generate a Product schema fallback when custom markup is unavailable."""
+        category_name = ""
+        if self.category_id:
+            try:
+                category_name = self.category.name
+            except Exception:
+                category_name = ""
+
+        schema = {
+            "@context": "https://schema.org",
+            "@type": "Product",
+            "name": self.get_seo_h1(),
+            "description": self.get_meta_description(),
+            "category": category_name,
+            "sku": self.slug,
+            "brand": {
+                "@type": "Brand",
+                "name": "الوسام",
+            },
+            "offers": {
+                "@type": "Offer",
+                "priceCurrency": "EGP",
+                "price": str(self.price),
+                "availability": "https://schema.org/InStock" if self.is_available() else "https://schema.org/OutOfStock",
+            },
+        }
+        if image_url:
+            schema["image"] = [image_url]
+        if url:
+            schema["url"] = url
+            schema["offers"]["url"] = url
+        return schema
+
+    def get_schema_markup(self, url=None, image_url=None):
+        """Return stored schema JSON-LD or generate a valid fallback."""
+        if self.schema_markup:
+            try:
+                stored_schema = json.loads(self.schema_markup)
+                if isinstance(stored_schema, dict):
+                    stored_schema.setdefault("@context", "https://schema.org")
+                    stored_schema.setdefault("@type", "Product")
+                    if image_url and "image" not in stored_schema:
+                        stored_schema["image"] = [image_url]
+                    if url and "url" not in stored_schema:
+                        stored_schema["url"] = url
+                    offers = stored_schema.get("offers")
+                    if isinstance(offers, dict):
+                        offers.setdefault("@type", "Offer")
+                        if url and "url" not in offers:
+                            offers["url"] = url
+                        if "price" not in offers:
+                            offers["price"] = str(self.price)
+                        if "priceCurrency" not in offers:
+                            offers["priceCurrency"] = "EGP"
+                        offers.setdefault(
+                            "availability",
+                            "https://schema.org/InStock" if self.is_available() else "https://schema.org/OutOfStock",
+                        )
+                    return json.dumps(stored_schema, ensure_ascii=False)
+            except json.JSONDecodeError:
+                return self.schema_markup
+        return json.dumps(self.build_product_schema(url=url, image_url=image_url), ensure_ascii=False)
+
+    def get_breadcrumb_schema(self, category_url=None, product_url=None):
+        """Generate breadcrumb schema for richer search appearance."""
+        category_name = "المنتجات"
+        if self.category_id:
+            try:
+                category_name = self.category.name
+            except Exception:
+                category_name = "المنتجات"
+
+        breadcrumb = {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "الرئيسية",
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": category_name,
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 3,
+                    "name": self.get_seo_h1(),
+                },
+            ],
+        }
+        if category_url:
+            breadcrumb["itemListElement"][1]["item"] = category_url
+        if product_url:
+            breadcrumb["itemListElement"][2]["item"] = product_url
+        return json.dumps(breadcrumb, ensure_ascii=False)
+
+    def get_faq_schema(self):
+        """Generate FAQ schema from stored FAQ content."""
+        faq_items = self.get_faq_items()
+        if not faq_items:
+            return ""
+        schema = {
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": [
+                {
+                    "@type": "Question",
+                    "name": item["question"],
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": item["answer"],
+                    },
+                }
+                for item in faq_items
+            ],
+        }
+        return json.dumps(schema, ensure_ascii=False)
 
     
 # =========================

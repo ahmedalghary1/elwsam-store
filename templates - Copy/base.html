@@ -5,9 +5,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="متجر الوسام - أفضل تجربة تسوق إلكتروني في العالم العربي" />
+  <meta name="description" content="{% block meta_description %}متجر الوسام لبيع المنتجات الكهربائية المنزلية ومستلزمات الكهرباء داخل مصر والدول العربية.{% endblock meta_description %}" />
+  <meta name="robots" content="{% block meta_robots %}index,follow{% endblock meta_robots %}" />
+  {% block canonical_link %}{% endblock canonical_link %}
   <meta name="csrf-token" content="{{ csrf_token }}">
-  <title>{% block title %} متجر الوسام | الصفحة الرئيسية{% endblock title %}</title>
+  <title>{% block title %}متجر الوسام | الصفحة الرئيسية{% endblock title %}</title>
+  {% block open_graph_meta %}{% endblock open_graph_meta %}
+  {% block extra_meta %}{% endblock extra_meta %}
+  {% block structured_data %}{% endblock structured_data %}
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />

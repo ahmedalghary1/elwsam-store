@@ -80,29 +80,30 @@ WSGI_APPLICATION = 'project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
+USE_SQLITE = os.environ.get('DJANGO_USE_SQLITE', 'False') == 'True'
 
-
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'elwsamst_shop',
-        'USER': 'elwsamst_usershop',
-        'PASSWORD': 'elwsam@100',
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
-        'OPTIONS': {
-            'charset': 'utf8mb4',
-            'init_command': "SET NAMES 'utf8mb4'"
-        },
+if USE_SQLITE:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': os.environ.get('DJANGO_DB_ENGINE', 'django.db.backends.mysql'),
+            'NAME': os.environ.get('DJANGO_DB_NAME', 'elwsamst_shop'),
+            'USER': os.environ.get('DJANGO_DB_USER', 'elwsamst_usershop'),
+            'PASSWORD': os.environ.get('DJANGO_DB_PASSWORD', 'elwsam@100'),
+            'HOST': os.environ.get('DJANGO_DB_HOST', '127.0.0.1'),
+            'PORT': os.environ.get('DJANGO_DB_PORT', '3306'),
+            'OPTIONS': {
+                'charset': 'utf8mb4',
+                'init_command': "SET NAMES 'utf8mb4'"
+            },
+        }
+    }
 
 
 # Password validation

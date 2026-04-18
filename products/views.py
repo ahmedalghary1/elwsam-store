@@ -116,7 +116,7 @@ class ProductDetailView(View):
     template_name = "product.html"
 
     def get(self, request, id, slug):
-        product = get_object_or_404(Product, id=id, is_active=True)
+        product = get_object_or_404(Product, id=id, slug=slug, is_active=True)
         
         # كل الصور الخاصة بالمنتج (مرتبة حسب الرتبة)
         images = ProductImage.objects.filter(product=product).order_by('order')
@@ -152,6 +152,12 @@ class ProductDetailView(View):
             is_active=True
         ).exclude(id=product.id).order_by('order')[:6]
 
+        primary_image = images.first().image.url if images.exists() else (product.image.url if product.image else None)
+        absolute_product_url = request.build_absolute_uri(product.get_absolute_url())
+        absolute_category_url = request.build_absolute_uri(product.category.get_absolute_url())
+        absolute_image_url = request.build_absolute_uri(primary_image) if primary_image else ""
+        faq_items = product.get_faq_items()
+
         context = {
             'product': product,
             'images': images,
@@ -164,6 +170,19 @@ class ProductDetailView(View):
             'related_products': related_products,
             'is_simple_product': product.is_simple_product(),
             'product_stock': product.stock if product.is_simple_product() else None,
+            'seo_title': product.get_seo_title(),
+            'seo_meta_description': product.get_meta_description(),
+            'seo_h1': product.get_seo_h1(),
+            'seo_description': product.get_seo_description(),
+            'seo_canonical_url': absolute_product_url,
+            'seo_primary_image_url': absolute_image_url,
+            'seo_product_schema': product.get_schema_markup(url=absolute_product_url, image_url=absolute_image_url),
+            'seo_breadcrumb_schema': product.get_breadcrumb_schema(
+                category_url=absolute_category_url,
+                product_url=absolute_product_url,
+            ),
+            'seo_faq_schema': product.get_faq_schema(),
+            'seo_faq_items': faq_items,
         }
 
         return render(request, self.template_name, context)
