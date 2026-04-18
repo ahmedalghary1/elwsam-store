@@ -1,9 +1,12 @@
-from django.shortcuts import render, get_object_or_404
+from urllib.parse import unquote
+
+from django.shortcuts import render, get_object_or_404, redirect
 from django.views import View
 from django.views.generic import ListView, DetailView
 from django.http import JsonResponse
 from django.db.models import Q, Exists, OuterRef
 from django.core.cache import cache
+from django.utils.text import slugify
 from core.seo import (
     build_breadcrumb_schema,
     build_collection_page_schema,
@@ -15,6 +18,25 @@ from .models import (
     ProductSize, ProductType, ProductTypeColor, ProductTypeImage, Pattern,
     ProductSpecification, PatternSize, Size, Color, PatternColor, PatternImage
 )
+
+
+def _decode_slug(raw_slug):
+    """Decode once- or twice-encoded slugs without breaking normal Unicode slugs."""
+    decoded = (raw_slug or "").strip().strip("/")
+    for _ in range(3):
+        if "%" not in decoded:
+            break
+        next_value = unquote(decoded)
+        if next_value == decoded:
+            break
+        decoded = next_value
+    return decoded
+
+
+def _normalize_slug(raw_slug):
+    """Normalize user-supplied slugs for safe comparison against stored canonical slugs."""
+    decoded = _decode_slug(raw_slug)
+    return slugify(decoded, allow_unicode=True) or decoded
 
 
 # =========================
@@ -72,7 +94,10 @@ def category_products(request, id, slug):
     عرض جميع المنتجات الخاصة بقسم معين (حسب ID)
     مع إمكانية الفرز والتصفية
     """
-    category = get_object_or_404(Category, id=id, slug=slug, is_active=True)
+    category = get_object_or_404(Category, id=id, is_active=True)
+    requested_slug = _normalize_slug(slug)
+    if requested_slug != category.slug:
+        return redirect(category.get_absolute_url(), permanent=True)
     
     # الحصول على جميع المنتجات النشطة للقسم
     products = Product.objects.filter(
@@ -190,7 +215,10 @@ class ProductDetailView(View):
     template_name = "product.html"
 
     def get(self, request, id, slug):
-        product = get_object_or_404(Product, id=id, slug=slug, is_active=True)
+        product = get_object_or_404(Product, id=id, is_active=True)
+        requested_slug = _normalize_slug(slug)
+        if requested_slug != product.slug:
+            return redirect(product.get_absolute_url(), permanent=True)
         
         # كل الصور الخاصة بالمنتج (مرتبة حسب الرتبة)
         images = ProductImage.objects.filter(product=product).order_by('order')
