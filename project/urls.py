@@ -1,6 +1,8 @@
 from django.contrib import admin
+from django.contrib.sitemaps.views import sitemap
 from django.urls import path, include
 from core import views as core_views
+from core.sitemaps import CategorySitemap, ProductSitemap, StaticViewSitemap
 from products.views import (
     CategoryListView, 
     category_products,
@@ -18,6 +20,13 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 
+SITEMAPS = {
+    'static': StaticViewSitemap,
+    'categories': CategorySitemap,
+    'products': ProductSitemap,
+}
+
+
 urlpatterns = [
     # Admin Panel
     path('_nested_admin/', include('nested_admin.urls')),
@@ -25,6 +34,8 @@ urlpatterns = [
     
     # Core Routes
     path('', core_views.index, name='index'),
+    path('robots.txt', core_views.robots_txt, name='robots_txt'),
+    path('sitemap.xml', sitemap, {'sitemaps': SITEMAPS}, name='sitemap'),
     
     # Products Routes
     path('categories/', CategoryListView.as_view(), name='category_list'),

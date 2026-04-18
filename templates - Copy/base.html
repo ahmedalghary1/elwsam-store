@@ -1,18 +1,26 @@
 {% load static %}
 
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar-EG" dir="rtl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="{% block meta_description %}متجر الوسام لبيع المنتجات الكهربائية المنزلية ومستلزمات الكهرباء داخل مصر والدول العربية.{% endblock meta_description %}" />
-  <meta name="robots" content="{% block meta_robots %}index,follow{% endblock meta_robots %}" />
-  {% block canonical_link %}{% endblock canonical_link %}
+  <meta name="robots" content="{% block meta_robots %}{{ meta_robots|default:'index,follow' }}{% endblock meta_robots %}" />
+  {% block canonical_link %}{% if seo_canonical_url %}<link rel="canonical" href="{{ seo_canonical_url }}" />{% endif %}{% endblock canonical_link %}
   <meta name="csrf-token" content="{{ csrf_token }}">
   <title>{% block title %}متجر الوسام | الصفحة الرئيسية{% endblock title %}</title>
-  {% block open_graph_meta %}{% endblock open_graph_meta %}
+  {% block open_graph_meta %}
+  <meta property="og:locale" content="ar_EG" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="{{ seo_title|default:'متجر الوسام' }}" />
+  <meta property="og:description" content="{{ seo_meta_description|default:'متجر الوسام لبيع المنتجات الكهربائية المنزلية ومستلزمات الكهرباء داخل مصر والدول العربية.' }}" />
+  {% if seo_canonical_url %}<meta property="og:url" content="{{ seo_canonical_url }}" />{% endif %}
+  {% if seo_primary_image_url %}<meta property="og:image" content="{{ seo_primary_image_url }}" />{% endif %}
+  <meta property="og:site_name" content="{{ seo_site_name|default:'متجر الوسام' }}" />
+  {% endblock open_graph_meta %}
   {% block extra_meta %}{% endblock extra_meta %}
-  {% block structured_data %}{% endblock structured_data %}
+  {% block structured_data %}{% for schema in seo_structured_data %}<script type="application/ld+json">{{ schema|safe }}</script>{% endfor %}{% endblock structured_data %}
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -33,7 +41,7 @@
       <div class="navbar-row1">
         <button class="hamburger-btn" aria-label="فتح القائمة" aria-expanded="false"><span></span><span></span><span></span></button>
         <a href="/" class="navbar-logo"><div class="logo-icon">
-          <img src="{% static 'image/ELWSAM-LOGO2020.png' %}" alt="">
+          <img src="{% static 'image/ELWSAM-LOGO2020.png' %}" alt="شعار متجر الوسام">
         </div><span class="logo-text">متجر <span>الوسام</span></span></a>
         <div class="navbar-links">
           <a href="/">الرئيسية</a>
@@ -113,7 +121,7 @@
             <li><a href="/">الصفحة الرئيسية</a></li>
             <li><a href="/categories/">جميع الأقسام</a></li>
             <!-- <li><a href="/wishlist/">المفضلة</a></li> -->
-            <li><a href="/cart/">سلة التسوق</a></li>
+            <li><a href="{% url 'orders:cart' %}">سلة التسوق</a></li>
             <!-- <li><a href="/product/1/">منتج مميز</a></li> -->
           </ul>
         </div>
@@ -122,11 +130,11 @@
         <div>
           <h3 class="footer-col-title">حسابي</h3>
           <ul class="footer-links">
-            <li><a href="/login/">تسجيل الدخول</a></li>
-            <li><a href="/register/">إنشاء حساب</a></li>
-            <li><a href="/profile/">طلباتي</a></li>
-            <li><a href="/checkout/">إتمام الشراء</a></li>
-            <li><a href="/profile/">بياناتي</a></li>
+            <li><a href="{% url 'accounts:login' %}">تسجيل الدخول</a></li>
+            <li><a href="{% url 'accounts:register' %}">إنشاء حساب</a></li>
+            <li><a href="{% url 'orders:order_list' %}">طلباتي</a></li>
+            <li><a href="{% url 'orders:checkout' %}">إتمام الشراء</a></li>
+            <li><a href="{% url 'accounts:profile' %}">بياناتي</a></li>
           </ul>
         </div>
 

@@ -54,12 +54,12 @@
             {% if images %}
               {% for img in images %}
                 <div class="gallery-thumb {% if forloop.first %}active{% endif %}" data-src="{{ img.image.url }}">
-                  <img src="{{ img.image.url }}" alt="{{ product.get_primary_image_alt }}" loading="lazy">
+                  <img src="{{ img.image.url }}" alt="{{ product.get_primary_image_alt }} - صورة {{ forloop.counter }}" loading="lazy">
                 </div>
               {% endfor %}
             {% else %}
               <div class="gallery-thumb active" data-src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'image/placeholder.png' %}{% endif %}">
-                <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'image/placeholder.png' %}{% endif %}" alt="{{ product.get_primary_image_alt }}">
+                <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'image/placeholder.png' %}{% endif %}" alt="{{ product.get_primary_image_alt }} - صورة المنتج">
               </div>
             {% endif %}
           </div>

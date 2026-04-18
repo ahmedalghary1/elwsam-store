@@ -4,6 +4,12 @@ from django.views.generic import ListView, DetailView
 from django.http import JsonResponse
 from django.db.models import Q, Exists, OuterRef
 from django.core.cache import cache
+from core.seo import (
+    build_breadcrumb_schema,
+    build_collection_page_schema,
+    build_item_list_schema,
+    serialize_schema,
+)
 from .models import (
     Product, Category, ProductVariant, ProductImage, ProductColor,
     ProductSize, ProductType, ProductTypeColor, ProductTypeImage, Pattern,
@@ -16,12 +22,49 @@ from .models import (
 # =========================
 class CategoryListView(ListView):
     model = Category
-    template_name = "categories.html"
+    template_name = "seo/categories.html"
     context_object_name = "categories"
     ordering = ['order']
     
     def get_queryset(self):
         return Category.objects.filter(is_active=True).order_by('order').prefetch_related('product_set')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        categories = list(context['categories'])
+        absolute_url = self.request.build_absolute_uri(self.request.path)
+        seo_meta_description = (
+            "تصفح أقسام متجر الوسام واكتشف المشترك الكهربائي ومستلزمات الكهرباء المنزلية "
+            "والإضاءة والمنتجات المناسبة للمنزل والمكتب داخل مصر والدول العربية."
+        )
+        category_items = [
+            (category.name, self.request.build_absolute_uri(category.get_absolute_url()))
+            for category in categories
+        ]
+
+        context.update({
+            'seo_title': "أقسام متجر الوسام | تسوق المنتجات الكهربائية",
+            'seo_h1': "أقسام متجر الوسام",
+            'seo_meta_description': seo_meta_description,
+            'seo_canonical_url': absolute_url,
+            'seo_structured_data': [
+                serialize_schema(build_breadcrumb_schema([
+                    ("الرئيسية", self.request.build_absolute_uri('/')),
+                    ("الأقسام", absolute_url),
+                ])),
+                serialize_schema(build_collection_page_schema(
+                    name="أقسام متجر الوسام",
+                    description=seo_meta_description,
+                    url=absolute_url,
+                )),
+                serialize_schema(build_item_list_schema(
+                    name="قائمة الأقسام",
+                    url=absolute_url,
+                    items=category_items,
+                )),
+            ],
+        })
+        return context
 
 
 def category_products(request, id, slug):
@@ -29,7 +72,7 @@ def category_products(request, id, slug):
     عرض جميع المنتجات الخاصة بقسم معين (حسب ID)
     مع إمكانية الفرز والتصفية
     """
-    category = get_object_or_404(Category, id=id, is_active=True)
+    category = get_object_or_404(Category, id=id, slug=slug, is_active=True)
     
     # الحصول على جميع المنتجات النشطة للقسم
     products = Product.objects.filter(
@@ -55,14 +98,45 @@ def category_products(request, id, slug):
             Q(name__icontains=search_query) | Q(description__icontains=search_query)
         )
     
+    absolute_category_url = request.build_absolute_uri(category.get_absolute_url())
+    category_items = [
+        (product.get_seo_h1(), request.build_absolute_uri(product.get_absolute_url()))
+        for product in products
+    ]
+    seo_meta_description = category.description or (
+        f"تسوق منتجات {category.name} من متجر الوسام مع تفاصيل واضحة وأسعار مناسبة "
+        "وشحن داخل مصر والدول العربية."
+    )
+
     context = {
         'category': category,
         'products': products,
         'search_query': search_query,
         'sort_by': sort_by,
         'products_count': products.count(),
+        'seo_title': f"{category.name} | تسوق الآن من متجر الوسام",
+        'seo_h1': category.name,
+        'seo_meta_description': seo_meta_description,
+        'seo_canonical_url': absolute_category_url,
+        'seo_structured_data': [
+            serialize_schema(build_breadcrumb_schema([
+                ("الرئيسية", request.build_absolute_uri('/')),
+                ("الأقسام", request.build_absolute_uri('/categories/')),
+                (category.name, absolute_category_url),
+            ])),
+            serialize_schema(build_collection_page_schema(
+                name=category.name,
+                description=seo_meta_description,
+                url=absolute_category_url,
+            )),
+            serialize_schema(build_item_list_schema(
+                name=f"منتجات {category.name}",
+                url=absolute_category_url,
+                items=category_items,
+            )),
+        ],
     }
-    return render(request, 'category-products.html', context)
+    return render(request, 'seo/category-products.html', context)
 
 
 # =========================

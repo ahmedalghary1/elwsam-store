@@ -76,7 +76,7 @@
             <div class="product-image-wrap">
               {% if product.image %}
                 <a href="{% url 'product_detail' id=product.id slug=product.slug %}">
-                  <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy">
+                  <img src="{{ product.image.url }}" alt="{{ product.get_primary_image_alt }}" loading="lazy">
                 </a>
               {% else %}
                 <div class="product-img-placeholder">🖼️</div>

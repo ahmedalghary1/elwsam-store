@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sitemaps',
 
     # third-party apps
     'adminsortable2',
@@ -57,10 +58,15 @@ ROOT_URLCONF = 'project.urls'
 # This fixes URL duplication issues on production servers
 FORCE_SCRIPT_NAME = '/'
 
+template_dirs = []
+for candidate in [BASE_DIR / 'templates - Copy', BASE_DIR / 'templates']:
+    if candidate.exists():
+        template_dirs.append(candidate)
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': template_dirs,
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -68,6 +74,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'core.context_processors.cart.cart_processor',
+                'core.context_processors.seo.seo_context',
                 # 'core.context_processors.wishlist.wishlist_processor',
             ],
         },
@@ -80,30 +87,21 @@ WSGI_APPLICATION = 'project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-USE_SQLITE = os.environ.get('DJANGO_USE_SQLITE', 'False') == 'False'
 
-if USE_SQLITE:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
+DATABASES = {
+    'default': {
+        'ENGINE': os.environ.get('DJANGO_DB_ENGINE', 'django.db.backends.mysql'),
+        'NAME': os.environ.get('DJANGO_DB_NAME', 'elwsamst_shop'),
+        'USER': os.environ.get('DJANGO_DB_USER', 'elwsamst_usershop'),
+        'PASSWORD': os.environ.get('DJANGO_DB_PASSWORD', 'elwsam@100'),
+        'HOST': os.environ.get('DJANGO_DB_HOST', '127.0.0.1'),
+        'PORT': os.environ.get('DJANGO_DB_PORT', '3306'),
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+            'init_command': "SET NAMES 'utf8mb4'"
+        },
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': os.environ.get('DJANGO_DB_ENGINE', 'django.db.backends.mysql'),
-            'NAME': os.environ.get('DJANGO_DB_NAME', 'elwsamst_shop'),
-            'USER': os.environ.get('DJANGO_DB_USER', 'elwsamst_usershop'),
-            'PASSWORD': os.environ.get('DJANGO_DB_PASSWORD', 'elwsam@100'),
-            'HOST': os.environ.get('DJANGO_DB_HOST', '127.0.0.1'),
-            'PORT': os.environ.get('DJANGO_DB_PORT', '3306'),
-            'OPTIONS': {
-                'charset': 'utf8mb4',
-                'init_command': "SET NAMES 'utf8mb4'"
-            },
-        }
-    }
+}
 
 
 # Password validation
