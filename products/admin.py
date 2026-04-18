@@ -11,6 +11,9 @@ from .models import (
     ProductSpecification, PatternSize, PatternColor, PatternImage
 )
 
+import csv
+from django.http import HttpResponse
+from django.utils.html import strip_tags
 
 # ================================================
 # Inlines — used inside ProductAdmin
@@ -413,7 +416,6 @@ class CategoryAdmin(SortableAdminMixin, admin.ModelAdmin):
 # ================================================
 # Product Admin
 # ================================================
-
 @admin.register(Product)
 class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
     sortable_field_name = "order"
@@ -430,28 +432,28 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_per_page = 25
     list_select_related = ['category']
     fieldsets = (
-        ('\u0645\u0639\u0644\u0648\u0645\u0627\u062a \u0627\u0644\u0645\u0646\u062a\u062c', {
+        ('معلومات المنتج', {
             'fields': ('name', 'slug', 'category', 'description')
         }),
-        ('\u0627\u0644\u0635\u0648\u0631\u0629 \u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629', {
+        ('الصورة الرئيسية', {
             'fields': ('image', 'image_preview')
         }),
-        ('\u0627\u0644\u0623\u0633\u0639\u0627\u0631', {
+        ('الأسعار', {
             'fields': ('price', 'old_price', 'discount_info'),
-            'description': '\u0633\u0639\u0631 \u0627\u0644\u0645\u0646\u062a\u062c \u0627\u0644\u0623\u0633\u0627\u0633\u064a. \u0633\u0639\u0631 \u0627\u0644\u0645\u062a\u063a\u064a\u0631\u0627\u062a \u064a\u064f\u062d\u062f\u062f \u0645\u0646 \u062e\u0644\u0627\u0644 \u0645\u0642\u0627\u0633\u0627\u062a \u0627\u0644\u0646\u0645\u0637.'
+            'description': 'سعر المنتج الأساسي. سعر المتغيرات يُحدد من خلال مقاسات النمط.'
         }),
-        ('\u0627\u0644\u0645\u062e\u0632\u0648\u0646 (\u0644\u0644\u0645\u0646\u062a\u062c\u0627\u062a \u0627\u0644\u0628\u0633\u064a\u0637\u0629 \u0641\u0642\u0637)', {
+        ('المخزون (للمنتجات البسيطة فقط)', {
             'fields': ('stock',),
-            'description': '\u0627\u0644\u0645\u062e\u0632\u0648\u0646 \u064a\u064f\u0633\u062a\u062e\u062f\u0645 \u0641\u0642\u0637 \u0644\u0644\u0645\u0646\u062a\u062c\u0627\u062a \u0627\u0644\u0628\u0633\u064a\u0637\u0629 (\u0628\u062f\u0648\u0646 \u0623\u0644\u0648\u0627\u0646 \u0623\u0648 \u0645\u0642\u0627\u0633\u0627\u062a \u0623\u0648 \u0623\u0646\u0645\u0627\u0637). \u0625\u0630\u0627 \u0643\u0627\u0646 \u0644\u0644\u0645\u0646\u062a\u062c \u0645\u062a\u063a\u064a\u0631\u0627\u062a\u060c \u0627\u0633\u062a\u062e\u062f\u0645 \u0627\u0644\u0645\u062e\u0632\u0648\u0646 \u0641\u064a \u062c\u062f\u0648\u0644 \u0627\u0644\u0645\u062a\u063a\u064a\u0631\u0627\u062a.'
+            'description': 'المخزون يُستخدم فقط للمنتجات البسيطة (بدون ألوان أو مقاسات أو أنماط). إذا كان للمنتج متغيرات، استخدم المخزون في جدول المتغيرات.'
         }),
-        ('\u0627\u0644\u062a\u0648\u0635\u064a\u0641 \u0648\u0627\u0644\u062a\u0643\u0648\u064a\u0646', {
-            'fields': ( 'has_patterns', 'has_product_level_sizes', 'has_colors'),
-            'description': '\u062d\u062f\u062f \u062a\u0648\u0635\u064a\u0641 \u0627\u0644\u0645\u0646\u062a\u062c: \u0639\u0644\u064a\u0647 \u0623\u0646\u0645\u0627\u0637؟ \u0639\u0644\u064a\u0647 \u0645\u0642\u0627\u0633\u0627\u062a؟ \u0639\u0644\u064a\u0647 \u0623\u0644\u0648\u0627\u0646 \u0641\u0642\u0637؟ \u0625\u0630\u0627 \u0644\u0645 \u062a\u062d\u062f\u062f \u0634\u064a\u0626\u0627\u064b\u060c \u0633\u064a\u0643\u0648\u0646 \u0645\u0646\u062a\u062c \u0628\u0633\u064a\u0637.'
+        ('التوصيف والتكوين', {
+            'fields': ('has_patterns', 'has_product_level_sizes', 'has_colors'),
+            'description': 'حدد توصيف المنتج: عليه أنماط؟ عليه مقاسات؟ عليه ألوان فقط؟ إذا لم تحدد شيئاً، سيكون منتج بسيط.'
         }),
-        ('\u0627\u0644\u062d\u0627\u0644\u0629', {
+        ('الحالة', {
             'fields': ('is_active', 'is_new', 'is_hot', 'rating', 'order')
         }),
-        ('\u0627\u0644\u062a\u0648\u0627\u0631\u064a\u062e', {
+        ('التواريخ', {
             'fields': ('created_at', 'updated_at'),
             'classes': ('collapse',)
         }),
@@ -462,46 +464,56 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
         ProductColorInline,
         ProductSizeInline,
         ProductTypeInline,
-        SimpleProductVariantInline,  # NEW: Direct variant creation without Pattern
+        SimpleProductVariantInline,
         ProductImageInline,
         ProductSpecificationInline,
+    ]
+
+    actions = [
+        'activate',
+        'deactivate',
+        'mark_hot',
+        'mark_new',
+        'generate_simple_variants',
+        'generate_color_only_variants',
+        'export_products_csv',
     ]
 
     def thumb(self, obj):
         if obj.image:
             return format_html(
-                '<img src="{}" style="width:44px;height:44px;object-fit:cover;'                'border-radius:6px;border:1px solid #eee;" />',
+                '<img src="{}" style="width:44px;height:44px;object-fit:cover;border-radius:6px;border:1px solid #eee;" />',
                 obj.image.url
             )
-        return mark_safe('<span style="font-size:1.5rem;">\U0001f4e6</span>')
+        return mark_safe('<span style="font-size:1.5rem;">📦</span>')
     thumb.short_description = ''
 
     def price_display(self, obj):
         if obj.old_price and obj.old_price > obj.price:
             return format_html(
-                '<b style="color:#28a745;">{} \u062c.\u0645</b> '                '<s style="color:#999;font-size:0.8em;">{} \u062c.\u0645</s>',
+                '<b style="color:#28a745;">{} ج.م</b> <s style="color:#999;font-size:0.8em;">{} ج.م</s>',
                 obj.price, obj.old_price
             )
-        return format_html('<b>{} \u062c.\u0645</b>', obj.price)
-    price_display.short_description = '\u0627\u0644\u0633\u0639\u0631'
+        return format_html('<b>{} ج.م</b>', obj.price)
+    price_display.short_description = 'السعر'
     price_display.admin_order_field = 'price'
 
     def discount_badge(self, obj):
         pct = obj.get_discount_percent()
         if pct > 0:
             return format_html(
-                '<span style="background:#dc3545;color:#fff;padding:2px 7px;'                'border-radius:10px;font-size:0.8em;font-weight:bold;">-{}%</span>',
+                '<span style="background:#dc3545;color:#fff;padding:2px 7px;border-radius:10px;font-size:0.8em;font-weight:bold;">-{}%</span>',
                 pct
             )
-        return '\u2014'
-    discount_badge.short_description = '\u062e\u0635\u0645'
+        return '—'
+    discount_badge.short_description = 'خصم'
 
     def variants_count(self, obj):
         count = obj.variants.count()
         if count > 0:
             return format_html('<span style="color:#007bff;font-weight:bold;">{} متغير</span>', count)
         return format_html('<span style="color:#dc3545;">{}</span>', 'لا يوجد')
-    variants_count.short_description = '\u0627\u0644\u0645\u062a\u063a\u064a\u0631\u0627\u062a'
+    variants_count.short_description = 'المتغيرات'
 
     def image_preview(self, obj):
         if obj.image:
@@ -510,14 +522,14 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
                 obj.image.url
             )
         return format_html('<span>{}</span>', 'لا توجد صورة')
-    image_preview.short_description = '\u0645\u0639\u0627\u064a\u0646\u0629'
+    image_preview.short_description = 'معاينة'
 
     def discount_info(self, obj):
         pct = obj.get_discount_percent()
         if pct > 0:
-            return format_html('<b style="color:#dc3545;">{}% \u062e\u0635\u0645</b>', pct)
+            return format_html('<b style="color:#dc3545;">{}% خصم</b>', pct)
         return format_html('<span>{}</span>', 'لا يوجد خصم')
-    discount_info.short_description = '\u0646\u0633\u0628\u0629 \u0627\u0644\u062e\u0635\u0645'
+    discount_info.short_description = 'نسبة الخصم'
     
     def stock_badge(self, obj):
         """عرض حالة المخزون للمنتجات البسيطة"""
@@ -527,37 +539,33 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
             elif obj.stock > 0:
                 return format_html('<span style="color:#ffc107;font-weight:bold;">⚠ {}</span>', obj.stock)
             else:
-                return format_html('<span style="color:#dc3545;font-weight:bold;">✗ نفد</span>', obj.stock)
+                return format_html('<span style="color:#dc3545;font-weight:bold;">✗ نفد</span>')
         else:
-            return format_html('<span style="color:#6c757d;">—</span>','لا يوجد')
+            return format_html('<span style="color:#6c757d;">—</span>')
     stock_badge.short_description = 'المخزون'
-
-    # def product_type_info(self, obj):
-    #     """عرض نوع المنتج"""
-    #     if (not obj.check_if_has_patterns() 
-    #         and not obj.check_if_has_product_level_sizes() 
-    #         and not obj.has_colors):
-    #         return format_html('<span style="background:#28a745;color:white;padding:4px 10px;border-radius:4px;font-size:0.85em;">منتج بسيط</span>')
-    #     elif obj.check_if_has_patterns():
-    #         return format_html(
-    #             '<span style="background:#007bff;color:white;padding:4px 10px;border-radius:4px;font-size:0.85em;">له أنماط</span>'
-    #         )
-    #     elif obj.check_if_has_product_level_sizes():
-    #         return format_html(
-    #             '<span style="background:#17a2b8;color:white;padding:4px 10px;border-radius:4px;font-size:0.85em;">له مقاسات</span>'
-    #         )
-    #     elif obj.has_colors:
-    #         return format_html(
-    #             '<span style="background:#ffc107;color:#000;padding:4px 10px;border-radius:4px;font-size:0.85em;">له ألوان فقط</span>'
-    #         )
-    #     else:
-    #         return format_html('<span style="color:#6c757d;">—</span>')
-
 
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related('variants')
 
-    actions = ['activate', 'deactivate', 'mark_hot', 'mark_new', 'generate_simple_variants', 'generate_color_only_variants']
+    def export_products_csv(self, request, queryset):
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment; filename="products_export.csv"'
+        response.write('\ufeff')  # لدعم العربية في Excel
+
+        writer = csv.writer(response)
+        writer.writerow(['اسم المنتج', 'Slug', 'الوصف', 'السعر', 'القسم'])
+
+        for product in queryset.select_related('category'):
+            writer.writerow([
+                product.name,
+                product.slug,
+                strip_tags(product.description or ''),
+                product.price,
+                product.category.name if product.category else '',
+            ])
+
+        return response
+    export_products_csv.short_description = '📥 تصدير المنتجات المحددة إلى CSV'
 
     def generate_simple_variants(self, request, queryset):
         """
@@ -568,39 +576,35 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
         total_skipped = 0
         
         for product in queryset:
-            # Get all colors for this product
             colors = ProductColor.objects.filter(product=product).select_related('color')
-            # Get all sizes for this product
             sizes = ProductSize.objects.filter(product=product).select_related('size')
             
             if not colors.exists():
                 self.message_user(
-                    request, 
-                    f'المنتج "{product.name}" ليس له ألوان. أضف ألوان أولاً.', 
+                    request,
+                    f'المنتج "{product.name}" ليس له ألوان. أضف ألوان أولاً.',
                     messages.WARNING
                 )
                 continue
                 
             if not sizes.exists():
                 self.message_user(
-                    request, 
-                    f'المنتج "{product.name}" ليس له مقاسات. أضف مقاسات أولاً.', 
+                    request,
+                    f'المنتج "{product.name}" ليس له مقاسات. أضف مقاسات أولاً.',
                     messages.WARNING
                 )
                 continue
             
-            # Create variant for each color-size combination
             for product_color in colors:
                 for product_size in sizes:
-                    # Check if variant already exists
                     variant, created = ProductVariant.objects.get_or_create(
                         product=product,
-                        pattern=None,  # No pattern - direct color-size linking
+                        pattern=None,
                         color=product_color.color,
                         size=product_size.size,
                         defaults={
                             'price': product_size.price,
-                            'stock': 0,  # Set initial stock to 0
+                            'stock': 0,
                             'order': 0
                         }
                     )
@@ -612,17 +616,18 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
         
         if total_created > 0:
             self.message_user(
-                request, 
-                f'تم إنشاء {total_created} متغير جديد بنجاح! (تم تخطي {total_skipped} متغير موجود مسبقاً)', 
+                request,
+                f'تم إنشاء {total_created} متغير جديد بنجاح! (تم تخطي {total_skipped} متغير موجود مسبقاً)',
                 messages.SUCCESS
             )
         else:
             self.message_user(
-                request, 
-                f'لم يتم إنشاء متغيرات جديدة. جميع المتغيرات ({total_skipped}) موجودة مسبقاً.', 
+                request,
+                f'لم يتم إنشاء متغيرات جديدة. جميع المتغيرات ({total_skipped}) موجودة مسبقاً.',
                 messages.INFO
             )
-    
+    generate_simple_variants.short_description = 'إنشاء متغيرات من الألوان والمقاسات'
+
     def generate_color_only_variants(self, request, queryset):
         """
         إنشاء متغيرات تلقائياً من الألوان فقط (بدون مقاسات)
@@ -632,32 +637,28 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
         total_skipped = 0
         
         for product in queryset:
-            # Skip products with patterns or sizes - they should use other generators
             if product.check_if_has_patterns() or product.check_if_has_product_level_sizes():
                 continue
                 
-            # Get all colors for this product
             colors = ProductColor.objects.filter(product=product).select_related('color')
             
             if not colors.exists():
                 self.message_user(
-                    request, 
-                    f'المنتج "{product.name}" ليس له ألوان. أضف ألوان أولاً.', 
+                    request,
+                    f'المنتج "{product.name}" ليس له ألوان. أضف ألوان أولاً.',
                     messages.WARNING
                 )
                 continue
             
-            # Create variant for each color (no size, no pattern)
             for product_color in colors:
-                # Check if variant already exists
                 variant, created = ProductVariant.objects.get_or_create(
                     product=product,
-                    pattern=None,  # No pattern
+                    pattern=None,
                     color=product_color.color,
-                    size=None,  # No size
+                    size=None,
                     defaults={
                         'price': product.price,
-                        'stock': 0,  # Set initial stock to 0
+                        'stock': 0,
                         'order': 0
                     }
                 )
@@ -669,40 +670,37 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
         
         if total_created > 0:
             self.message_user(
-                request, 
-                f'تم إنشاء {total_created} متغير ألوان جديد! (تم تخطي {total_skipped} متغير موجود مسبقاً)', 
+                request,
+                f'تم إنشاء {total_created} متغير ألوان جديد! (تم تخطي {total_skipped} متغير موجود مسبقاً)',
                 messages.SUCCESS
             )
         else:
             self.message_user(
-                request, 
-                f'لم يتم إنشاء متغيرات جديدة. جميع المتغيرات ({total_skipped}) موجودة مسبقاً.', 
+                request,
+                f'لم يتم إنشاء متغيرات جديدة. جميع المتغيرات ({total_skipped}) موجودة مسبقاً.',
                 messages.INFO
             )
-    
     generate_color_only_variants.short_description = '🎨 إنشاء متغيرات ألوان فقط (بدون مقاسات)'
 
     def activate(self, request, queryset):
         queryset.update(is_active=True)
-        self.message_user(request, '\u062a\u0645 \u062a\u0641\u0639\u064a\u0644 \u0627\u0644\u0645\u0646\u062a\u062c\u0627\u062a', messages.SUCCESS)
-    activate.short_description = '\u062a\u0641\u0639\u064a\u0644'
+        self.message_user(request, 'تم تفعيل المنتجات', messages.SUCCESS)
+    activate.short_description = 'تفعيل'
 
     def deactivate(self, request, queryset):
         queryset.update(is_active=False)
-        self.message_user(request, '\u062a\u0645 \u0625\u064a\u0642\u0627\u0641 \u0627\u0644\u0645\u0646\u062a\u062c\u0627\u062a', messages.SUCCESS)
-    deactivate.short_description = '\u0625\u064a\u0642\u0627\u0641'
+        self.message_user(request, 'تم إيقاف المنتجات', messages.SUCCESS)
+    deactivate.short_description = 'إيقاف'
 
     def mark_hot(self, request, queryset):
         queryset.update(is_hot=True)
-        self.message_user(request, '\u062a\u0645 \u0627\u0644\u062a\u062d\u062f\u064a\u062f \u0643\u0645\u0634\u0647\u0648\u0631', messages.SUCCESS)
-    mark_hot.short_description = '\u062a\u062d\u062f\u064a\u062f \u0643\u0645\u0634\u0647\u0648\u0631'
+        self.message_user(request, 'تم التحديد كمشهور', messages.SUCCESS)
+    mark_hot.short_description = 'تحديد كمشهور'
 
     def mark_new(self, request, queryset):
         queryset.update(is_new=True)
-        self.message_user(request, '\u062a\u0645 \u0627\u0644\u062a\u062d\u062f\u064a\u062f \u0643\u062c\u062f\u064a\u062f', messages.SUCCESS)
-    mark_new.short_description = '\u062a\u062d\u062f\u064a\u062f \u0643\u062c\u062f\u064a\u062f'
-
-
+        self.message_user(request, 'تم التحديد كجديد', messages.SUCCESS)
+    mark_new.short_description = 'تحديد كجديد'
 # ================================================
 # Color Admin  (required for autocomplete)
 # ================================================
