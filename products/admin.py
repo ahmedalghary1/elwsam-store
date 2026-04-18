@@ -541,7 +541,7 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
             else:
                 return format_html('<span style="color:#dc3545;font-weight:bold;">✗ نفد</span>')
         else:
-            return format_html('<span style="color:#6c757d;">—</span>')
+            return '—'
     stock_badge.short_description = 'المخزون'
 
     def get_queryset(self, request):
