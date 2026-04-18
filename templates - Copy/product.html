@@ -96,7 +96,7 @@
           <div class="product-divider"></div>
 
           <p id="product-description-main" style="font-size:0.9rem;color:var(--color-gray-600);line-height:1.8;">
-            {{ seo_description|linebreaksbr }}
+            {{ product.description|linebreaksbr }}
           </p>
 
           <div id="variants-container"></div>
@@ -153,7 +153,7 @@
         </div>
 
         <div class="tab-content active" id="tab-description" role="tabpanel">
-          <p id="product-description-tab">{{ seo_description|linebreaksbr }}</p>
+          <p id="product-description-tab">{{ product.description|linebreaksbr }}</p>
         </div>
 
         <div class="tab-content" id="tab-specs" role="tabpanel">
