@@ -2,7 +2,10 @@ from django.contrib import admin
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
+from decimal import Decimal, InvalidOperation
+
 from django.contrib import messages
+from django.contrib.admin.filters import ListFilter
 from django import forms
 from adminsortable2.admin import SortableAdminMixin, SortableInlineAdminMixin
 from .models import (
@@ -19,69 +22,95 @@ from django.utils.html import strip_tags
 # Admin list filters
 # ================================================
 
-class BasePriceRangeFilter(admin.SimpleListFilter):
+class BasePriceInputFilter(ListFilter):
+    template = 'admin/input_price_filter.html'
     title = 'السعر'
-    parameter_name = 'price_range'
     field_name = 'price'
+    min_parameter_name = None
+    max_parameter_name = None
+    min_label = 'من'
+    max_label = 'إلى'
+    submit_label = 'تطبيق'
+    reset_label = 'إلغاء'
 
-    PRICE_RANGES = (
-        ('under_100', 'أقل من 100 ج.م'),
-        ('100_250', 'من 100 إلى 250 ج.م'),
-        ('250_500', 'من 250 إلى 500 ج.م'),
-        ('500_1000', 'من 500 إلى 1000 ج.م'),
-        ('1000_plus', 'أكثر من 1000 ج.م'),
-    )
+    def __init__(self, request, params, model, model_admin):
+        super().__init__(request, params, model, model_admin)
+        for parameter in self.expected_parameters():
+            if parameter in params:
+                value = params.pop(parameter)
+                self.used_parameters[parameter] = value[-1]
 
-    def lookups(self, request, model_admin):
-        return self.PRICE_RANGES
+    def expected_parameters(self):
+        return [self.min_parameter_name, self.max_parameter_name]
 
-    def queryset(self, request, queryset):
-        value = self.value()
-        if not value:
-            return queryset
+    def has_output(self):
+        return True
 
-        filters_map = {
-            'under_100': {f'{self.field_name}__lt': 100},
-            '100_250': {f'{self.field_name}__gte': 100, f'{self.field_name}__lt': 250},
-            '250_500': {f'{self.field_name}__gte': 250, f'{self.field_name}__lt': 500},
-            '500_1000': {f'{self.field_name}__gte': 500, f'{self.field_name}__lt': 1000},
-            '1000_plus': {f'{self.field_name}__gte': 1000},
+    def choices(self, changelist):
+        yield {
+            'selected': not self.value_min() and not self.value_max(),
+            'query_string': changelist.get_query_string(remove=self.expected_parameters()),
+            'display': self.reset_label,
         }
 
-        selected_filters = filters_map.get(value)
-        if not selected_filters:
-            return queryset
-        return queryset.filter(**selected_filters)
+    def value_min(self):
+        return self.used_parameters.get(self.min_parameter_name, '')
+
+    def value_max(self):
+        return self.used_parameters.get(self.max_parameter_name, '')
+
+    def queryset(self, request, queryset):
+        min_value = self._parse_decimal(self.value_min())
+        max_value = self._parse_decimal(self.value_max())
+
+        if min_value is not None:
+            queryset = queryset.filter(**{f'{self.field_name}__gte': min_value})
+        if max_value is not None:
+            queryset = queryset.filter(**{f'{self.field_name}__lte': max_value})
+        return queryset
+
+    def _parse_decimal(self, value):
+        if value in (None, ''):
+            return None
+        try:
+            return Decimal(str(value))
+        except (InvalidOperation, TypeError, ValueError):
+            return None
 
 
-class ProductPriceRangeFilter(BasePriceRangeFilter):
+class ProductPriceFilter(BasePriceInputFilter):
     title = 'سعر المنتج'
-    parameter_name = 'product_price_range'
     field_name = 'price'
+    min_parameter_name = 'product_price_min'
+    max_parameter_name = 'product_price_max'
 
 
-class PatternBasePriceRangeFilter(BasePriceRangeFilter):
+class PatternBasePriceFilter(BasePriceInputFilter):
     title = 'السعر الأساسي'
-    parameter_name = 'pattern_base_price_range'
     field_name = 'base_price'
+    min_parameter_name = 'pattern_base_price_min'
+    max_parameter_name = 'pattern_base_price_max'
 
 
-class ProductSizePriceRangeFilter(BasePriceRangeFilter):
+class ProductSizePriceFilter(BasePriceInputFilter):
     title = 'سعر المقاس'
-    parameter_name = 'product_size_price_range'
     field_name = 'price'
+    min_parameter_name = 'product_size_price_min'
+    max_parameter_name = 'product_size_price_max'
 
 
-class ProductTypePriceRangeFilter(BasePriceRangeFilter):
+class ProductTypePriceFilter(BasePriceInputFilter):
     title = 'سعر النوع'
-    parameter_name = 'product_type_price_range'
     field_name = 'price'
+    min_parameter_name = 'product_type_price_min'
+    max_parameter_name = 'product_type_price_max'
 
 
-class PatternSizePriceRangeFilter(BasePriceRangeFilter):
+class PatternSizePriceFilter(BasePriceInputFilter):
     title = 'سعر مقاس النمط'
-    parameter_name = 'pattern_size_price_range'
     field_name = 'price'
+    min_parameter_name = 'pattern_size_price_min'
+    max_parameter_name = 'pattern_size_price_max'
 
 
 # ================================================
@@ -494,7 +523,7 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
     ]
     list_display_links = ['name']
     list_editable = ['is_active', 'is_hot', 'is_new']
-    list_filter = ['category', 'is_active', 'is_hot', 'is_new', ProductPriceRangeFilter]
+    list_filter = ['category', 'is_active', 'is_hot', 'is_new', ProductPriceFilter]
     search_fields = ['name', 'seo_title', 'meta_description', 'category__name']
     ordering = ['order']
     readonly_fields = ['created_at', 'updated_at', 'image_preview', 'discount_info']
@@ -855,7 +884,7 @@ class PatternAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_display = ['product', 'name', 'has_sizes', 'base_price_display', 'sizes_count', 'variants_count', 'order']
     list_display_links = ['name']
     list_editable = []
-    list_filter = ['has_sizes', 'product__category', PatternBasePriceRangeFilter]
+    list_filter = ['has_sizes', 'product__category', PatternBasePriceFilter]
     search_fields = ['name', 'product__name']
     ordering = ['product', 'order']
     autocomplete_fields = ['product']
@@ -1044,7 +1073,7 @@ class ProductSizeAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_display = ['product', 'size', 'price_display', 'order']
     list_display_links = ['product']
     list_editable = []
-    list_filter = ['size', 'product__category', ProductSizePriceRangeFilter]
+    list_filter = ['size', 'product__category', ProductSizePriceFilter]
     search_fields = ['product__name', 'size__name']
     autocomplete_fields = ['product', 'size']
     list_per_page = 30
@@ -1060,7 +1089,7 @@ class ProductTypeAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_display = ['preview', 'product', 'type', 'price_display', 'order']
     list_display_links = ['product']
     list_editable = []
-    list_filter = ['type', 'product__category', ProductTypePriceRangeFilter]
+    list_filter = ['type', 'product__category', ProductTypePriceFilter]
     search_fields = ['product__name', 'type__name', 'description']
     autocomplete_fields = ['product', 'type']
     list_per_page = 30
@@ -1141,7 +1170,7 @@ class PatternSizeAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_display = ['pattern', 'size', 'price_display', 'stock_badge', 'order']
     list_display_links = ['pattern']
     list_editable = []
-    list_filter = ['pattern__product__category', 'size', PatternSizePriceRangeFilter]
+    list_filter = ['pattern__product__category', 'size', PatternSizePriceFilter]
     search_fields = ['pattern__name', 'pattern__product__name', 'size__name']
     autocomplete_fields = ['pattern', 'size']
     list_per_page = 40

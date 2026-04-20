@@ -5,9 +5,9 @@ from django.test import RequestFactory, TestCase
 
 from products.admin import (
     PatternAdmin,
-    PatternBasePriceRangeFilter,
+    PatternBasePriceFilter,
     ProductAdmin,
-    ProductPriceRangeFilter,
+    ProductPriceFilter,
 )
 from products.models import Category, Pattern, Product
 
@@ -39,16 +39,16 @@ class ProductAdminPriceFilterTests(TestCase):
         )
 
     def test_product_admin_includes_price_filter(self):
-        self.assertIn(ProductPriceRangeFilter, self.product_admin.list_filter)
+        self.assertIn(ProductPriceFilter, self.product_admin.list_filter)
 
-    def test_product_price_filter_returns_expected_range(self):
+    def test_product_price_filter_returns_expected_min_max_match(self):
         request = self.factory.get(
             '/admin/products/product/',
-            {'product_price_range': '100_250'},
+            {'product_price_min': '100', 'product_price_max': '200'},
         )
-        price_filter = ProductPriceRangeFilter(
+        price_filter = ProductPriceFilter(
             request,
-            {'product_price_range': '100_250'},
+            {'product_price_min': '100', 'product_price_max': '200'},
             Product,
             self.product_admin,
         )
@@ -87,16 +87,16 @@ class PatternAdminPriceFilterTests(TestCase):
         )
 
     def test_pattern_admin_includes_base_price_filter(self):
-        self.assertIn(PatternBasePriceRangeFilter, self.pattern_admin.list_filter)
+        self.assertIn(PatternBasePriceFilter, self.pattern_admin.list_filter)
 
-    def test_pattern_base_price_filter_returns_expected_range(self):
+    def test_pattern_base_price_filter_returns_expected_min_value(self):
         request = self.factory.get(
             '/admin/products/pattern/',
-            {'pattern_base_price_range': '1000_plus'},
+            {'pattern_base_price_min': '1000'},
         )
-        price_filter = PatternBasePriceRangeFilter(
+        price_filter = PatternBasePriceFilter(
             request,
-            {'pattern_base_price_range': '1000_plus'},
+            {'pattern_base_price_min': '1000'},
             Pattern,
             self.pattern_admin,
         )
