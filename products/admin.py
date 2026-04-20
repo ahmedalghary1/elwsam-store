@@ -16,6 +16,75 @@ from django.http import HttpResponse
 from django.utils.html import strip_tags
 
 # ================================================
+# Admin list filters
+# ================================================
+
+class BasePriceRangeFilter(admin.SimpleListFilter):
+    title = 'السعر'
+    parameter_name = 'price_range'
+    field_name = 'price'
+
+    PRICE_RANGES = (
+        ('under_100', 'أقل من 100 ج.م'),
+        ('100_250', 'من 100 إلى 250 ج.م'),
+        ('250_500', 'من 250 إلى 500 ج.م'),
+        ('500_1000', 'من 500 إلى 1000 ج.م'),
+        ('1000_plus', 'أكثر من 1000 ج.م'),
+    )
+
+    def lookups(self, request, model_admin):
+        return self.PRICE_RANGES
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if not value:
+            return queryset
+
+        filters_map = {
+            'under_100': {f'{self.field_name}__lt': 100},
+            '100_250': {f'{self.field_name}__gte': 100, f'{self.field_name}__lt': 250},
+            '250_500': {f'{self.field_name}__gte': 250, f'{self.field_name}__lt': 500},
+            '500_1000': {f'{self.field_name}__gte': 500, f'{self.field_name}__lt': 1000},
+            '1000_plus': {f'{self.field_name}__gte': 1000},
+        }
+
+        selected_filters = filters_map.get(value)
+        if not selected_filters:
+            return queryset
+        return queryset.filter(**selected_filters)
+
+
+class ProductPriceRangeFilter(BasePriceRangeFilter):
+    title = 'سعر المنتج'
+    parameter_name = 'product_price_range'
+    field_name = 'price'
+
+
+class PatternBasePriceRangeFilter(BasePriceRangeFilter):
+    title = 'السعر الأساسي'
+    parameter_name = 'pattern_base_price_range'
+    field_name = 'base_price'
+
+
+class ProductSizePriceRangeFilter(BasePriceRangeFilter):
+    title = 'سعر المقاس'
+    parameter_name = 'product_size_price_range'
+    field_name = 'price'
+
+
+class ProductTypePriceRangeFilter(BasePriceRangeFilter):
+    title = 'سعر النوع'
+    parameter_name = 'product_type_price_range'
+    field_name = 'price'
+
+
+class PatternSizePriceRangeFilter(BasePriceRangeFilter):
+    title = 'سعر مقاس النمط'
+    parameter_name = 'pattern_size_price_range'
+    field_name = 'price'
+
+
+# ================================================
 # Inlines — used inside ProductAdmin
 # ================================================
 
@@ -425,7 +494,7 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
     ]
     list_display_links = ['name']
     list_editable = ['is_active', 'is_hot', 'is_new']
-    list_filter = ['category', 'is_active', 'is_hot', 'is_new']
+    list_filter = ['category', 'is_active', 'is_hot', 'is_new', ProductPriceRangeFilter]
     search_fields = ['name', 'seo_title', 'meta_description', 'category__name']
     ordering = ['order']
     readonly_fields = ['created_at', 'updated_at', 'image_preview', 'discount_info']
@@ -786,7 +855,7 @@ class PatternAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_display = ['product', 'name', 'has_sizes', 'base_price_display', 'sizes_count', 'variants_count', 'order']
     list_display_links = ['name']
     list_editable = []
-    list_filter = ['has_sizes', 'product__category']
+    list_filter = ['has_sizes', 'product__category', PatternBasePriceRangeFilter]
     search_fields = ['name', 'product__name']
     ordering = ['product', 'order']
     autocomplete_fields = ['product']
@@ -975,7 +1044,7 @@ class ProductSizeAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_display = ['product', 'size', 'price_display', 'order']
     list_display_links = ['product']
     list_editable = []
-    list_filter = ['size', 'product__category']
+    list_filter = ['size', 'product__category', ProductSizePriceRangeFilter]
     search_fields = ['product__name', 'size__name']
     autocomplete_fields = ['product', 'size']
     list_per_page = 30
@@ -991,7 +1060,7 @@ class ProductTypeAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_display = ['preview', 'product', 'type', 'price_display', 'order']
     list_display_links = ['product']
     list_editable = []
-    list_filter = ['type', 'product__category']
+    list_filter = ['type', 'product__category', ProductTypePriceRangeFilter]
     search_fields = ['product__name', 'type__name', 'description']
     autocomplete_fields = ['product', 'type']
     list_per_page = 30
@@ -1072,7 +1141,7 @@ class PatternSizeAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_display = ['pattern', 'size', 'price_display', 'stock_badge', 'order']
     list_display_links = ['pattern']
     list_editable = []
-    list_filter = ['pattern__product__category', 'size']
+    list_filter = ['pattern__product__category', 'size', PatternSizePriceRangeFilter]
     search_fields = ['pattern__name', 'pattern__product__name', 'size__name']
     autocomplete_fields = ['pattern', 'size']
     list_per_page = 40
