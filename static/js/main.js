@@ -327,6 +327,7 @@ const HeroSlider = {
   current: 0,
   total: 0,
   interval: null,
+  delay: 4000,
   init() {
     const slider = document.getElementById('heroSlider');
     if (!slider) return;
@@ -375,8 +376,17 @@ const HeroSlider = {
   },
   next() { this.goTo(this.current + 1); },
   prev() { this.goTo(this.current - 1); },
-  startAuto() { this.interval = setInterval(() => this.next(), 3000); },
-  stopAuto() { clearInterval(this.interval); },
+  startAuto() {
+    this.stopAuto();
+    if (this.total <= 1) return;
+    this.interval = setInterval(() => this.next(), this.delay);
+  },
+  stopAuto() {
+    if (this.interval) {
+      clearInterval(this.interval);
+      this.interval = null;
+    }
+  },
   resetAuto() { this.stopAuto(); this.startAuto(); }
 };
 
