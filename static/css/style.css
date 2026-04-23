@@ -5728,6 +5728,7 @@ h4 { font-size: 1rem; font-weight: 600; }
   .offer-card { min-height: 140px; padding: 22px 18px; }
 
   /* === شريط الخدمات === */
+  .banner-strip { margin-top: 2px; }
   .banner-strip-inner { gap: 16px; }
 
   /* === صفحة المنتجات (category-products) === */
