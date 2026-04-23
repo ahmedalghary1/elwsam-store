@@ -8,7 +8,7 @@
   <meta name="description" content="{% block meta_description %}متجر الوسام لبيع المنتجات الكهربائية المنزلية ومستلزمات الكهرباء داخل مصر والدول العربية.{% endblock meta_description %}" />
   <meta name="robots" content="{% block meta_robots %}{{ meta_robots|default:'index,follow' }}{% endblock meta_robots %}" />
   {% block canonical_link %}{% if seo_canonical_url %}<link rel="canonical" href="{{ seo_canonical_url }}" />{% endif %}{% endblock canonical_link %}
-  <meta name="csrf-token" content="{{ csrf_token }}">
+  {% if user.is_authenticated %}<meta name="csrf-token" content="{{ csrf_token }}">{% endif %}
   <title>{% block title %}متجر الوسام | الصفحة الرئيسية{% endblock title %}</title>
   {% block open_graph_meta %}
   <meta property="og:locale" content="ar_EG" />
@@ -21,6 +21,7 @@
   {% endblock open_graph_meta %}
   {% block extra_meta %}{% endblock extra_meta %}
   {% block structured_data %}{% for schema in seo_structured_data %}<script type="application/ld+json">{{ schema|safe }}</script>{% endfor %}{% endblock structured_data %}
+  {% block preload_assets %}{% endblock preload_assets %}
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -32,6 +33,7 @@
 
   <!-- Styles -->
   <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/seo-fixes.css' %}" />
   <link rel="stylesheet" href="{% static 'css/responsive-fixes.css' %}" />
 </head>
 <body data-auth="{% if user.is_authenticated %}true{% else %}false{% endif %}">
@@ -41,7 +43,7 @@
       <div class="navbar-row1">
         <button class="hamburger-btn" aria-label="فتح القائمة" aria-expanded="false"><span></span><span></span><span></span></button>
         <a href="/" class="navbar-logo"><div class="logo-icon">
-          <img src="{% static 'image/ELWSAM-LOGO2020.png' %}" alt="شعار متجر الوسام">
+          <img src="{% static 'image/ELWSAM-LOGO2020.webp' %}" alt="شعار متجر الوسام" width="52" height="52">
         </div><span class="logo-text">متجر <span>الوسام</span></span></a>
         <div class="navbar-links">
           <a href="/">الرئيسية</a>
@@ -85,7 +87,6 @@
         <a href="{% url 'accounts:login' %}" class="profile-link-mobile" data-authenticated="{{ user.is_authenticated|yesno:'true,false' }}"><span class="link-icon"><i class="fas fa-user"></i></span>البروفايل</a>
         <a href="{% url 'accounts:register' %}"><span class="link-icon"><i class="fas fa-user-plus"></i></span>إنشاء حساب</a>
       {% endif %}
-      <a href="#"><span class="link-icon"><i class="fas fa-phone"></i></span>تواصل معنا</a>
     </nav>
   </aside>
 
@@ -101,19 +102,12 @@
         <!-- Brand -->
         <div class="footer-brand">
           <div class="footer-logo">
-            <div class="logo-icon"><img src="{% static 'image/ELWSAM-LOGO2020.png' %}" alt="شعار الوسام"></div>
+            <div class="logo-icon"><img src="{% static 'image/ELWSAM-LOGO2020.webp' %}" alt="شعار الوسام" width="52" height="52"></div>
             <span class="logo-text">متجر <span>الوسام</span></span>
           </div>
           <p class="footer-desc">
             متجرك الإلكتروني الأول في العالم العربي. نوفر لك أفضل المنتجات بأسعار تنافسية وتجربة تسوق لا تُنسى.
           </p>
-          <div class="footer-socials">
-            <a href="#" class="social-btn" aria-label="تويتر"><i class="fab fa-twitter"></i> </a>
-            <a href="#" class="social-btn" aria-label="انستغرام"><i class="fab fa-instagram"></i> </a>
-            <a href="#" class="social-btn" aria-label="فيسبوك"><i class="fab fa-facebook"></i> </a>
-            <a href="#" class="social-btn" aria-label="يوتيوب"><i class="fab fa-youtube"></i> </a>
-            <a href="#" class="social-btn" aria-label="تيك توك"><i class="fab fa-tiktok"></i> </a>
-          </div>
         </div>
 
         <!-- Links 1 -->

@@ -1,9 +1,33 @@
 import json
+import re
 
+from django.conf import settings
 from django.db import models
 from django.utils.html import strip_tags
 from django.utils.text import Truncator, slugify
 from accounts.models import User
+
+
+def clean_slug(value, fallback):
+    raw_value = (value or fallback or "").strip()
+    raw_value = re.sub(r"[\\/%?#]+", "-", raw_value)
+    raw_value = re.sub(r"\s+", " ", raw_value)
+    return slugify(raw_value, allow_unicode=True) or fallback
+
+
+def build_unique_slug(model_class, instance, value, fallback):
+    base_slug = clean_slug(value, fallback)
+    candidate = base_slug
+    counter = 1
+    while model_class.objects.filter(slug=candidate).exclude(pk=instance.pk).exists():
+        candidate = f"{base_slug}-{counter}"
+        counter += 1
+    return candidate
+
+
+def canonical_site_url(path="/"):
+    base_url = getattr(settings, "CANONICAL_BASE_URL", "https://elwsamshop.com").rstrip("/")
+    return f"{base_url}/{str(path).lstrip('/')}"
 # =========================
 # Category (ترتيب الأقسام)
 # =========================
@@ -11,6 +35,9 @@ class Category(models.Model):
 
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
+    seo_title = models.CharField(max_length=255, blank=True, help_text='Custom SEO title for category pages')
+    meta_description = models.CharField(max_length=320, blank=True, help_text='Custom meta description for category pages')
+    seo_intro = models.TextField(blank=True, help_text='Intro content displayed on category pages')
     image = models.ImageField(upload_to='categories/', blank=True, null=True)
     slug = models.CharField(max_length=255, unique=True, blank=True, db_index=True)
     icon = models.CharField(max_length=50, default='📁', help_text='أيقونة Emoji أو نص قصير')
@@ -29,17 +56,9 @@ class Category(models.Model):
         return self.name
 
     def save(self, *args, **kwargs):
-        if not self.slug:
-            base_slug = slugify(self.name, allow_unicode=True)
-            if not base_slug:
-                base_slug = 'category'
-            
-            slug = base_slug
-            counter = 1
-            while Category.objects.filter(slug=slug).exclude(pk=self.pk).exists():
-                slug = f'{base_slug}-{counter}'
-                counter += 1
-            self.slug = slug
+        cleaned_slug = clean_slug(self.slug or self.name, "category")
+        if cleaned_slug != self.slug:
+            self.slug = build_unique_slug(Category, self, cleaned_slug, "category")
         super().save(*args, **kwargs)
     
     def get_product_count(self):
@@ -50,8 +69,6 @@ class Category(models.Model):
         """الحصول على رابط القسم"""
         from django.urls import reverse
         return reverse('category_products', kwargs={'id': self.id, 'slug': self.slug})
-
-
 
 
 # =========================
@@ -116,17 +133,9 @@ class Product(models.Model):
         verbose_name_plural = 'المنتجات'
 
     def save(self, *args, **kwargs):
-        if not self.slug:
-            base_slug = slugify(self.name, allow_unicode=True)
-            if not base_slug:
-                base_slug = 'product'
-            
-            slug = base_slug
-            counter = 1
-            while Product.objects.filter(slug=slug).exclude(pk=self.pk).exists():
-                slug = f'{base_slug}-{counter}'
-                counter += 1
-            self.slug = slug
+        cleaned_slug = clean_slug(self.slug or self.name, "product")
+        if cleaned_slug != self.slug:
+            self.slug = build_unique_slug(Product, self, cleaned_slug, "product")
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -411,33 +420,7 @@ class Product(models.Model):
         return schema
 
     def get_schema_markup(self, url=None, image_url=None):
-        """Return stored schema JSON-LD or generate a valid fallback."""
-        if self.schema_markup:
-            try:
-                stored_schema = json.loads(self.schema_markup)
-                if isinstance(stored_schema, dict):
-                    stored_schema.setdefault("@context", "https://schema.org")
-                    stored_schema.setdefault("@type", "Product")
-                    if image_url and "image" not in stored_schema:
-                        stored_schema["image"] = [image_url]
-                    if url and "url" not in stored_schema:
-                        stored_schema["url"] = url
-                    offers = stored_schema.get("offers")
-                    if isinstance(offers, dict):
-                        offers.setdefault("@type", "Offer")
-                        if url and "url" not in offers:
-                            offers["url"] = url
-                        if "price" not in offers:
-                            offers["price"] = str(self.price)
-                        if "priceCurrency" not in offers:
-                            offers["priceCurrency"] = "EGP"
-                        offers.setdefault(
-                            "availability",
-                            "https://schema.org/InStock" if self.is_available() else "https://schema.org/OutOfStock",
-                        )
-                    return json.dumps(stored_schema, ensure_ascii=False)
-            except json.JSONDecodeError:
-                return self.schema_markup
+        """Return a controlled Product schema without unsupported custom fields."""
         return json.dumps(self.build_product_schema(url=url, image_url=image_url), ensure_ascii=False)
 
     def get_breadcrumb_schema(self, category_url=None, product_url=None):
@@ -456,6 +439,7 @@ class Product(models.Model):
                 {
                     "@type": "ListItem",
                     "position": 1,
+                    "item": canonical_site_url("/"),
                     "name": "الرئيسية",
                 },
                 {

@@ -1,8 +1,8 @@
-
+﻿
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}إنشاء حساب جديد | متجر الوسام{% endblock title %}
+{% block title %}Ø¥Ù†Ø´Ø§Ø¡ Ø­Ø³Ø§Ø¨ Ø¬Ø¯ÙŠØ¯ | Ù…ØªØ¬Ø± Ø§Ù„ÙˆØ³Ø§Ù…{% endblock title %}
 
 {% block content %}
 
@@ -581,14 +581,14 @@
       object-fit: contain;
     }
 
-    /* تحسين للشاشات المتوسطة */
+    /* ØªØ­Ø³ÙŠÙ† Ù„Ù„Ø´Ø§Ø´Ø§Øª Ø§Ù„Ù…ØªÙˆØ³Ø·Ø© */
     @media (max-width: 1024px) {
       .auth-logo-image {
         max-width: 150px;
       }
     }
 
-    /* تحسين للشاشات الصغيرة */
+    /* ØªØ­Ø³ÙŠÙ† Ù„Ù„Ø´Ø§Ø´Ø§Øª Ø§Ù„ØµØºÙŠØ±Ø© */
     @media (max-width: 768px) {
       .auth-visual-emoji {
         margin-bottom: 16px;
@@ -611,33 +611,33 @@
     <div class="auth-form-wrap">
 
       <a href="{% url 'index' %}" class="auth-logo">
-        <div class="logo-icon"><img src="{% static 'image/ELWSAM-LOGO2020.png' %}" alt="متجر الوسام"></div>
-        <div class="logo-text">متجر <span>الوسام</span></div>
+        <div class="logo-icon"><img src="{% static 'image/ELWSAM-LOGO2020.webp' %}" alt="Ù…ØªØ¬Ø± Ø§Ù„ÙˆØ³Ø§Ù…"></div>
+        <div class="logo-text">Ù…ØªØ¬Ø± <span>Ø§Ù„ÙˆØ³Ø§Ù…</span></div>
       </a>
 
       <div class="auth-tabs">
-        <a href="{% url 'accounts:login' %}" class="auth-tab">تسجيل الدخول</a>
-        <button class="auth-tab active">حساب جديد</button>
+        <a href="{% url 'accounts:login' %}" class="auth-tab">ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„</a>
+        <button class="auth-tab active">Ø­Ø³Ø§Ø¨ Ø¬Ø¯ÙŠØ¯</button>
       </div>
 
       <div class="auth-heading">
-        <h1>انضم إلى الوسام!</h1>
-        <p>لديك حساب بالفعل؟ <a href="{% url 'accounts:login' %}">سجّل دخولك الآن</a></p>
+        <h1>Ø§Ù†Ø¶Ù… Ø¥Ù„Ù‰ Ø§Ù„ÙˆØ³Ø§Ù…!</h1>
+        <p>Ù„Ø¯ÙŠÙƒ Ø­Ø³Ø§Ø¨ Ø¨Ø§Ù„ÙØ¹Ù„ØŸ <a href="{% url 'accounts:login' %}">Ø³Ø¬Ù‘Ù„ Ø¯Ø®ÙˆÙ„Ùƒ Ø§Ù„Ø¢Ù†</a></p>
       </div>
 
-      <!-- عرض رسائل الخطأ العامة (مثل البريد موجود مسبقاً) -->
+      <!-- Ø¹Ø±Ø¶ Ø±Ø³Ø§Ø¦Ù„ Ø§Ù„Ø®Ø·Ø£ Ø§Ù„Ø¹Ø§Ù…Ø© (Ù…Ø«Ù„ Ø§Ù„Ø¨Ø±ÙŠØ¯ Ù…ÙˆØ¬ÙˆØ¯ Ù…Ø³Ø¨Ù‚Ø§Ù‹) -->
       {% if form.non_field_errors %}
         <div class="auth-alert error show">
-          <span>⚠️</span>
+          <span>âš ï¸</span>
           <span>{{ form.non_field_errors.0 }}</span>
         </div>
       {% endif %}
 
-      <!-- عرض رسائل النجاح (من messages) -->
+      <!-- Ø¹Ø±Ø¶ Ø±Ø³Ø§Ø¦Ù„ Ø§Ù„Ù†Ø¬Ø§Ø­ (Ù…Ù† messages) -->
       {% if messages %}
         {% for message in messages %}
           <div class="auth-alert {% if message.tags == 'error' %}error{% else %}success{% endif %} show">
-            <span>{% if message.tags == 'error' %}⚠️{% else %}✅{% endif %}</span>
+            <span>{% if message.tags == 'error' %}âš ï¸{% else %}âœ…{% endif %}</span>
             <span>{{ message }}</span>
           </div>
         {% endfor %}
@@ -646,13 +646,13 @@
       <form method="post" id="registerForm" novalidate>
         {% csrf_token %}
 
-        <!-- اسم المستخدم (username) -->
+        <!-- Ø§Ø³Ù… Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… (username) -->
         <div class="form-group">
-          <label class="form-label" for="id_username">اسم المستخدم</label>
+          <label class="form-label" for="id_username">Ø§Ø³Ù… Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…</label>
           <div class="form-input-wrap">
             <span class="form-input-icon"><i class="fas fa-user"></i></span>
             <input type="text" name="username" id="id_username" class="form-input {% if form.username.errors %}error{% endif %}"
-                   value="{{ form.username.value|default:'' }}" placeholder="أدخل اسم المستخدم" required>
+                   value="{{ form.username.value|default:'' }}" placeholder="Ø£Ø¯Ø®Ù„ Ø§Ø³Ù… Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…" required>
           </div>
           {% if form.username.errors %}
             <span class="form-error-msg show">{{ form.username.errors.0 }}</span>
@@ -660,11 +660,11 @@
         </div>
 
         <div class="form-row-2col">
-          <!-- حقل البريد الإلكتروني -->
+          <!-- Ø­Ù‚Ù„ Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ -->
           <div class="form-group">
-            <label class="form-label" for="id_email">البريد الإلكتروني</label>
+            <label class="form-label" for="id_email">Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ</label>
             <div class="form-input-wrap">
-              <span class="form-input-icon">✉️</span>
+              <span class="form-input-icon">âœ‰ï¸</span>
               <input type="email" name="email" id="id_email" class="form-input {% if form.email.errors %}error{% endif %}"
                      value="{{ form.email.value|default:'' }}" placeholder="example@email.com" required>
             </div>
@@ -673,11 +673,11 @@
             {% endif %}
           </div>
 
-          <!-- حقل رقم الجوال (اختياري) -->
+          <!-- Ø­Ù‚Ù„ Ø±Ù‚Ù… Ø§Ù„Ø¬ÙˆØ§Ù„ (Ø§Ø®ØªÙŠØ§Ø±ÙŠ) -->
           <div class="form-group">
-            <label class="form-label" for="id_phone">رقم الجوال </label>
+            <label class="form-label" for="id_phone">Ø±Ù‚Ù… Ø§Ù„Ø¬ÙˆØ§Ù„ </label>
             <div class="form-input-wrap">
-              <span class="form-input-icon">📱</span>
+              <span class="form-input-icon">ðŸ“±</span>
               <input type="tel" name="phone" id="id_phone" class="form-input {% if form.phone.errors %}error{% endif %}"
                      value="{{ form.phone.value|default:'' }}" placeholder="+20 100 000 0000">
             </div>
@@ -687,47 +687,47 @@
           </div>
         </div>
 
-        <!-- كلمة المرور -->
+        <!-- ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± -->
         <div class="form-group">
-          <label class="form-label" for="id_password1">كلمة المرور</label>
+          <label class="form-label" for="id_password1">ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±</label>
           <div class="form-input-wrap">
-            <span class="form-input-icon">🔒</span>
+            <span class="form-input-icon">ðŸ”’</span>
             <input type="password" name="password1" id="id_password1" class="form-input {% if form.password1.errors %}error{% endif %}"
-                   placeholder="8 أحرف على الأقل" required>
-            <button type="button" class="password-toggle" data-target="id_password1">👁️</button>
+                   placeholder="8 Ø£Ø­Ø±Ù Ø¹Ù„Ù‰ Ø§Ù„Ø£Ù‚Ù„" required>
+            <button type="button" class="password-toggle" data-target="id_password1">ðŸ‘ï¸</button>
           </div>
           <div class="password-strength">
             <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
-            <span class="strength-label" id="strengthLabel">أدخل كلمة مرور قوية</span>
+            <span class="strength-label" id="strengthLabel">Ø£Ø¯Ø®Ù„ ÙƒÙ„Ù…Ø© Ù…Ø±ÙˆØ± Ù‚ÙˆÙŠØ©</span>
           </div>
           {% if form.password1.errors %}
             <span class="form-error-msg show">{{ form.password1.errors.0 }}</span>
           {% endif %}
         </div>
 
-        <!-- تأكيد كلمة المرور -->
+        <!-- ØªØ£ÙƒÙŠØ¯ ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± -->
         <div class="form-group">
-          <label class="form-label" for="id_password2">تأكيد كلمة المرور</label>
+          <label class="form-label" for="id_password2">ØªØ£ÙƒÙŠØ¯ ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±</label>
           <div class="form-input-wrap">
-            <span class="form-input-icon">🔒</span>
+            <span class="form-input-icon">ðŸ”’</span>
             <input type="password" name="password2" id="id_password2" class="form-input {% if form.password2.errors %}error{% endif %}"
-                   placeholder="أعد إدخال كلمة المرور" required>
-            <button type="button" class="password-toggle" data-target="id_password2">👁️</button>
+                   placeholder="Ø£Ø¹Ø¯ Ø¥Ø¯Ø®Ø§Ù„ ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±" required>
+            <button type="button" class="password-toggle" data-target="id_password2">ðŸ‘ï¸</button>
           </div>
           {% if form.password2.errors %}
             <span class="form-error-msg show">{{ form.password2.errors.0 }}</span>
           {% endif %}
         </div>
 
-        <!-- الموافقة على الشروط (يتم التحقق منها بواسطة JS) -->
+        <!-- Ø§Ù„Ù…ÙˆØ§ÙÙ‚Ø© Ø¹Ù„Ù‰ Ø§Ù„Ø´Ø±ÙˆØ· (ÙŠØªÙ… Ø§Ù„ØªØ­Ù‚Ù‚ Ù…Ù†Ù‡Ø§ Ø¨ÙˆØ§Ø³Ø·Ø© JS) -->
         <label class="terms-wrap">
           <input type="checkbox" id="acceptTerms" required>
-          <span>أوافق على <a href="#">شروط الاستخدام</a> و<a href="#">سياسة الخصوصية</a> الخاصة بمتجر الوسام</span>
+          <span>Ø£ÙˆØ§ÙÙ‚ Ø¹Ù„Ù‰ <a href="#">Ø´Ø±ÙˆØ· Ø§Ù„Ø§Ø³ØªØ®Ø¯Ø§Ù…</a> Ùˆ<a href="#">Ø³ÙŠØ§Ø³Ø© Ø§Ù„Ø®ØµÙˆØµÙŠØ©</a> Ø§Ù„Ø®Ø§ØµØ© Ø¨Ù…ØªØ¬Ø± Ø§Ù„ÙˆØ³Ø§Ù…</span>
         </label>
 
         <button type="submit" class="auth-submit" id="registerBtn">
           <div class="spinner"></div>
-          <span class="btn-text">إنشاء الحساب مجاناً</span>
+          <span class="btn-text">Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ø­Ø³Ø§Ø¨ Ù…Ø¬Ø§Ù†Ø§Ù‹</span>
         </button>
       </form>
 
@@ -740,13 +740,13 @@
     <div class="auth-visual-grid"></div>
     <div class="auth-visual-content">
       <div class="auth-visual-emoji">
-        <img src="{% static 'image/ELWSAM-LOGO2020.png' %}" alt="متجر الوسام" class="auth-logo-image">
+        <img src="{% static 'image/ELWSAM-LOGO2020.webp' %}" alt="Ù…ØªØ¬Ø± Ø§Ù„ÙˆØ³Ø§Ù…" class="auth-logo-image">
       </div>
-      <h2>مرحباً بك في <br><span>متجر الوسام</span></h2>
-      <p>تسوّق من أفضل المنتجات بأسعار لا تُقاوم. اكتشف آلاف المنتجات المتنوعة وتمتع بتجربة تسوق فريدة.</p>
+      <h2>Ù…Ø±Ø­Ø¨Ø§Ù‹ Ø¨Ùƒ ÙÙŠ <br><span>Ù…ØªØ¬Ø± Ø§Ù„ÙˆØ³Ø§Ù…</span></h2>
+      <p>ØªØ³ÙˆÙ‘Ù‚ Ù…Ù† Ø£ÙØ¶Ù„ Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª Ø¨Ø£Ø³Ø¹Ø§Ø± Ù„Ø§ ØªÙÙ‚Ø§ÙˆÙ…. Ø§ÙƒØªØ´Ù Ø¢Ù„Ø§Ù Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª Ø§Ù„Ù…ØªÙ†ÙˆØ¹Ø© ÙˆØªÙ…ØªØ¹ Ø¨ØªØ¬Ø±Ø¨Ø© ØªØ³ÙˆÙ‚ ÙØ±ÙŠØ¯Ø©.</p>
       <div class="auth-benefits">
-        <div class="auth-benefit-item"><span class="benefit-check">✓</span> شحن مجاني على الطلبات فوق 1000 ج.م</div>
-        <div class="auth-benefit-item"><span class="benefit-check">✓</span> عروض حصرية للأعضاء الجدد</div>
+        <div class="auth-benefit-item"><span class="benefit-check">âœ“</span> Ø´Ø­Ù† Ù…Ø¬Ø§Ù†ÙŠ Ø¹Ù„Ù‰ Ø§Ù„Ø·Ù„Ø¨Ø§Øª ÙÙˆÙ‚ 1000 Ø¬.Ù…</div>
+        <div class="auth-benefit-item"><span class="benefit-check">âœ“</span> Ø¹Ø±ÙˆØ¶ Ø­ØµØ±ÙŠØ© Ù„Ù„Ø£Ø¹Ø¶Ø§Ø¡ Ø§Ù„Ø¬Ø¯Ø¯</div>
       </div>
     </div>
   </div>
@@ -762,7 +762,7 @@
         if (input) {
           const type = input.type === 'password' ? 'text' : 'password';
           input.type = type;
-          btn.textContent = type === 'password' ? '👁️' : '🙈';
+          btn.textContent = type === 'password' ? 'ðŸ‘ï¸' : 'ðŸ™ˆ';
         }
       });
     });
@@ -785,11 +785,11 @@
     function updateStrengthMeter() {
       const pwd = passwordInput.value;
       const strength = checkPasswordStrength(pwd);
-      let width = 0, color = '#dc3545', label = 'ضعيفة جداً';
-      if (strength === 1) { width = 25; color = '#dc3545'; label = 'ضعيفة'; }
-      else if (strength === 2) { width = 50; color = '#ffc107'; label = 'متوسطة'; }
-      else if (strength === 3) { width = 75; color = '#28a745'; label = 'جيدة'; }
-      else if (strength >= 4) { width = 100; color = '#28a745'; label = 'قوية'; }
+      let width = 0, color = '#dc3545', label = 'Ø¶Ø¹ÙŠÙØ© Ø¬Ø¯Ø§Ù‹';
+      if (strength === 1) { width = 25; color = '#dc3545'; label = 'Ø¶Ø¹ÙŠÙØ©'; }
+      else if (strength === 2) { width = 50; color = '#ffc107'; label = 'Ù…ØªÙˆØ³Ø·Ø©'; }
+      else if (strength === 3) { width = 75; color = '#28a745'; label = 'Ø¬ÙŠØ¯Ø©'; }
+      else if (strength >= 4) { width = 100; color = '#28a745'; label = 'Ù‚ÙˆÙŠØ©'; }
       strengthFill.style.width = width + '%';
       strengthFill.style.backgroundColor = color;
       strengthLabel.textContent = label;
@@ -816,7 +816,7 @@
       if (!username.value.trim()) {
         username.classList.add('error');
         const errorSpan = username.closest('.form-group').querySelector('.form-error-msg');
-        if (errorSpan) errorSpan.textContent = 'اسم المستخدم مطلوب.';
+        if (errorSpan) errorSpan.textContent = 'Ø§Ø³Ù… Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… Ù…Ø·Ù„ÙˆØ¨.';
         if (errorSpan) errorSpan.classList.add('show');
         isValid = false;
       }
@@ -827,7 +827,7 @@
       if (!email.value.trim() || !emailRegex.test(email.value)) {
         email.classList.add('error');
         const errorSpan = email.closest('.form-group').querySelector('.form-error-msg');
-        if (errorSpan) errorSpan.textContent = 'يرجى إدخال بريد إلكتروني صحيح.';
+        if (errorSpan) errorSpan.textContent = 'ÙŠØ±Ø¬Ù‰ Ø¥Ø¯Ø®Ø§Ù„ Ø¨Ø±ÙŠØ¯ Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ ØµØ­ÙŠØ­.';
         if (errorSpan) errorSpan.classList.add('show');
         isValid = false;
       }
@@ -837,7 +837,7 @@
       if (password1.value.length < 8) {
         password1.classList.add('error');
         const errorSpan = password1.closest('.form-group').querySelector('.form-error-msg');
-        if (errorSpan) errorSpan.textContent = 'كلمة المرور يجب أن تكون 8 أحرف على الأقل.';
+        if (errorSpan) errorSpan.textContent = 'ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± ÙŠØ¬Ø¨ Ø£Ù† ØªÙƒÙˆÙ† 8 Ø£Ø­Ø±Ù Ø¹Ù„Ù‰ Ø§Ù„Ø£Ù‚Ù„.';
         if (errorSpan) errorSpan.classList.add('show');
         isValid = false;
       }
@@ -847,14 +847,14 @@
       if (password1.value !== password2.value) {
         password2.classList.add('error');
         const errorSpan = password2.closest('.form-group').querySelector('.form-error-msg');
-        if (errorSpan) errorSpan.textContent = 'كلمتا المرور غير متطابقتان.';
+        if (errorSpan) errorSpan.textContent = 'ÙƒÙ„Ù…ØªØ§ Ø§Ù„Ù…Ø±ÙˆØ± ØºÙŠØ± Ù…ØªØ·Ø§Ø¨Ù‚ØªØ§Ù†.';
         if (errorSpan) errorSpan.classList.add('show');
         isValid = false;
       }
 
       // Check terms
       if (!termsCheck.checked) {
-        alert('يجب الموافقة على شروط الاستخدام وسياسة الخصوصية.');
+        alert('ÙŠØ¬Ø¨ Ø§Ù„Ù…ÙˆØ§ÙÙ‚Ø© Ø¹Ù„Ù‰ Ø´Ø±ÙˆØ· Ø§Ù„Ø§Ø³ØªØ®Ø¯Ø§Ù… ÙˆØ³ÙŠØ§Ø³Ø© Ø§Ù„Ø®ØµÙˆØµÙŠØ©.');
         isValid = false;
       }
 
