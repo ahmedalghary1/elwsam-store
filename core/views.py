@@ -35,7 +35,7 @@ def index(request):
             serialize_schema(build_website_schema(request)),
         ],
     }
-    return render(request, 'seo/index.html', context)
+    return render(request, 'index.html', context)
 
 
 def robots_txt(request):
