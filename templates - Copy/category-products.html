@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %} متجر الوسام | {{ category.name }}{% endblock title %}
+{% block title %}{{ seo_title }}{% endblock title %}
+{% block meta_description %}{{ seo_meta_description }}{% endblock meta_description %}
+{% block canonical_link %}<link rel="canonical" href="{{ seo_canonical_url }}" />{% endblock canonical_link %}
 
 {% block content %}
 
@@ -31,10 +33,13 @@
       </div>
       <div class="cp-hero-text">
         <h1 id="cpHeroTitle">{{ category.name }}</h1>
+        {% if seo_intro %}
+          <p class="cp-hero-intro">{{ seo_intro }}</p>
+        {% endif %}
       </div>
       <div class="cp-hero-stats">
         <div class="cp-hero-stat">
-          <strong id="heroProductCount">{{ products|length }}</strong>
+          <strong id="heroProductCount">{{ products_count }}</strong>
           <span>منتج</span>
         </div>
         <div class="cp-hero-stat">
@@ -132,6 +137,26 @@
           </div>
           {% endfor %}
         </div>
+
+        {% if is_paginated %}
+        <nav class="pagination category-pagination" aria-label="ترقيم صفحات منتجات القسم">
+          {% if page_obj.has_previous %}
+            <a class="page-btn page-prev" href="?{% if query_params %}{{ query_params }}&{% endif %}page={{ page_obj.previous_page_number }}">
+              <i class="fas fa-chevron-right"></i>
+              السابق
+            </a>
+          {% endif %}
+
+          <span class="page-btn active" aria-current="page">{{ page_obj.number }} / {{ paginator.num_pages }}</span>
+
+          {% if page_obj.has_next %}
+            <a class="page-btn page-next" href="?{% if query_params %}{{ query_params }}&{% endif %}page={{ page_obj.next_page_number }}">
+              التالي
+              <i class="fas fa-chevron-left"></i>
+            </a>
+          {% endif %}
+        </nav>
+        {% endif %}
       </div>
     </div>
   </div>

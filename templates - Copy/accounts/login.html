@@ -1,7 +1,7 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% load static %}
 
-{% block title %}تسجيل الدخول | متجر الوسام{% endblock title %}
+{% block title %}ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ | Ù…ØªØ¬Ø± Ø§Ù„ÙˆØ³Ø§Ù…{% endblock title %}
 
 {% block content %}
 <style>
@@ -514,14 +514,14 @@
     object-fit: contain;
   }
 
-  /* تحسين للشاشات المتوسطة */
+  /* ØªØ­Ø³ÙŠÙ† Ù„Ù„Ø´Ø§Ø´Ø§Øª Ø§Ù„Ù…ØªÙˆØ³Ø·Ø© */
   @media (max-width: 1024px) {
     .auth-logo-image {
       max-width: 150px;
     }
   }
 
-  /* تحسين للشاشات الصغيرة */
+  /* ØªØ­Ø³ÙŠÙ† Ù„Ù„Ø´Ø§Ø´Ø§Øª Ø§Ù„ØµØºÙŠØ±Ø© */
   @media (max-width: 768px) {
     .auth-visual-emoji {
       margin-bottom: 16px;
@@ -545,23 +545,23 @@
       <div class="auth-visual-grid"></div>
       <div class="auth-visual-content">
       <div class="auth-visual-emoji">
-        <img src="{% static 'image/ELWSAM-LOGO2020.png' %}" alt="متجر الوسام" class="auth-logo-image">
+        <img src="{% static 'image/ELWSAM-LOGO2020.webp' %}" alt="Ù…ØªØ¬Ø± Ø§Ù„ÙˆØ³Ø§Ù…" class="auth-logo-image">
       </div>        
       
-      <h2>مرحباً بك في<br /><span>متجر الوسام</span></h2>
-        <p>تسوّق من أفضل المنتجات بأسعار لا تُقاوم. اكتشف آلاف المنتجات المتنوعة وتمتع بتجربة تسوق فريدة.</p>
+      <h2>Ù…Ø±Ø­Ø¨Ø§Ù‹ Ø¨Ùƒ ÙÙŠ<br /><span>Ù…ØªØ¬Ø± Ø§Ù„ÙˆØ³Ø§Ù…</span></h2>
+        <p>ØªØ³ÙˆÙ‘Ù‚ Ù…Ù† Ø£ÙØ¶Ù„ Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª Ø¨Ø£Ø³Ø¹Ø§Ø± Ù„Ø§ ØªÙÙ‚Ø§ÙˆÙ…. Ø§ÙƒØªØ´Ù Ø¢Ù„Ø§Ù Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª Ø§Ù„Ù…ØªÙ†ÙˆØ¹Ø© ÙˆØªÙ…ØªØ¹ Ø¨ØªØ¬Ø±Ø¨Ø© ØªØ³ÙˆÙ‚ ÙØ±ÙŠØ¯Ø©.</p>
         <div class="auth-visual-stats">
           <div class="auth-stat">
             <span class="auth-stat-num">500+</span>
-            <span class="auth-stat-label">منتج</span>
+            <span class="auth-stat-label">Ù…Ù†ØªØ¬</span>
           </div>
           <div class="auth-stat">
             <span class="auth-stat-num">20K+</span>
-            <span class="auth-stat-label">عميل</span>
+            <span class="auth-stat-label">Ø¹Ù…ÙŠÙ„</span>
           </div>
           <div class="auth-stat">
-            <span class="auth-stat-num">4.9★</span>
-            <span class="auth-stat-label">تقييم</span>
+            <span class="auth-stat-num">4.9â˜…</span>
+            <span class="auth-stat-label">ØªÙ‚ÙŠÙŠÙ…</span>
           </div>
         </div>
       </div>
@@ -572,19 +572,19 @@
       <div class="auth-form-wrap">
 
         <a href="{% url 'index' %}" class="auth-logo">
-          <div class="logo-icon"><img src="{% static 'image/ELWSAM-LOGO2020.png' %}" alt=""></div>
-          <div class="logo-text">متجر <span>الوسام</span></div>
+          <div class="logo-icon"><img src="{% static 'image/ELWSAM-LOGO2020.webp' %}" alt=""></div>
+          <div class="logo-text">Ù…ØªØ¬Ø± <span>Ø§Ù„ÙˆØ³Ø§Ù…</span></div>
         </a>
 
         <!-- Tabs -->
         <div class="auth-tabs" role="tablist">
-          <button class="auth-tab active" role="tab" aria-selected="true" onclick="window.location.href='{% url 'accounts:login' %}'">تسجيل الدخول</button>
-          <button class="auth-tab" role="tab" aria-selected="false" onclick="window.location.href='{% url 'accounts:register' %}'">حساب جديد</button>
+          <button class="auth-tab active" role="tab" aria-selected="true" onclick="window.location.href='{% url 'accounts:login' %}'">ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„</button>
+          <button class="auth-tab" role="tab" aria-selected="false" onclick="window.location.href='{% url 'accounts:register' %}'">Ø­Ø³Ø§Ø¨ Ø¬Ø¯ÙŠØ¯</button>
         </div>
 
         <div class="auth-heading">
-          <h1>أهلاً بعودتك! 👋</h1>
-          <p>ليس لديك حساب؟ <a href="{% url 'accounts:register' %}">أنشئ حساباً مجاناً</a></p>
+          <h1>Ø£Ù‡Ù„Ø§Ù‹ Ø¨Ø¹ÙˆØ¯ØªÙƒ! ðŸ‘‹</h1>
+          <p>Ù„ÙŠØ³ Ù„Ø¯ÙŠÙƒ Ø­Ø³Ø§Ø¨ØŸ <a href="{% url 'accounts:register' %}">Ø£Ù†Ø´Ø¦ Ø­Ø³Ø§Ø¨Ø§Ù‹ Ù…Ø¬Ø§Ù†Ø§Ù‹</a></p>
         </div>
 
 
@@ -592,14 +592,14 @@
         {% if messages %}
           {% for message in messages %}
             <div class="auth-alert {% if message.tags %}{{ message.tags }}{% else %}error{% endif %} show" role="alert">
-              <span>{% if message.tags == 'error' %}⚠️{% else %}✅{% endif %}</span>
+              <span>{% if message.tags == 'error' %}âš ï¸{% else %}âœ…{% endif %}</span>
               <span>{{ message }}</span>
             </div>
           {% endfor %}
 
           {% if form.non_field_errors %}
             <div class="auth-alert error show">
-              <span>⚠️</span>
+              <span>âš ï¸</span>
               <span>{{ form.non_field_errors.0 }}</span>
             </div>
           {% endif %}
@@ -613,9 +613,9 @@
           <input type="hidden" name="has_cart_data" id="has_cart_data" value="false">
 
           <div class="form-group">
-            <label class="form-label" for="id_email">البريد الإلكتروني</label>
+            <label class="form-label" for="id_email">Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ</label>
             <div class="form-input-wrap">
-              <span class="form-input-icon">✉️</span>
+              <span class="form-input-icon">âœ‰ï¸</span>
               <input
                 class="form-input {% if form.email.errors %}error{% endif %}"
                 type="email"
@@ -630,48 +630,48 @@
             {% if form.email.errors %}
               <span class="form-error-msg show">{{ form.email.errors.0 }}</span>
             {% else %}
-              <span class="form-error-msg" id="emailError">يرجى إدخال بريد إلكتروني صحيح.</span>
+              <span class="form-error-msg" id="emailError">ÙŠØ±Ø¬Ù‰ Ø¥Ø¯Ø®Ø§Ù„ Ø¨Ø±ÙŠØ¯ Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ ØµØ­ÙŠØ­.</span>
             {% endif %}
           </div>
 
           <div class="form-group">
             <div class="form-row">
-              <label class="form-label" for="id_password" style="margin-bottom:0">كلمة المرور</label>
-              <a href="#" class="form-link">نسيت كلمة المرور؟</a>
+              <label class="form-label" for="id_password" style="margin-bottom:0">ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±</label>
+              <a href="#" class="form-link">Ù†Ø³ÙŠØª ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±ØŸ</a>
             </div>
             <div class="form-input-wrap" style="margin-top:8px">
-              <span class="form-input-icon">🔒</span>
+              <span class="form-input-icon">ðŸ”’</span>
               <input
                 class="form-input {% if form.password.errors %}error{% endif %}"
                 type="password"
                 name="password"
                 id="id_password"
-                placeholder="أدخل كلمة المرور"
+                placeholder="Ø£Ø¯Ø®Ù„ ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±"
                 autocomplete="current-password"
                 required
               />
-              <button type="button" class="password-toggle" id="togglePassword" aria-label="إظهار/إخفاء كلمة المرور">👁️</button>
+              <button type="button" class="password-toggle" id="togglePassword" aria-label="Ø¥Ø¸Ù‡Ø§Ø±/Ø¥Ø®ÙØ§Ø¡ ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±">ðŸ‘ï¸</button>
             </div>
             {% if form.password.errors %}
               <span class="form-error-msg show">{{ form.password.errors.0 }}</span>
             {% else %}
-              <span class="form-error-msg" id="passwordError">يرجى إدخال كلمة المرور.</span>
+              <span class="form-error-msg" id="passwordError">ÙŠØ±Ø¬Ù‰ Ø¥Ø¯Ø®Ø§Ù„ ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±.</span>
             {% endif %}
           </div>
 
           <label class="checkbox-wrap">
             <input type="checkbox" name="remember" id="rememberMe" />
-            <span>تذكرني لمدة 30 يوم</span>
+            <span>ØªØ°ÙƒØ±Ù†ÙŠ Ù„Ù…Ø¯Ø© 30 ÙŠÙˆÙ…</span>
           </label>
 
           <button type="submit" class="auth-submit" id="loginBtn">
             <div class="spinner"></div>
-            <span class="btn-text">تسجيل الدخول ←</span>
+            <span class="btn-text">ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ â†</span>
           </button>
           
           <div style="text-align: center; margin-top: 16px;">
             <a href="{% url 'accounts:forgot_password' %}" style="color: var(--color-primary); text-decoration: none; font-size: 0.9rem; font-weight: 600;">
-              نسيت كلمة المرور؟
+              Ù†Ø³ÙŠØª ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±ØŸ
             </a>
           </div>
         </form>
@@ -691,7 +691,7 @@
       toggleBtn.addEventListener('click', () => {
         const isPass = passInput.type === 'password';
         passInput.type = isPass ? 'text' : 'password';
-        toggleBtn.textContent = isPass ? '🙈' : '👁️';
+        toggleBtn.textContent = isPass ? 'ðŸ™ˆ' : 'ðŸ‘ï¸';
       });
     }
 

@@ -53,7 +53,7 @@ class ProductSitemap(Sitemap):
     priority = 0.9
 
     def items(self):
-        return Product.objects.filter(is_active=True).order_by("order")
+        return Product.objects.filter(is_active=True, category__is_active=True).order_by("order")
 
     def lastmod(self, obj):
         return obj.updated_at

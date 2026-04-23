@@ -3,6 +3,5 @@ Allow: /
 
 Disallow: /admin/
 Disallow: /api/
-Disallow: /search/
 
 Sitemap: {{ sitemap_url }}

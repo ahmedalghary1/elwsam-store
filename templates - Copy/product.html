@@ -173,6 +173,35 @@
 
       </div>
 
+      <section class="product-seo-content" aria-labelledby="product-seo-heading">
+        <div class="product-seo-panel">
+          <h2 id="product-seo-heading">تفاصيل {{ product.name }}</h2>
+          <p>{{ seo_description|linebreaksbr }}</p>
+        </div>
+
+        {% if product.get_focus_keywords_list %}
+        <div class="product-seo-panel">
+          <h3>مناسب لمن يبحث عن</h3>
+          <ul>
+            {% for keyword in product.get_focus_keywords_list %}
+              <li>{{ keyword }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        {% if specs %}
+        <div class="product-seo-panel">
+          <h3>المواصفات الأساسية</h3>
+          <ul>
+            {% for spec in specs %}
+              <li><strong>{{ spec.key }}:</strong> {{ spec.value }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+      </section>
+
       {% if seo_faq_items %}
       <div class="page-section">
         <div class="section-header">
