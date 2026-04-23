@@ -141,10 +141,10 @@ function initSearch() {
     document.getElementById('searchOverlayClose').addEventListener('click', closeOverlay);
     el.addEventListener('click', e => { if (e.target === el) closeOverlay(); });
     document.getElementById('searchOverlayInput').addEventListener('keydown', e => {
-      if (e.key === 'Enter' && e.target.value.trim()) window.location.href = `products.html?q=${encodeURIComponent(e.target.value.trim())}`;
+      if (e.key === 'Enter' && e.target.value.trim()) window.location.href = `/products/?q=${encodeURIComponent(e.target.value.trim())}`;
     });
     el.querySelectorAll('.search-tag').forEach(tag => {
-      tag.addEventListener('click', () => { window.location.href = `products.html?q=${encodeURIComponent(tag.textContent)}`; });
+      tag.addEventListener('click', () => { window.location.href = `/products/?q=${encodeURIComponent(tag.textContent)}`; });
     });
   }
   // open on search btn click
@@ -389,11 +389,15 @@ function initFilterToggle() {
 
 // ============ Active Nav ============
 function setActiveNavLinks() {
-  const current = location.pathname.split('/').pop() || 'index.html';
+  const currentPath = location.pathname.replace(/\/+$/, '') || '/';
   document.querySelectorAll('.navbar-links a, .mobile-menu-links a, .bottom-nav a').forEach(a => {
     const href = a.getAttribute('href');
+    if (!href || href === '#') return;
+    const linkPath = new URL(href, location.origin).pathname.replace(/\/+$/, '') || '/';
     a.classList.remove('active');
-    if (href === current || (current === '' && href === 'index.html')) a.classList.add('active');
+    if (linkPath === currentPath || (linkPath !== '/' && currentPath.startsWith(linkPath + '/'))) {
+      a.classList.add('active');
+    }
   });
 }
 

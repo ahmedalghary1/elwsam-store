@@ -1,0 +1,596 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ seo_title }}{% endblock title %}
+{% block meta_description %}{{ seo_meta_description }}{% endblock meta_description %}
+
+{% block content %}
+
+<div class="category-breadcrumb all-products-breadcrumb">
+  <div class="container">
+    <div class="breadcrumb-inner">
+      <a href="{% url 'index' %}">الرئيسية</a>
+      <span><i class="fas fa-chevron-left"></i></span>
+      <span style="color:var(--color-black);font-weight:700">جميع المنتجات</span>
+    </div>
+  </div>
+</div>
+
+<section class="cp-hero all-products-hero" aria-labelledby="allProductsTitle">
+  <div class="cp-hero-glow"></div>
+  <div class="container">
+    <div class="cp-hero-inner all-products-hero-inner">
+      <div class="cp-hero-icon all-products-hero-icon" aria-hidden="true">
+        <i class="fas fa-boxes-stacked"></i>
+      </div>
+      <div class="cp-hero-text all-products-hero-text">
+        <span class="all-products-kicker">تسوق كل احتياجاتك من مكان واحد</span>
+        <h1 id="allProductsTitle">{{ seo_h1|default:"جميع المنتجات" }}</h1>
+        <p>اكتشف منتجات الوسام الكهربائية والإضاءة والمستلزمات المنزلية بتجربة عرض منظمة وسريعة على كل الشاشات.</p>
+      </div>
+      <div class="cp-hero-stats all-products-hero-stats">
+        <div class="cp-hero-stat">
+          <strong>{{ total_products_count }}</strong>
+          <span>منتج متاح</span>
+        </div>
+        <div class="cp-hero-stat">
+          <strong>{{ categories|length }}</strong>
+          <span>قسم رئيسي</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<main class="products-page all-products-page">
+  <div class="products-container all-products-container">
+
+    <form class="all-products-toolbar" method="get" action="{% url 'product_list' %}" role="search">
+      <div class="all-products-search">
+        <i class="fas fa-search" aria-hidden="true"></i>
+        <input type="search" name="q" value="{{ search_query }}" placeholder="ابحث عن منتج..." aria-label="بحث عن منتج" autocomplete="off">
+      </div>
+
+      <div class="all-products-selects">
+        <label>
+          <span>القسم</span>
+          <select name="category" aria-label="تصفية حسب القسم">
+            <option value="">كل الأقسام</option>
+            {% for category in categories %}
+              <option value="{{ category.slug }}" {% if selected_category == category.slug %}selected{% endif %}>{{ category.name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+
+        <label>
+          <span>الترتيب</span>
+          <select name="sort" aria-label="ترتيب المنتجات">
+            <option value="order" {% if sort_by == "order" %}selected{% endif %}>الأكثر ملاءمة</option>
+            <option value="newest" {% if sort_by == "newest" %}selected{% endif %}>الأحدث</option>
+            <option value="price" {% if sort_by == "price" %}selected{% endif %}>السعر من الأقل</option>
+            <option value="price_desc" {% if sort_by == "price_desc" %}selected{% endif %}>السعر من الأعلى</option>
+            <option value="rating" {% if sort_by == "rating" %}selected{% endif %}>الأعلى تقييمًا</option>
+          </select>
+        </label>
+
+        <button type="submit" class="btn btn-primary all-products-filter-btn">
+          <i class="fas fa-sliders" aria-hidden="true"></i>
+          تطبيق
+        </button>
+      </div>
+    </form>
+
+    <div class="all-products-chips" aria-label="اختصارات الأقسام">
+      <a href="{% url 'product_list' %}" class="{% if not selected_category %}active{% endif %}">كل المنتجات</a>
+      {% for category in categories %}
+        <a href="{% url 'product_list' %}?category={{ category.slug }}" class="{% if selected_category == category.slug %}active{% endif %}">{{ category.name }}</a>
+      {% endfor %}
+    </div>
+
+    <div class="products-toolbar all-products-summary">
+      <div class="toolbar-results">
+        يتم عرض <strong>{{ filtered_products_count }}</strong> منتج{% if selected_category_object %} من قسم <strong>{{ selected_category_object.name }}</strong>{% endif %}
+      </div>
+      {% if search_query or selected_category or sort_by != "order" %}
+        <a href="{% url 'product_list' %}" class="view-all-btn">إزالة الفلاتر <i class="fas fa-xmark"></i></a>
+      {% endif %}
+    </div>
+
+    <section class="all-products-grid" id="allProductsGrid" aria-label="قائمة جميع المنتجات">
+      {% for product in products %}
+        <article class="product-card all-products-card" data-product-id="{{ product.id }}">
+          <div class="product-image-wrap">
+            <a href="{% url 'product_detail' id=product.id slug=product.slug %}" aria-label="{{ product.name }}">
+              {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.get_primary_image_alt }}" loading="lazy">
+              {% else %}
+                <div class="product-img-placeholder"><i class="fas fa-image"></i></div>
+              {% endif %}
+            </a>
+
+            <div class="product-badges">
+              {% if product.is_new %}<span class="badge-new">جديد</span>{% endif %}
+              {% if product.old_price %}<span class="badge-sale">خصم</span>{% endif %}
+              {% if product.is_hot %}<span class="badge-hot">رائج</span>{% endif %}
+            </div>
+          </div>
+
+          <div class="product-info">
+            <div class="product-category-tag">{{ product.category.name }}</div>
+            <h3 class="product-name">
+              <a href="{% url 'product_detail' id=product.id slug=product.slug %}">{{ product.name }}</a>
+            </h3>
+
+            <div class="product-price-row">
+              <div class="price-group">
+                <span class="price-current">{{ product.price }} ج.م</span>
+                {% if product.old_price %}<span class="price-original">{{ product.old_price }} ج.م</span>{% endif %}
+              </div>
+
+              <div class="product-actions all-products-actions">
+                <div class="qty-controls" aria-label="تحديد الكمية">
+                  <button type="button" class="qty-decrease" data-product-id="{{ product.id }}" aria-label="تقليل الكمية">-</button>
+                  <input type="number" class="qty-input" data-product-id="{{ product.id }}" value="1" min="1" max="99" aria-label="كمية {{ product.name }}">
+                  <button type="button" class="qty-increase" data-product-id="{{ product.id }}" aria-label="زيادة الكمية">+</button>
+                </div>
+                <button class="add-to-cart-btn" data-action="add-to-cart" data-product-id="{{ product.id }}"
+                  data-product-name="{{ product.name }}" data-product-price="{{ product.price }}" data-quantity="1"
+                  data-product-image="{% if product.image %}{{ product.image.url }}{% endif %}"
+                  aria-label="أضف {{ product.name }} إلى السلة">
+                  <i class="fas fa-shopping-cart" aria-hidden="true"></i>
+                  <span>أضف للسلة</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </article>
+      {% empty %}
+        <div class="empty-state all-products-empty">
+          <div class="empty-icon"><i class="fas fa-magnifying-glass"></i></div>
+          <h3>لا توجد منتجات</h3>
+          <p>جرّب تغيير كلمة البحث أو إزالة الفلاتر الحالية.</p>
+          <a href="{% url 'product_list' %}" class="btn btn-primary">عرض كل المنتجات</a>
+        </div>
+      {% endfor %}
+    </section>
+
+    {% if is_paginated %}
+      <nav class="pagination all-products-pagination" aria-label="ترقيم صفحات المنتجات">
+        {% if page_obj.has_previous %}
+          <a class="page-btn page-prev" href="?{% if query_params %}{{ query_params }}&{% endif %}page={{ page_obj.previous_page_number }}">
+            <i class="fas fa-chevron-right"></i>
+            السابق
+          </a>
+        {% endif %}
+
+        {% for page_number in pagination_range %}
+          {% if page_number == page_obj.number %}
+            <span class="page-btn active" aria-current="page">{{ page_number }}</span>
+          {% else %}
+            <a class="page-btn" href="?{% if query_params %}{{ query_params }}&{% endif %}page={{ page_number }}">{{ page_number }}</a>
+          {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+          <a class="page-btn page-next" href="?{% if query_params %}{{ query_params }}&{% endif %}page={{ page_obj.next_page_number }}">
+            التالي
+            <i class="fas fa-chevron-left"></i>
+          </a>
+        {% endif %}
+      </nav>
+    {% endif %}
+  </div>
+</main>
+
+<script>
+  (function() {
+    if (window._allProductsQuantityBound) return;
+    window._allProductsQuantityBound = true;
+
+    document.addEventListener('DOMContentLoaded', function() {
+      function setQuantity(productId, value) {
+        const input = document.querySelector(`.all-products-page .qty-input[data-product-id="${productId}"]`);
+        const addBtn = document.querySelector(`.all-products-page .add-to-cart-btn[data-product-id="${productId}"]`);
+        if (!input) return;
+
+        let quantity = parseInt(value, 10);
+        if (isNaN(quantity) || quantity < 1) quantity = 1;
+        if (quantity > 99) quantity = 99;
+        input.value = quantity;
+        if (addBtn) addBtn.dataset.quantity = quantity;
+      }
+
+      document.querySelectorAll('.all-products-page .qty-decrease').forEach(function(button) {
+        button.addEventListener('click', function(event) {
+          event.preventDefault();
+          const input = document.querySelector(`.all-products-page .qty-input[data-product-id="${this.dataset.productId}"]`);
+          setQuantity(this.dataset.productId, (parseInt(input?.value || '1', 10) || 1) - 1);
+        });
+      });
+
+      document.querySelectorAll('.all-products-page .qty-increase').forEach(function(button) {
+        button.addEventListener('click', function(event) {
+          event.preventDefault();
+          const input = document.querySelector(`.all-products-page .qty-input[data-product-id="${this.dataset.productId}"]`);
+          setQuantity(this.dataset.productId, (parseInt(input?.value || '1', 10) || 1) + 1);
+        });
+      });
+
+      document.querySelectorAll('.all-products-page .qty-input').forEach(function(input) {
+        input.addEventListener('change', function() {
+          setQuantity(this.dataset.productId, this.value);
+        });
+      });
+    });
+  })();
+</script>
+
+<style>
+  .all-products-breadcrumb {
+    background: var(--color-gray-100);
+    border-bottom: 1px solid var(--color-gray-200);
+    padding: 12px 0;
+  }
+
+  .breadcrumb-inner {
+    align-items: center;
+    color: var(--color-gray-500);
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+    gap: 8px;
+  }
+
+  .breadcrumb-inner a:hover {
+    color: var(--color-primary);
+  }
+
+  .all-products-hero {
+    background:
+      radial-gradient(circle at 12% 20%, rgba(254,216,45,0.15), transparent 30%),
+      linear-gradient(135deg, var(--color-black) 0%, #1d1d1d 100%);
+  }
+
+  .all-products-hero-inner {
+    justify-content: space-between;
+  }
+
+  .all-products-hero-icon {
+    background: rgba(254,216,45,0.1);
+    border: 2px solid var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  .all-products-kicker {
+    color: var(--color-primary);
+    display: inline-flex;
+    font-size: 0.82rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+  }
+
+  .all-products-hero-text p {
+    color: rgba(255,255,255,0.58);
+    font-size: 0.95rem;
+    line-height: 1.9;
+    margin-top: 8px;
+    max-width: 680px;
+  }
+
+  .all-products-container {
+    max-width: 100%;
+    padding: 0 clamp(12px, 3vw, 40px);
+  }
+
+  .all-products-toolbar {
+    align-items: stretch;
+    background: var(--color-white);
+    border: 1.5px solid var(--color-gray-200);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    display: grid;
+    gap: 14px;
+    grid-template-columns: minmax(260px, 1fr) auto;
+    margin-bottom: 18px;
+    padding: 14px;
+  }
+
+  .all-products-search {
+    align-items: center;
+    background: var(--color-gray-100);
+    border: 1.5px solid transparent;
+    border-radius: var(--radius-md);
+    display: flex;
+    gap: 10px;
+    padding: 0 14px;
+    transition: var(--transition-fast);
+  }
+
+  .all-products-search:focus-within {
+    background: var(--color-white);
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 16px rgba(254,216,45,0.18);
+  }
+
+  .all-products-search i {
+    color: var(--color-gray-500);
+  }
+
+  .all-products-search input {
+    background: transparent;
+    border: 0;
+    color: var(--color-black);
+    flex: 1;
+    font-size: 0.95rem;
+    min-height: 46px;
+    min-width: 0;
+  }
+
+  .all-products-selects {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .all-products-selects label {
+    align-items: center;
+    background: var(--color-gray-100);
+    border-radius: var(--radius-md);
+    display: flex;
+    gap: 8px;
+    min-height: 46px;
+    padding: 0 12px;
+  }
+
+  .all-products-selects label span {
+    color: var(--color-gray-600);
+    font-size: 0.78rem;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .all-products-selects select {
+    background: transparent;
+    border: 0;
+    color: var(--color-black);
+    cursor: pointer;
+    font-size: 0.88rem;
+    font-weight: 700;
+    min-width: 130px;
+  }
+
+  .all-products-filter-btn {
+    min-height: 46px;
+    padding-inline: 20px;
+  }
+
+  .all-products-chips {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 22px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+  }
+
+  .all-products-chips a {
+    background: var(--color-white);
+    border: 1.5px solid var(--color-gray-200);
+    border-radius: var(--radius-full);
+    color: var(--color-gray-700);
+    flex: 0 0 auto;
+    font-size: 0.82rem;
+    font-weight: 800;
+    padding: 8px 14px;
+    transition: var(--transition-fast);
+  }
+
+  .all-products-chips a:hover,
+  .all-products-chips a.active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-black);
+  }
+
+  .all-products-summary {
+    margin-bottom: 24px;
+  }
+
+  .all-products-grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .all-products-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .all-products-card .product-info {
+    flex: 1;
+  }
+
+  .all-products-card .product-price-row {
+    align-items: stretch;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: auto;
+  }
+
+  .all-products-actions {
+    display: grid;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .all-products-actions .qty-controls {
+    align-items: center;
+    background: var(--color-gray-100);
+    border: 1.5px solid var(--color-gray-200);
+    border-radius: var(--radius-md);
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    padding: 5px 8px;
+  }
+
+  .all-products-actions .qty-controls button {
+    background: var(--color-white);
+    border-radius: var(--radius-full);
+    color: var(--color-gray-700);
+    font-size: 1rem;
+    font-weight: 800;
+    height: 30px;
+    transition: var(--transition-fast);
+    width: 30px;
+  }
+
+  .all-products-actions .qty-controls button:hover {
+    background: var(--color-primary);
+    color: var(--color-black);
+  }
+
+  .all-products-actions .qty-input {
+    background: transparent;
+    border: 0;
+    color: var(--color-black);
+    font-size: 0.95rem;
+    font-weight: 800;
+    text-align: center;
+    width: 46px;
+  }
+
+  .all-products-actions .qty-input::-webkit-inner-spin-button,
+  .all-products-actions .qty-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .all-products-actions .add-to-cart-btn {
+    background: var(--color-primary);
+    border-radius: var(--radius-md);
+    color: var(--color-black);
+    font-size: 0.86rem;
+    font-weight: 800;
+    gap: 8px;
+    height: 42px;
+    padding: 0 12px;
+    width: 100%;
+  }
+
+  .all-products-actions .add-to-cart-btn:hover {
+    background: var(--color-primary-dark);
+    box-shadow: 0 4px 12px rgba(254,216,45,0.3);
+    transform: translateY(-2px);
+  }
+
+  .all-products-empty {
+    grid-column: 1 / -1;
+  }
+
+  .all-products-empty .btn {
+    margin-top: 16px;
+  }
+
+  .all-products-pagination {
+    margin-top: 36px;
+  }
+
+  @media (min-width: 640px) {
+    .all-products-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 992px) {
+    .all-products-grid {
+      gap: 20px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .all-products-grid {
+      gap: 24px;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1600px) {
+    .all-products-grid {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 900px) {
+    .all-products-toolbar {
+      grid-template-columns: 1fr;
+    }
+
+    .all-products-selects {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .all-products-hero-inner {
+      align-items: center;
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .all-products-hero-stats {
+      justify-content: center;
+      width: 100%;
+    }
+
+    .all-products-selects {
+      grid-template-columns: 1fr;
+    }
+
+    .all-products-selects label,
+    .all-products-filter-btn {
+      width: 100%;
+    }
+
+    .all-products-selects select {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .all-products-grid {
+      gap: 12px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .all-products-card .product-info {
+      padding: 12px;
+    }
+
+    .all-products-actions .add-to-cart-btn {
+      min-height: 44px;
+    }
+  }
+
+  @media (max-width: 374px) {
+    .all-products-container {
+      padding-inline: 10px;
+    }
+
+    .all-products-grid {
+      gap: 10px;
+    }
+
+    .all-products-actions .add-to-cart-btn span {
+      font-size: 0.78rem;
+    }
+  }
+</style>
+
+{% endblock content %}

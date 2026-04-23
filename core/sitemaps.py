@@ -8,7 +8,7 @@ class StaticViewSitemap(Sitemap):
     protocol = "https"
 
     def items(self):
-        return ["index", "category_list"]
+        return ["index", "product_list", "category_list"]
 
     def location(self, item):
         return reverse(item)
@@ -16,15 +16,19 @@ class StaticViewSitemap(Sitemap):
     def changefreq(self, item):
         if item == "index":
             return "daily"
+        if item == "product_list":
+            return "daily"
         return "weekly"
 
     def priority(self, item):
         if item == "index":
             return 1.0
+        if item == "product_list":
+            return 0.9
         return 0.8
 
     def lastmod(self, item):
-        if item == "index":
+        if item in {"index", "product_list"}:
             latest_product = Product.objects.filter(is_active=True).order_by("-updated_at").first()
             return latest_product.updated_at if latest_product else None
         latest_category = Category.objects.filter(is_active=True).order_by("-updated_at").first()

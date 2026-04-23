@@ -45,6 +45,7 @@
         </div><span class="logo-text">متجر <span>الوسام</span></span></a>
         <div class="navbar-links">
           <a href="/">الرئيسية</a>
+          <a href="{% url 'product_list' %}">جميع المنتجات</a>
           <a href="/categories/">الأقسام</a>
         </div>
         <div class="navbar-actions">
@@ -68,7 +69,8 @@
     <button class="mobile-menu-close" aria-label="إغلاق القائمة">✕</button>
     <nav class="mobile-menu-links">
       <a href="/" class="active"><span class="link-icon"><i class="fas fa-home"></i></span>الرئيسية</a>
-      <a href="/categories/"><span class="link-icon"><i class="fas fa-store"></i></span>جميع المنتجات</a>
+      <a href="{% url 'product_list' %}"><span class="link-icon"><i class="fas fa-boxes-stacked"></i></span>جميع المنتجات</a>
+      <a href="/categories/"><span class="link-icon"><i class="fas fa-store"></i></span>الأقسام</a>
       <!-- <a href="#"><span class="link-icon"><i class="fas fa-tags"></i></span>العروض والخصومات</a> -->
       <!-- <a href="#"><span class="link-icon"><i class="fas fa-box"></i></span>طلباتي</a> -->
       <div class="mobile-menu-divider"></div>
@@ -119,6 +121,7 @@
           <h3 class="footer-col-title">روابط سريعة</h3>
           <ul class="footer-links">
             <li><a href="/">الصفحة الرئيسية</a></li>
+            <li><a href="{% url 'product_list' %}">جميع المنتجات</a></li>
             <li><a href="/categories/">جميع الأقسام</a></li>
             <!-- <li><a href="/wishlist/">المفضلة</a></li> -->
             <li><a href="{% url 'orders:cart' %}">سلة التسوق</a></li>
@@ -164,6 +167,7 @@
   <!-- Bottom Nav -->
   <nav class="bottom-nav" aria-label="التنقل السفلي">
     <a href="{% url 'index' %}" aria-label="الرئيسية"><span class="icon"><i class="fas fa-home"></i></span>الرئيسية</a>
+    <a href="{% url 'product_list' %}" aria-label="جميع المنتجات"><span class="icon"><i class="fas fa-boxes-stacked"></i></span>المنتجات</a>
     <a href="{% url 'category_list' %}" aria-label="الأقسام"><span class="icon"><i class="fas fa-store"></i></span>الأقسام</a>
     <a href="#" aria-label="بحث" onclick="openSearch();return false"><span class="icon"><i class="fas fa-search"></i></span>بحث</a>
     <!-- <a href="{% url 'orders:wishlist' %}" aria-label="المفضلة"><span class="icon"><i class="fas fa-heart"></i></span>المفضلة</a> -->

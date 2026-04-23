@@ -78,3 +78,45 @@ class ProductCanonicalSlugTests(TestCase):
 
         self.assertEqual(response.status_code, 301)
         self.assertEqual(response.headers["Location"], self.product.get_absolute_url())
+
+
+class ProductListViewTests(TestCase):
+    def setUp(self):
+        self.category = Category.objects.create(name="Products", is_active=True)
+        self.hidden_category = Category.objects.create(name="Hidden", is_active=False)
+        self.visible_product = Product.objects.create(
+            name="Visible Product",
+            category=self.category,
+            description="Visible product description",
+            price=150,
+            is_active=True,
+        )
+        self.inactive_product = Product.objects.create(
+            name="Inactive Product",
+            category=self.category,
+            description="Inactive product description",
+            price=90,
+            is_active=False,
+        )
+        self.hidden_category_product = Product.objects.create(
+            name="Hidden Category Product",
+            category=self.hidden_category,
+            description="Hidden category product description",
+            price=120,
+            is_active=True,
+        )
+
+    def test_product_list_page_renders_active_products(self):
+        response = self.client.get(reverse("product_list"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Visible Product")
+        self.assertNotContains(response, "Inactive Product")
+        self.assertNotContains(response, "Hidden Category Product")
+
+    def test_product_list_can_filter_by_active_category(self):
+        response = self.client.get(reverse("product_list"), {"category": self.category.slug})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Visible Product")
+        self.assertNotContains(response, "Hidden Category Product")
