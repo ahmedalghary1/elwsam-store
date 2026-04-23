@@ -114,6 +114,15 @@
               --dots-gap: clamp(2px, 0.65vw, 3px);
               --dot-size: 8px;
               --dots-offset-y: clamp(16px, 8%, 26px);
+              overflow: visible;
+              margin-bottom: calc(var(--dot-size) + 5px);
+            }
+            .hero-slider .slide {
+              overflow: hidden;
+            }
+            .hero-slider .slider-dots {
+              top: calc(100% + 1px);
+              bottom: auto;
             }
             .hero-slider .dot {
               padding: 2px 1px;        /* مساحة لمس أصغر لتقليل المسافات */
@@ -126,6 +135,15 @@
               --dots-gap: 2px;
               --dot-size: 7px;
               --dots-offset-y: 14px;
+              overflow: visible;
+              margin-bottom: calc(var(--dot-size) + 5px);
+            }
+            .hero-slider .slide {
+              overflow: hidden;
+            }
+            .hero-slider .slider-dots {
+              top: calc(100% + 1px);
+              bottom: auto;
             }
             .hero-slider .dot {
               padding: 2px 1px;        /* مساحة لمس مناسبة */
