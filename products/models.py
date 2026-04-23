@@ -52,8 +52,6 @@ class Category(models.Model):
         return reverse('category_products', kwargs={'id': self.id, 'slug': self.slug})
 
 
-
-
 # =========================
 # Product (ترتيب المنتجات)
 # =========================
