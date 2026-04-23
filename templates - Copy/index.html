@@ -44,7 +44,12 @@
 
           @media (min-width: 1024px) {
             .hero-slider {
-              --dots-offset-y: clamp(64px, 11%, 88px);
+              overflow: visible;
+              margin-bottom: 34px;
+            }
+            .hero-slider .slide {
+              overflow: hidden;
+              border-radius: inherit;
             }
           }
 
@@ -58,6 +63,13 @@
             justify-content: center;
             gap: var(--dots-gap);
             z-index: 20;
+          }
+
+          @media (min-width: 1024px) {
+            .hero-slider .slider-dots {
+              top: calc(100% + 8px);
+              bottom: auto;
+            }
           }
 
           .hero-slider .dot {
