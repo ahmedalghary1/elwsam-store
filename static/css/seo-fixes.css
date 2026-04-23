@@ -1,0 +1,32 @@
+.hero-slider,
+.hero-slider-wrap,
+.hero-slider .slide,
+.hero-slider .slide img {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hero-slider:focus,
+.hero-slider:focus-visible,
+.hero-slider:active,
+.hero-slider-wrap:focus,
+.hero-slider-wrap:focus-visible,
+.hero-slider-wrap:active,
+.hero-slider .slide:focus,
+.hero-slider .slide:focus-visible,
+.hero-slider .slide:active,
+.hero-slider .slide img:focus,
+.hero-slider .slide img:focus-visible,
+.hero-slider .slide img:active {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+}
+
+.hero-slider .slide img {
+  filter: none !important;
+}
