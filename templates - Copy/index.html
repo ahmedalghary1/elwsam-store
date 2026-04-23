@@ -42,6 +42,12 @@
             background: transparent !important;
           }
 
+          @media (min-width: 1024px) {
+            .hero-slider {
+              --dots-offset-y: clamp(30px, 8.5%, 52px);
+            }
+          }
+
           .hero-slider .slider-dots {
             position: absolute;
             left: 50%;
