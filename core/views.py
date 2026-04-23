@@ -17,7 +17,7 @@ def index(request):
     categories = Category.objects.filter(is_active=True).order_by('order')
     featured_products = Product.objects.filter(is_hot=True, is_active=True).order_by('order')[:10]
     latest_products = Product.objects.filter(is_active=True).order_by('-created_at')[:10]
-    absolute_home_url = request.build_absolute_uri('/')
+    absolute_home_url = build_absolute_uri(request, '/')
     
     context = {
         'categories': categories,

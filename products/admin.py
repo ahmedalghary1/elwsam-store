@@ -485,12 +485,13 @@ class CategoryAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_display_links = ['name']
     list_editable = ['is_active', 'is_hot']
     list_filter = ['is_active', 'is_hot']
-    search_fields = ['name']
+    search_fields = ['name', 'seo_title', 'meta_description']
     ordering = ['order']
     list_per_page = 25
 
     fieldsets = (
         ('\u0645\u0639\u0644\u0648\u0645\u0627\u062a \u0627\u0644\u0642\u0633\u0645', {'fields': ('name', 'slug', 'description', 'icon')}),
+        ('SEO', {'fields': ('seo_title', 'meta_description', 'seo_intro')}),
         ('\u0627\u0644\u0635\u0648\u0631\u0629', {'fields': ('image',)}),
         ('\u0627\u0644\u0625\u0639\u062f\u0627\u062f\u0627\u062a', {'fields': ('is_active', 'is_hot', 'order')}),
     )

@@ -1,5 +1,6 @@
 import json
 
+from django.conf import settings
 from django.templatetags.static import static
 
 
@@ -11,8 +12,25 @@ def build_absolute_uri(request, path_or_url):
     if not path_or_url:
         return ""
     if path_or_url.startswith(("http://", "https://")):
-        return path_or_url
-    return request.build_absolute_uri(path_or_url)
+        return canonicalize_url(path_or_url)
+    return f"{get_canonical_base_url()}/{path_or_url.lstrip('/')}"
+
+
+def get_canonical_base_url():
+    return getattr(settings, "CANONICAL_BASE_URL", "https://elwsamshop.com").rstrip("/")
+
+
+def canonicalize_url(url):
+    from urllib.parse import urlsplit, urlunsplit
+
+    parsed = urlsplit(url)
+    return urlunsplit((
+        "https",
+        getattr(settings, "CANONICAL_DOMAIN", "elwsamshop.com"),
+        parsed.path or "/",
+        parsed.query,
+        "",
+    ))
 
 
 def serialize_schema(schema):
@@ -77,8 +95,8 @@ def build_store_schema(request):
         "name": SITE_NAME,
         "description": SITE_DESCRIPTION,
         "url": home_url,
-        "logo": build_absolute_uri(request, static("image/ELWSAM-LOGO2020.png")),
-        "image": build_absolute_uri(request, static("image/ELWSAM-LOGO2020.png")),
+        "logo": build_absolute_uri(request, static("image/ELWSAM-LOGO2020.webp")),
+        "image": build_absolute_uri(request, static("image/ELWSAM-LOGO2020.webp")),
         "currenciesAccepted": "EGP",
         "paymentAccepted": "Cash, Credit Card",
         "areaServed": ["EG", "SA", "AE"],

@@ -4,10 +4,12 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.views import View
 from django.views.generic import ListView, DetailView
 from django.http import JsonResponse
+from django.core.paginator import Paginator
 from django.db.models import Q, Exists, OuterRef
 from django.core.cache import cache
 from django.utils.text import slugify
 from core.seo import (
+    build_absolute_uri,
     build_breadcrumb_schema,
     build_collection_page_schema,
     build_item_list_schema,
@@ -54,13 +56,13 @@ class CategoryListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         categories = list(context['categories'])
-        absolute_url = self.request.build_absolute_uri(self.request.path)
+        absolute_url = build_absolute_uri(self.request, self.request.path)
         seo_meta_description = (
             "تصفح أقسام متجر الوسام واكتشف المشترك الكهربائي ومستلزمات الكهرباء المنزلية "
             "والإضاءة والمنتجات المناسبة للمنزل والمكتب داخل مصر والدول العربية."
         )
         category_items = [
-            (category.name, self.request.build_absolute_uri(category.get_absolute_url()))
+            (category.name, build_absolute_uri(self.request, category.get_absolute_url()))
             for category in categories
         ]
 
@@ -71,7 +73,7 @@ class CategoryListView(ListView):
             'seo_canonical_url': absolute_url,
             'seo_structured_data': [
                 serialize_schema(build_breadcrumb_schema([
-                    ("الرئيسية", self.request.build_absolute_uri('/')),
+                    ("الرئيسية", build_absolute_uri(self.request, '/')),
                     ("الأقسام", absolute_url),
                 ])),
                 serialize_schema(build_collection_page_schema(
@@ -122,31 +124,43 @@ def category_products(request, id, slug):
         products = products.filter(
             Q(name__icontains=search_query) | Q(description__icontains=search_query)
         )
+
+    paginator = Paginator(products, 36)
+    page_obj = paginator.get_page(request.GET.get("page"))
+    visible_products = page_obj.object_list
+    query_params = request.GET.copy()
+    query_params.pop("page", None)
     
-    absolute_category_url = request.build_absolute_uri(category.get_absolute_url())
+    absolute_category_url = build_absolute_uri(request, category.get_absolute_url())
     category_items = [
-        (product.get_seo_h1(), request.build_absolute_uri(product.get_absolute_url()))
-        for product in products
+        (product.get_seo_h1(), build_absolute_uri(request, product.get_absolute_url()))
+        for product in visible_products[:36]
     ]
-    seo_meta_description = category.description or (
+    seo_meta_description = category.meta_description or category.description or (
         f"تسوق منتجات {category.name} من متجر الوسام مع تفاصيل واضحة وأسعار مناسبة "
         "وشحن داخل مصر والدول العربية."
     )
+    seo_intro = category.seo_intro or seo_meta_description
 
     context = {
         'category': category,
-        'products': products,
+        'products': visible_products,
+        'page_obj': page_obj,
+        'paginator': paginator,
+        'is_paginated': page_obj.has_other_pages(),
+        'query_params': query_params.urlencode(),
         'search_query': search_query,
         'sort_by': sort_by,
-        'products_count': products.count(),
-        'seo_title': f"{category.name} | تسوق الآن من متجر الوسام",
+        'products_count': paginator.count,
+        'seo_title': category.seo_title or f"{category.name} | تسوق الآن من متجر الوسام",
         'seo_h1': category.name,
         'seo_meta_description': seo_meta_description,
+        'seo_intro': seo_intro,
         'seo_canonical_url': absolute_category_url,
         'seo_structured_data': [
             serialize_schema(build_breadcrumb_schema([
-                ("الرئيسية", request.build_absolute_uri('/')),
-                ("الأقسام", request.build_absolute_uri('/categories/')),
+                ("الرئيسية", build_absolute_uri(request, '/')),
+                ("الأقسام", build_absolute_uri(request, '/categories/')),
                 (category.name, absolute_category_url),
             ])),
             serialize_schema(build_collection_page_schema(
@@ -204,12 +218,12 @@ class ProductListView(ListView):
         categories = Category.objects.filter(is_active=True).order_by('order')
         selected_category_slug = self.request.GET.get('category', '')
         selected_category = categories.filter(slug=selected_category_slug).first() if selected_category_slug else None
-        absolute_products_url = self.request.build_absolute_uri(self.request.path)
+        absolute_products_url = build_absolute_uri(self.request, self.request.path)
         query_params = self.request.GET.copy()
         query_params.pop('page', None)
         visible_products = list(context.get('products', []))
         product_items = [
-            (product.get_seo_h1(), self.request.build_absolute_uri(product.get_absolute_url()))
+            (product.get_seo_h1(), build_absolute_uri(self.request, product.get_absolute_url()))
             for product in visible_products
         ]
         page_obj = context.get('page_obj')
@@ -240,7 +254,7 @@ class ProductListView(ListView):
             'seo_canonical_url': absolute_products_url,
             'seo_structured_data': [
                 serialize_schema(build_breadcrumb_schema([
-                    ("الرئيسية", self.request.build_absolute_uri('/')),
+                    ("الرئيسية", build_absolute_uri(self.request, '/')),
                     ("جميع المنتجات", absolute_products_url),
                 ])),
                 serialize_schema(build_collection_page_schema(
@@ -305,9 +319,9 @@ class ProductDetailView(View):
         ).exclude(id=product.id).order_by('order')[:6]
 
         primary_image = images.first().image.url if images.exists() else (product.image.url if product.image else None)
-        absolute_product_url = request.build_absolute_uri(product.get_absolute_url())
-        absolute_category_url = request.build_absolute_uri(product.category.get_absolute_url())
-        absolute_image_url = request.build_absolute_uri(primary_image) if primary_image else ""
+        absolute_product_url = build_absolute_uri(request, product.get_absolute_url())
+        absolute_category_url = build_absolute_uri(request, product.category.get_absolute_url())
+        absolute_image_url = build_absolute_uri(request, primary_image) if primary_image else ""
         faq_items = product.get_faq_items()
 
         context = {
@@ -971,14 +985,26 @@ def search_products(request):
             Q(name__icontains=query) |
             Q(description__icontains=query) |
             Q(category__name__icontains=query),
-            is_active=True
-        ).order_by('-created_at').prefetch_related('images', 'variants', 'specs')
+            is_active=True,
+            category__is_active=True,
+        ).select_related('category').order_by('-created_at').prefetch_related('images', 'variants', 'specs')
     else:
         products = Product.objects.none()
+
+    search_url = build_absolute_uri(request, request.get_full_path())
+    search_description = (
+        f"نتائج البحث عن {query} في منتجات متجر الوسام من مشتركات كهرباء وبرايز وكشافات ليد."
+        if query
+        else "ابحث داخل منتجات متجر الوسام عن مشتركات كهرباء وبرايز وكشافات ليد ومستلزمات الكهرباء."
+    )
     
     context = {
         'products': products,
         'query': query,
         'results_count': products.count(),
+        'seo_title': f"نتائج البحث عن {query} | متجر الوسام" if query else "البحث في منتجات متجر الوسام",
+        'seo_meta_description': search_description,
+        'seo_canonical_url': search_url,
+        'meta_robots': 'noindex,follow',
     }
     return render(request, "search_results.html", context)

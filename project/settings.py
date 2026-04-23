@@ -16,8 +16,15 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-rl17&5ecdx1h13
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '*').split(',')
+CANONICAL_DOMAIN = os.environ.get('CANONICAL_DOMAIN', 'elwsamshop.com')
+CANONICAL_BASE_URL = f'https://{CANONICAL_DOMAIN}'
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:51281']
+CSRF_TRUSTED_ORIGINS = [
+    'http://127.0.0.1:51281',
+    'https://elwsamshop.com',
+    'https://www.elwsamshop.com',
+]
 
 
 # Application definition
@@ -43,6 +50,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'core.middleware.CanonicalDomainMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -50,23 +58,18 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.PublicCacheMiddleware',
 ]
 
 ROOT_URLCONF = 'project.urls'
 
-# Force Django to generate URLs with leading slash
-# This fixes URL duplication issues on production servers
 FORCE_SCRIPT_NAME = '/'
-
-template_dirs = []
-for candidate in [BASE_DIR / 'templates - Copy', BASE_DIR / 'templates']:
-    if candidate.exists():
-        template_dirs.append(candidate)
+TEMPLATE_DIR = BASE_DIR / 'templates'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': template_dirs,
+        'DIRS': [TEMPLATE_DIR],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
