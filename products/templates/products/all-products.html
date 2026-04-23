@@ -564,17 +564,91 @@
       min-width: 0;
     }
 
+    .all-products-chips {
+      gap: 10px;
+      margin-bottom: 26px;
+      padding: 2px 0 10px;
+    }
+
+    .all-products-chips a {
+      font-size: 0.78rem;
+      padding: 8px 13px;
+    }
+
+    .all-products-summary {
+      margin-bottom: 20px;
+    }
+
     .all-products-grid {
       gap: 12px;
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .all-products-card .product-info {
-      padding: 12px;
+      gap: 7px;
+      padding: 10px;
+    }
+
+    .all-products-card .product-category-tag {
+      font-size: 0.66rem;
+      padding: 2px 7px;
+    }
+
+    .all-products-card .product-name {
+      -webkit-line-clamp: 3;
+      line-clamp: 3;
+      font-size: 0.84rem;
+      line-height: 1.45;
+      min-height: 3.65em;
+    }
+
+    .all-products-card .price-current {
+      font-size: 0.96rem;
+    }
+
+    .all-products-card .price-original {
+      font-size: 0.68rem;
+    }
+
+    .all-products-card .product-price-row {
+      gap: 9px;
+    }
+
+    .all-products-actions {
+      gap: 6px;
+    }
+
+    .all-products-actions .qty-controls {
+      border-radius: 10px;
+      gap: 4px;
+      padding: 3px 6px;
+    }
+
+    .all-products-actions .qty-controls button {
+      font-size: 0.9rem;
+      height: 28px;
+      min-height: 28px;
+      min-width: 28px;
+      width: 28px;
+    }
+
+    .all-products-actions .qty-input {
+      font-size: 0.86rem !important;
+      min-height: 28px;
+      width: 38px;
     }
 
     .all-products-actions .add-to-cart-btn {
-      min-height: 44px;
+      border-radius: 10px;
+      font-size: 0.78rem;
+      gap: 6px;
+      height: 38px;
+      min-height: 38px;
+      padding: 0 8px;
+    }
+
+    .all-products-actions .add-to-cart-btn i {
+      font-size: 0.9rem;
     }
   }
 
@@ -587,8 +661,36 @@
       gap: 10px;
     }
 
-    .all-products-actions .add-to-cart-btn span {
+    .all-products-card .product-info {
+      padding: 9px;
+    }
+
+    .all-products-card .product-name {
       font-size: 0.78rem;
+      line-height: 1.45;
+      min-height: 3.5em;
+    }
+
+    .all-products-actions .qty-controls button {
+      height: 26px;
+      min-height: 26px;
+      min-width: 26px;
+      width: 26px;
+    }
+
+    .all-products-actions .qty-input {
+      min-height: 26px;
+      width: 34px;
+    }
+
+    .all-products-actions .add-to-cart-btn {
+      height: 36px;
+      min-height: 36px;
+      padding: 0 6px;
+    }
+
+    .all-products-actions .add-to-cart-btn span {
+      font-size: 0.74rem;
     }
   }
 </style>
