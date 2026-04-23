@@ -37,7 +37,7 @@
             position: relative;
             --dot-size: 10px;       /* حجم النقطة */
             --dots-gap: 6px;        /* المسافة بين النقاط على الكمبيوتر */
-            --dots-offset-y: 12px;  /* المسافة من أسفل الصورة */
+            --dots-offset-y: clamp(22px, 8%, 44px);  /* المسافة من أسفل الصورة */
             --active-adj-overlap: 0px;
             background: transparent !important;
           }
@@ -101,7 +101,7 @@
             .hero-slider {
               --dots-gap: clamp(1px, 0.5vw, 3px);
               --dot-size: 9px;
-              --dots-offset-y: 10px;
+              --dots-offset-y: clamp(18px, 8%, 32px);
             }
             .hero-slider .dot {
               padding: 2px 1px;        /* مساحة لمس أصغر لتقليل المسافات */
@@ -113,7 +113,7 @@
             .hero-slider {
               --dots-gap: clamp(2px, 0.65vw, 3px);
               --dot-size: 8px;
-              --dots-offset-y: 10px;
+              --dots-offset-y: clamp(16px, 8%, 26px);
             }
             .hero-slider .dot {
               padding: 2px 1px;        /* مساحة لمس أصغر لتقليل المسافات */
@@ -125,7 +125,7 @@
             .hero-slider {
               --dots-gap: 2px;
               --dot-size: 7px;
-              --dots-offset-y: 10px;
+              --dots-offset-y: 14px;
             }
             .hero-slider .dot {
               padding: 2px 1px;        /* مساحة لمس مناسبة */
