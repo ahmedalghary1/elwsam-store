@@ -7,192 +7,70 @@
 {% endblock preload_assets %}
 
 {% block content %}
-  <main>
+  <main class="home-page">
 
     <section class="hero" aria-label="العرض الرئيسي">
       <div class="hero-bg-pattern" aria-hidden="true"></div>
       <div class="hero-grid-overlay" aria-hidden="true"></div>
       <div class="hero-inner">
         <div class="hero-content">
-
+          <div class="hero-badge">
+            <i class="fas fa-bolt" aria-hidden="true"></i>
+            متجر الوسام للكهرباء
+          </div>
           <h1 class="hero-title">
-            كل ما تحتاجه  <br />
-            <span class="highlight">في مكان واحد</span>
+            متجر الوسام <br />
+            <span class="highlight">لمستلزمات الكهرباء الحديثة</span>
           </h1>
           <p class="hero-subtitle">
-            اختيارات عملية من مستلزمات الكهرباء المنزلية والتجارية: مشتركات كهرباء، برايز، كشافات ليد، دوايات وإضاءة بتفاصيل واضحة وأسعار مناسبة.
+            اختيارات منتقاة من المشتركات، البرايز، كشافات الليد، الدوايات وحلول الإضاءة العملية بتفاصيل واضحة وأسعار تناسب البيت والمشروع.
           </p>
           <div class="hero-actions">
             <a href="{% url 'product_list' %}" class="btn btn-primary btn-lg">
-               تسوق  الآن
+              <i class="fas fa-bag-shopping" aria-hidden="true"></i>
+              تسوق المنتجات
             </a>
-
-
+            <a href="{% url 'category_list' %}" class="btn btn-outline-white btn-lg">
+              <i class="fas fa-layer-group" aria-hidden="true"></i>
+              استكشف الأقسام
+            </a>
+          </div>
+          <div class="hero-highlights" aria-label="مميزات متجر الوسام">
+            <span><i class="fas fa-shield-halved" aria-hidden="true"></i> دفع آمن</span>
+            <span><i class="fas fa-truck-fast" aria-hidden="true"></i> شحن موثوق</span>
+            <span><i class="fas fa-headset" aria-hidden="true"></i> دعم سريع</span>
           </div>
         </div>
 
         <div class="hero-image-side">
-
-        <style>
-          .hero-slider {
-            position: relative;
-            --dot-size: 10px;       /* حجم النقطة */
-            --dots-gap: 6px;        /* المسافة بين النقاط على الكمبيوتر */
-            --dots-offset-y: clamp(22px, 8%, 44px);  /* المسافة من أسفل الصورة */
-            --active-adj-overlap: 0px;
-            background: none !important;
-          }
-
-          @media (min-width: 1024px) {
-            .hero-slider {
-              overflow: visible;
-              margin-bottom: 23px;
-            }
-            .hero-slider .slide {
-              overflow: hidden;
-              border-radius: inherit;
-            }
-          }
-
-          .hero-slider .slider-dots {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            bottom: var(--dots-offset-y);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: var(--dots-gap);
-            z-index: 20;
-          }
-
-          @media (min-width: 1024px) {
-            .hero-slider .slider-dots {
-              top: calc(100% + 1px);
-              bottom: auto;
-            }
-          }
-
-          .hero-slider .dot {
-            width: auto;
-            height: auto;
-            padding: 5px; 
-            border: none;
-            background: transparent;
-            display: inline-grid;
-            place-items: center;
-            border-radius: 999px;
-            margin: 0;
-            cursor: pointer;
-            touch-action: manipulation;
-            -webkit-tap-highlight-color: transparent;
-          }
-
-          .hero-slider .dot::before {
-            content: '';
-            display: block;
-            width: var(--dot-size);
-            height: var(--dot-size);
-            border-radius: 999px;
-            background: var(--color-white);
-          }
-
-          .hero-slider .dot.active::before {
-            background: var(--color-primary);
-          }
-
-          .hero-slider .dot.active + .dot {
-            margin-inline-start: calc(var(--active-adj-overlap) * -1);
-          }
-
-          .hero-slider .dot:focus-visible {
-            outline: 2px solid var(--color-primary);
-            outline-offset: 2px;
-          }
-
-          .hero-slider .slide.active img {
-            animation: none !important;
-          }
-
-          /* ======= تعديلات الهاتف ======= */
-          /* شاشات متوسطة إلى كبيرة للهاتف */
-          @media (min-width: 481px) and (max-width: 768px) {
-            .hero-slider {
-              --dots-gap: clamp(1px, 0.5vw, 3px);
-              --dot-size: 9px;
-              --dots-offset-y: clamp(18px, 8%, 32px);
-            }
-            .hero-slider .dot {
-              padding: 2px 1px;        /* مساحة لمس أصغر لتقليل المسافات */
-            }
-          }
-          
-          /* شاشات صغيرة للهاتف */
-          @media (min-width: 375px) and (max-width: 480px) {
-            .hero-slider {
-              --dots-gap: clamp(2px, 0.65vw, 3px);
-              --dot-size: 8px;
-              --dots-offset-y: clamp(16px, 8%, 26px);
-              overflow: visible;
-              margin-bottom: calc(var(--dot-size) + 5px);
-            }
-            .hero-slider .slide {
-              overflow: hidden;
-            }
-            .hero-slider .slider-dots {
-              top: calc(100% + 1px);
-              bottom: auto;
-            }
-            .hero-slider .dot {
-              padding: 2px 1px;        /* مساحة لمس أصغر لتقليل المسافات */
-            }
-          }
-          
-          /* شاشات صغيرة جداً */
-          @media (max-width: 374px) {
-            .hero-slider {
-              --dots-gap: 2px;
-              --dot-size: 7px;
-              --dots-offset-y: 14px;
-              overflow: visible;
-              margin-bottom: calc(var(--dot-size) + 5px);
-            }
-            .hero-slider .slide {
-              overflow: hidden;
-            }
-            .hero-slider .slider-dots {
-              top: calc(100% + 1px);
-              bottom: auto;
-            }
-            .hero-slider .dot {
-              padding: 2px 1px;        /* مساحة لمس مناسبة */
-            }
-          }
-        </style>
-          <div class="hero-slider-wrap">
-          <div class="hero-slider" id="heroSlider">
-            <div class="slide active">
-              <img src="{% static 'image/slide1.webp' %}" alt="مشتركات كهربائية وبرايز من متجر الوسام" width="1600" height="901" loading="eager" fetchpriority="high">
+          <div class="hero-media-frame">
+            <div class="hero-slider-wrap">
+              <div class="hero-slider" id="heroSlider">
+                <div class="slide active">
+                  <img src="{% static 'image/slide1.webp' %}" alt="مشتركات كهربائية وبرايز من متجر الوسام" width="1600" height="901" loading="eager" fetchpriority="high">
+                </div>
+                <div class="slide">
+                  <img src="{% static 'image/slide2.webp' %}" alt="كشاف ليد وإضاءة عملية" width="1600" height="901" loading="lazy">
+                </div>
+                <div class="slide">
+                  <img src="{% static 'image/slide3.webp' %}" alt="دوايات وإكسسوارات كهرباء" width="1600" height="901" loading="lazy">
+                </div>
+                <div class="slider-dots">
+                  <button class="dot active" aria-label="الشريحة 1"></button>
+                  <button class="dot" aria-label="الشريحة 2"></button>
+                  <button class="dot" aria-label="الشريحة 3"></button>
+                </div>
+              </div>
             </div>
-            <div class="slide">
-              <img src="{% static 'image/slide2.webp' %}" alt="كشاف ليد وإضاءة عملية" width="1600" height="901" loading="lazy">
+            <div class="hero-image-caption">
+              <span>مختارات عملية للبيت والمكتب</span>
+              <strong>إضاءة • برايز • مشتركات</strong>
             </div>
-            <div class="slide">
-              <img src="{% static 'image/slide3.webp' %}" alt="دوايات وإكسسوارات كهرباء" width="1600" height="901" loading="lazy">
-            </div>
-            <div class="slider-dots ">
-              <button class="dot active" aria-label="الشريحة 1"></button>
-              <button class="dot" aria-label="الشريحة 2"></button>
-              <button class="dot" aria-label="الشريحة 3"></button>
-            </div>
-          </div>
           </div>
         </div>
 
       </div>
     </section>
-
-
     <!-- ============================
          BANNER STRIP
          ============================ -->
@@ -228,37 +106,47 @@
         </div>
       </div>
     </div>
-
-    <!-- ============================
-         CATEGORIES SECTION
-         ============================ -->
-    <section class="categories-section page-section" aria-labelledby="categories-heading">
+    <section class="home-products-section page-section" aria-labelledby="home-products-heading" data-home-product-tabs data-api-url="{% url 'product_collection_api' %}" data-limit="10">
       <div class="container">
-        <div class="section-header">
+        <div class="home-products-header">
           <div class="section-title">
-            <h2 id="categories-heading">تسوق حسب الفئة</h2>
-            <p>استكشف مجموعاتنا الواسعة</p>
+            <span class="section-kicker">مختارات الوسام</span>
+            <h2 id="home-products-heading" data-home-products-heading>{{ initial_product_tab.heading }}</h2>
+            <p data-home-products-description>{{ initial_product_tab.description }}</p>
           </div>
-          <a href="{% url 'category_list' %}" class="view-all-btn">كل الفئات ←</a>
+          <a href="{% url 'product_list' %}" class="view-all-btn">كل المنتجات <i class="fas fa-arrow-left" aria-hidden="true"></i></a>
         </div>
 
-        <div class="categories-grid">
-          {% for category in categories %}
-          <a href="{% url 'category_products' id=category.id slug=category.slug %}" class="category-card" aria-label="{{ category.name }}">
-            <div class="cat-icon">
-              {% if category.image %}
-                <img src="{{ category.image.url }}" alt="{{ category.name }}" loading="lazy">
-              {% else %}
-                <span style="font-size: 2rem;">{{ category.icon }}</span>
-              {% endif %}
-            </div>
-            <span class="cat-name">{{ category.name }}</span>
-            <span class="cat-count">{{ category.get_product_count }} منتج</span>
-          </a>
+        <div class="product-tabs" role="tablist" aria-label="تبويبات المنتجات">
+          {% for tab in product_tabs %}
+            <button
+              type="button"
+              class="product-tab-btn{% if tab.type == initial_product_tab.type %} active{% endif %}"
+              role="tab"
+              aria-selected="{% if tab.type == initial_product_tab.type %}true{% else %}false{% endif %}"
+              data-product-tab="{{ tab.type }}"
+              data-heading="{{ tab.heading }}"
+              data-description="{{ tab.description }}"
+            >
+              {{ tab.label }}
+            </button>
           {% endfor %}
+        </div>
+
+        <div class="home-products-status" data-products-status hidden></div>
+        <div class="products-grid home-products-grid" data-products-grid>
+          {% for product in initial_tab_products %}
+            {% include "includes/product_card.html" with product=product %}
+          {% endfor %}
+        </div>
+        <div class="home-products-empty" data-products-empty {% if initial_tab_products %}hidden{% endif %}>
+          <i class="fas fa-box-open" aria-hidden="true"></i>
+          <h3>لا توجد منتجات حالياً</h3>
+          <p>سنضيف منتجات مناسبة لهذا التبويب قريباً.</p>
         </div>
       </div>
     </section>
+
 
 
     <!-- ============================
@@ -268,129 +156,77 @@
       <div class="container">
         <div class="section-header">
           <div class="section-title">
-            <h2 id="offers-heading">العروض الحصرية</h2>
-            <p>عروض محدودة الوقت لا تفوتها</p>
+            <span class="section-kicker">صفقات ذكية</span>
+            <h2 id="offers-heading">عروض حصرية مختارة</h2>
+            <p>منتجات كهرباء أساسية بتقديم أوضح وأسعار أكثر جاذبية</p>
           </div>
         </div>
 
         <div class="offers-grid">
           <div class="offer-card offer-dark">
-            <span class="offer-emoji" aria-hidden="true"><img src="{% static 'image/3.png' %}" style="width:200px; height:200px; object-fit:contain;" alt="" loading="lazy"></span>
-            <div class="offer-tag">المشتركات</div>
-            <div class="offer-title">أحدث المشتركات<br />بأسعار حصرية</div>
-            <div class="offer-discount">حتى 60%</div>
-            <a href="/" class="btn btn-primary btn-sm" style="width:fit-content">تسوق الآن</a>
+            <span class="offer-emoji" aria-hidden="true"><img src="{% static 'image/3.png' %}" alt="" loading="lazy"></span>
+            <div class="offer-content">
+              <div class="offer-tag">المشتركات</div>
+              <div class="offer-title">أحدث المشتركات<br />بأسعار حصرية</div>
+              <div class="offer-discount">حتى 60%</div>
+              <a href="{% url 'product_list' %}" class="btn btn-primary btn-sm">تسوق الآن</a>
+            </div>
           </div>
 
           <div class="offer-card offer-yellow">
-            <span class="offer-emoji" aria-hidden="true"><img src="{% static 'image/21-2.png' %}" style="width:200px; height:200px; object-fit:contain;" alt="" loading="lazy"></span>
-            <div class="offer-tag">الكشاف والإضاءة</div>
-            <div class="offer-title">أحدث التصاميم<br />لإضاءة مثالية</div>
-            <a href="/" class="btn btn-black btn-sm" style="width:fit-content">اكتشف الآن</a>
+            <span class="offer-emoji" aria-hidden="true"><img src="{% static 'image/21-2.png' %}" alt="" loading="lazy"></span>
+            <div class="offer-content">
+              <div class="offer-tag">الكشاف والإضاءة</div>
+              <div class="offer-title">أحدث التصاميم<br />لإضاءة مثالية</div>
+              <a href="{% url 'product_list' %}" class="btn btn-black btn-sm">اكتشف الآن</a>
+            </div>
           </div>
 
           <div class="offer-card offer-light">
-            <span class="offer-emoji" aria-hidden="true"><img src="{% static 'image/15.png' %}" style="width:200px; height:200px; object-fit:contain;" alt="" loading="lazy"></span>
-            <div class="offer-tag">دواية ديكور</div>
-            <div class="offer-title"> ديكورات<br />دوايات مميزة</div>
-            <div class="offer-discount">من 100 ج.م</div>
-            <a href="/" class="btn btn-black btn-sm" style="width:fit-content">تصفح الآن</a>
+            <span class="offer-emoji" aria-hidden="true"><img src="{% static 'image/15.png' %}" alt="" loading="lazy"></span>
+            <div class="offer-content">
+              <div class="offer-tag">دواية ديكور</div>
+              <div class="offer-title">ديكورات<br />دوايات مميزة</div>
+              <div class="offer-discount">من 100 ج.م</div>
+              <a href="{% url 'product_list' %}" class="btn btn-black btn-sm">تصفح الآن</a>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
-    {% if featured_products %}
-    <section class="page-section" aria-labelledby="featured-products-heading">
+    <!-- ============================
+         CATEGORIES SECTION
+         ============================ -->
+    <section class="categories-section page-section" aria-labelledby="categories-heading">
       <div class="container">
         <div class="section-header">
           <div class="section-title">
-            <h2 id="featured-products-heading">الأكثر طلبًا</h2>
-            <p>منتجات يختارها العملاء بكثرة من مشتركات كهرباء وبرايز وإضاءة عملية.</p>
+            <span class="section-kicker">تصفح أسرع</span>
+            <h2 id="categories-heading">تسوق حسب الفئة</h2>
+            <p>استكشف مجموعاتنا الواسعة</p>
           </div>
-          <a href="{% url 'product_list' %}?sort=rating" class="view-all-btn">عرض كل المنتجات ←</a>
+          <a href="{% url 'category_list' %}" class="view-all-btn">كل الفئات <i class="fas fa-arrow-left" aria-hidden="true"></i></a>
         </div>
-        <div class="products-grid">
-          {% for product in featured_products %}
-          <article class="product-card">
-            <div class="product-image-wrap">
-              <a href="{% url 'product_detail' id=product.id slug=product.slug %}">
-                {% if product.image %}
-                  <img src="{{ product.image.url }}" alt="{{ product.get_primary_image_alt }}" loading="lazy">
-                {% else %}
-                  <div class="product-img-placeholder"><i class="fas fa-image"></i></div>
-                {% endif %}
-              </a>
-              <div class="product-badges">
-                {% if product.is_hot %}<span class="badge-hot">رائج</span>{% endif %}
-                {% if product.is_new %}<span class="badge-new">جديد</span>{% endif %}
-              </div>
-            </div>
-            <div class="product-info">
-              <div class="product-category-tag">{{ product.category.name }}</div>
-              <h3 class="product-name"><a href="{% url 'product_detail' id=product.id slug=product.slug %}">{{ product.name }}</a></h3>
-              <div class="product-price-row">
-                <div class="price-group">
-                  <span class="price-current">{{ product.price }} ج.م</span>
-                  {% if product.old_price %}<span class="price-original">{{ product.old_price }} ج.م</span>{% endif %}
-                </div>
-                <button class="add-to-cart-btn" data-action="add-to-cart" data-product-id="{{ product.id }}" data-product-name="{{ product.name }}" data-product-price="{{ product.price }}" data-quantity="1" data-product-image="{% if product.image %}{{ product.image.url }}{% endif %}" aria-label="أضف {{ product.name }} إلى السلة">
-                  <i class="fas fa-shopping-cart"></i>
-                </button>
-              </div>
-            </div>
-          </article>
-          {% endfor %}
-        </div>
-      </div>
-    </section>
-    {% endif %}
 
-    {% if latest_products %}
-    <section class="page-section" aria-labelledby="latest-products-heading">
-      <div class="container">
-        <div class="section-header">
-          <div class="section-title">
-            <h2 id="latest-products-heading">أحدث المنتجات</h2>
-            <p>تحديثات جديدة من منتجات الكهرباء والإضاءة لتسهيل الوصول السريع للوافد حديثًا.</p>
-          </div>
-          <a href="{% url 'product_list' %}?sort=newest" class="view-all-btn">مشاهدة الأحدث ←</a>
-        </div>
-        <div class="products-grid">
-          {% for product in latest_products %}
-          <article class="product-card">
-            <div class="product-image-wrap">
-              <a href="{% url 'product_detail' id=product.id slug=product.slug %}">
-                {% if product.image %}
-                  <img src="{{ product.image.url }}" alt="{{ product.get_primary_image_alt }}" loading="lazy">
-                {% else %}
-                  <div class="product-img-placeholder"><i class="fas fa-image"></i></div>
-                {% endif %}
-              </a>
-              <div class="product-badges">
-                <span class="badge-new">جديد</span>
-                {% if product.old_price %}<span class="badge-sale">خصم</span>{% endif %}
-              </div>
+        <div class="categories-grid">
+          {% for category in categories %}
+          <a href="{% url 'category_products' id=category.id slug=category.slug %}" class="category-card" aria-label="{{ category.name }}">
+            <div class="cat-icon">
+              {% if category.image %}
+                <img src="{{ category.image.url }}" alt="{{ category.name }}" loading="lazy">
+              {% else %}
+                <span class="cat-fallback-icon">{{ category.icon }}</span>
+              {% endif %}
             </div>
-            <div class="product-info">
-              <div class="product-category-tag">{{ product.category.name }}</div>
-              <h3 class="product-name"><a href="{% url 'product_detail' id=product.id slug=product.slug %}">{{ product.name }}</a></h3>
-              <div class="product-price-row">
-                <div class="price-group">
-                  <span class="price-current">{{ product.price }} ج.م</span>
-                  {% if product.old_price %}<span class="price-original">{{ product.old_price }} ج.م</span>{% endif %}
-                </div>
-                <button class="add-to-cart-btn" data-action="add-to-cart" data-product-id="{{ product.id }}" data-product-name="{{ product.name }}" data-product-price="{{ product.price }}" data-quantity="1" data-product-image="{% if product.image %}{{ product.image.url }}{% endif %}" aria-label="أضف {{ product.name }} إلى السلة">
-                  <i class="fas fa-shopping-cart"></i>
-                </button>
-              </div>
-            </div>
-          </article>
+            <span class="cat-name">{{ category.name }}</span>
+            <span class="cat-count">{{ category.get_product_count }} منتج</span>
+            <span class="cat-arrow" aria-hidden="true"><i class="fas fa-arrow-left"></i></span>
+          </a>
           {% endfor %}
         </div>
       </div>
     </section>
-    {% endif %}
 
   </main>
 {% endblock content %}

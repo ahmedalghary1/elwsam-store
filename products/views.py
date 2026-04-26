@@ -20,6 +20,11 @@ from .models import (
     ProductSize, ProductType, ProductTypeColor, ProductTypeImage, Pattern,
     ProductSpecification, PatternSize, Size, Color, PatternColor, PatternImage
 )
+from .services import (
+    PRODUCT_COLLECTION_TYPES,
+    get_product_collection_queryset,
+    serialize_product_card,
+)
 
 
 def _decode_slug(raw_slug):
@@ -270,6 +275,50 @@ class ProductListView(ListView):
             ],
         })
         return context
+
+
+def product_collection_api(request):
+    """
+    Return home product-tab collections.
+
+    Supported types: offers, best-sellers, latest.
+    """
+    collection_type = request.GET.get('type', 'offers')
+    if collection_type not in PRODUCT_COLLECTION_TYPES:
+        return JsonResponse({
+            'success': False,
+            'message': 'نوع المنتجات غير مدعوم',
+            'products': [],
+        }, status=400)
+
+    try:
+        limit = int(request.GET.get('limit', 10))
+    except (TypeError, ValueError):
+        limit = 10
+    limit = max(1, min(limit, 24))
+
+    try:
+        page_number = int(request.GET.get('page', 1))
+    except (TypeError, ValueError):
+        page_number = 1
+
+    queryset = get_product_collection_queryset(collection_type)
+    paginator = Paginator(queryset, limit)
+    page_obj = paginator.get_page(page_number)
+
+    return JsonResponse({
+        'success': True,
+        'type': collection_type,
+        'products': [serialize_product_card(product) for product in page_obj.object_list],
+        'pagination': {
+            'page': page_obj.number,
+            'limit': limit,
+            'total': paginator.count,
+            'num_pages': paginator.num_pages,
+            'has_next': page_obj.has_next(),
+            'has_previous': page_obj.has_previous(),
+        },
+    })
 
 
 # =========================

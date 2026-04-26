@@ -1,6 +1,8 @@
 from django.shortcuts import render
 from django.urls import reverse
-from products.models import Category, Product
+
+from products.models import Category
+from products.services import get_product_collection_queryset
 from .seo import (
     SITE_NAME,
     build_absolute_uri,
@@ -12,17 +14,38 @@ from .seo import (
 
 def index(request):
     """
-    الصفحة الرئيسية - عرض الأقسام والمنتجات المميزة والحديثة
+    الصفحة الرئيسية - عرض الأقسام وتبويبات المنتجات
     """
     categories = Category.objects.filter(is_active=True).order_by('order')
-    featured_products = Product.objects.filter(is_hot=True, is_active=True).order_by('order')[:10]
-    latest_products = Product.objects.filter(is_active=True).order_by('-created_at')[:10]
+    product_tabs = [
+        {
+            'type': 'offers',
+            'label': 'العروض',
+            'heading': 'عروض مختارة لك',
+            'description': 'منتجات عليها خصومات فعلية وأسعار أقل من السعر السابق.',
+        },
+        {
+            'type': 'best-sellers',
+            'label': 'الأفضل مبيعاً',
+            'heading': 'الأكثر طلباً',
+            'description': 'منتجات رائجة يختارها العملاء بكثرة من مستلزمات الكهرباء.',
+        },
+        {
+            'type': 'latest',
+            'label': 'حديثاً',
+            'heading': 'وصل حديثاً',
+            'description': 'أحدث المنتجات المضافة إلى متجر الوسام.',
+        },
+    ]
+    initial_product_tab = product_tabs[0]
+    initial_tab_products = get_product_collection_queryset(initial_product_tab['type'])[:10]
     absolute_home_url = build_absolute_uri(request, '/')
     
     context = {
         'categories': categories,
-        'featured_products': featured_products,
-        'latest_products': latest_products,
+        'product_tabs': product_tabs,
+        'initial_product_tab': initial_product_tab,
+        'initial_tab_products': initial_tab_products,
         'seo_title': f"{SITE_NAME} | مشترك كهرباء ومستلزمات الكهرباء في مصر",
         'seo_h1': "متجر الوسام لمستلزمات الكهرباء المنزلية",
         'seo_meta_description': (

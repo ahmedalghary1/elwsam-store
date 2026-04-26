@@ -394,15 +394,6 @@
         });
       });
 
-      galleryContainer.addEventListener('click', function(e) {
-        if (galleryImg.src.split('?')[0] !== originalSrc.split('?')[0]) {
-          galleryImg.src = originalSrc + '?t=' + Date.now();
-          galleryThumbs.forEach(t => t.classList.remove('active'));
-          const firstThumb = document.querySelector('.gallery-thumb:first-child');
-          if (firstThumb) firstThumb.classList.add('active');
-        }
-      });
-
       galleryImg.onerror = function() {
         this.src = originalSrc;
       };

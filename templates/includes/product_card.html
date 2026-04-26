@@ -1,0 +1,40 @@
+<article class="product-card home-product-card">
+  <div class="product-image-wrap">
+    <a href="{% url 'product_detail' id=product.id slug=product.slug %}">
+      {% if product.image %}
+        <img src="{{ product.image.url }}" alt="{{ product.get_primary_image_alt }}" loading="lazy">
+      {% else %}
+        <div class="product-img-placeholder"><i class="fas fa-image"></i></div>
+      {% endif %}
+    </a>
+    <div class="product-badges">
+      {% if product.old_price and product.old_price > product.price %}<span class="badge-sale">خصم {{ product.get_discount_percent }}%</span>{% endif %}
+      {% if product.is_hot %}<span class="badge-hot">رائج</span>{% endif %}
+      {% if product.is_new %}<span class="badge-new">جديد</span>{% endif %}
+    </div>
+    <a href="{% url 'product_detail' id=product.id slug=product.slug %}" class="product-image-cta">عرض التفاصيل</a>
+  </div>
+  <div class="product-info">
+    <div class="product-meta-row">
+      <div class="product-category-tag">{{ product.category.name }}</div>
+      <div class="product-rating-mini" aria-label="تقييم {{ product.rating|floatformat:1 }} من 5">
+        <i class="fas fa-star" aria-hidden="true"></i>
+        <span>{{ product.rating|floatformat:1 }}</span>
+      </div>
+    </div>
+    <h3 class="product-name">
+      <a href="{% url 'product_detail' id=product.id slug=product.slug %}">{{ product.name }}</a>
+    </h3>
+    <div class="product-price-row">
+      <div class="price-group">
+        <span class="price-current">{{ product.price }} ج.م</span>
+        {% if product.old_price and product.old_price > product.price %}
+          <span class="price-original">{{ product.old_price }} ج.م</span>
+        {% endif %}
+      </div>
+      <button class="add-to-cart-btn" data-action="add-to-cart" data-product-id="{{ product.id }}" data-product-name="{{ product.name }}" data-product-price="{{ product.price }}" data-quantity="1" data-product-image="{% if product.image %}{{ product.image.url }}{% endif %}" aria-label="أضف {{ product.name }} إلى السلة">
+        <i class="fas fa-shopping-cart"></i>
+      </button>
+    </div>
+  </div>
+</article>

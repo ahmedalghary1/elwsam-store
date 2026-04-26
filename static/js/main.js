@@ -285,7 +285,7 @@ const ProductDetail = {
   qty: 1,
   init() {
     if (!document.querySelector('.product-detail-page')) return;
-    this.initGallery(); this.initTabs(); this.initVariants(); this.initQtySelector(); this.initAddToCart();
+    this.initGallery(); this.initImageZoom(); this.initTabs(); this.initVariants(); this.initQtySelector(); this.initAddToCart();
   },
   initGallery() {
     const thumbs = document.querySelectorAll('.gallery-thumb');
@@ -304,6 +304,65 @@ const ProductDetail = {
         t.classList.add('active');
       });
     });
+  },
+  initImageZoom() {
+    const galleryMain = document.querySelector('.gallery-main');
+    const mainImg = document.querySelector('#main-product-image');
+    if (!galleryMain || !mainImg) return;
+
+    let zoomSurface = document.getElementById('productPressZoom');
+    if (!zoomSurface) {
+      zoomSurface = document.createElement('div');
+      zoomSurface.id = 'productPressZoom';
+      zoomSurface.className = 'product-press-zoom';
+      zoomSurface.setAttribute('aria-hidden', 'true');
+      zoomSurface.innerHTML = '<div class="product-press-zoom-label">حرّك الماوس لاستكشاف التفاصيل</div>';
+      document.body.appendChild(zoomSurface);
+    }
+
+    const getPoint = (event) => {
+      const rect = galleryMain.getBoundingClientRect();
+      const x = Math.max(0, Math.min(100, ((event.clientX - rect.left) / rect.width) * 100));
+      const y = Math.max(0, Math.min(100, ((event.clientY - rect.top) / rect.height) * 100));
+      return { x, y };
+    };
+
+    const updateZoomPosition = (event) => {
+      if (!zoomSurface.classList.contains('open')) return;
+      const point = getPoint(event);
+      zoomSurface.style.setProperty('--zoom-x', `${point.x}%`);
+      zoomSurface.style.setProperty('--zoom-y', `${point.y}%`);
+    };
+
+    const closeZoom = () => {
+      zoomSurface.classList.remove('open');
+      zoomSurface.setAttribute('aria-hidden', 'true');
+      zoomSurface.style.backgroundImage = '';
+      document.body.classList.remove('zoom-modal-open');
+      window.removeEventListener('pointermove', updateZoomPosition);
+      window.removeEventListener('pointerup', closeZoom);
+      window.removeEventListener('pointercancel', closeZoom);
+    };
+
+    const openZoom = (event) => {
+      if (event.button !== undefined && event.button !== 0) return;
+      if (!mainImg.src) return;
+      event.preventDefault();
+      const src = mainImg.currentSrc || mainImg.src;
+      zoomSurface.style.backgroundImage = `url("${src.replaceAll('"', '\\"')}")`;
+      zoomSurface.classList.add('open');
+      zoomSurface.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('zoom-modal-open');
+      updateZoomPosition(event);
+      window.addEventListener('pointermove', updateZoomPosition);
+      window.addEventListener('pointerup', closeZoom);
+      window.addEventListener('pointercancel', closeZoom);
+    };
+
+    galleryMain.setAttribute('tabindex', '0');
+    galleryMain.setAttribute('aria-label', 'اضغط باستمرار على صورة المنتج للتكبير');
+    galleryMain.addEventListener('pointerdown', openZoom);
+    galleryMain.addEventListener('dragstart', (event) => event.preventDefault());
   },
   initTabs() {
     const tabs=document.querySelectorAll('.tab-btn'); const contents=document.querySelectorAll('.tab-content');
@@ -390,6 +449,134 @@ const HeroSlider = {
   resetAuto() { this.stopAuto(); this.startAuto(); }
 };
 
+// ============ Home Product Tabs ============
+const HomeProductTabs = {
+  init() {
+    const root = document.querySelector('[data-home-product-tabs]');
+    if (!root) return;
+
+    const buttons = root.querySelectorAll('[data-product-tab]');
+    const grid = root.querySelector('[data-products-grid]');
+    const status = root.querySelector('[data-products-status]');
+    const empty = root.querySelector('[data-products-empty]');
+    const heading = root.querySelector('[data-home-products-heading]');
+    const description = root.querySelector('[data-home-products-description]');
+    const apiUrl = root.dataset.apiUrl;
+    const limit = root.dataset.limit || '10';
+    if (!buttons.length || !grid || !apiUrl) return;
+
+    buttons.forEach(button => {
+      button.addEventListener('click', () => {
+        if (button.classList.contains('active')) return;
+        this.activate(root, button, { grid, status, empty, heading, description, apiUrl, limit });
+      });
+    });
+  },
+
+  async activate(root, activeButton, refs) {
+    const { grid, status, empty, heading, description, apiUrl, limit } = refs;
+    const type = activeButton.dataset.productTab;
+
+    root.querySelectorAll('[data-product-tab]').forEach(button => {
+      const isActive = button === activeButton;
+      button.classList.toggle('active', isActive);
+      button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+
+    if (heading) heading.textContent = activeButton.dataset.heading || activeButton.textContent.trim();
+    if (description) description.textContent = activeButton.dataset.description || '';
+    this.setStatus(status, 'جاري تحميل المنتجات...');
+    empty.hidden = true;
+    grid.classList.add('is-loading');
+
+    try {
+      const url = new URL(apiUrl, window.location.origin);
+      url.searchParams.set('type', type);
+      url.searchParams.set('limit', limit);
+
+      const response = await fetch(url, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) throw new Error(data.message || 'تعذر تحميل المنتجات');
+
+      grid.innerHTML = data.products.map(product => this.renderProduct(product)).join('');
+      empty.hidden = data.products.length > 0;
+      this.clearStatus(status);
+    } catch (error) {
+      this.setStatus(status, error.message || 'حدث خطأ أثناء تحميل المنتجات. حاول مرة أخرى.');
+    } finally {
+      grid.classList.remove('is-loading');
+    }
+  },
+
+  renderProduct(product) {
+    const image = product.image
+      ? `<img src="${this.escape(product.image)}" alt="${this.escape(product.image_alt || product.name)}" loading="lazy">`
+      : '<div class="product-img-placeholder"><i class="fas fa-image"></i></div>';
+    const discountLabel = product.discount_percent ? `خصم ${this.escape(product.discount_percent)}%` : 'خصم';
+    const rating = Number(product.rating || 5).toFixed(1);
+    const badges = [
+      product.has_offer ? `<span class="badge-sale">${discountLabel}</span>` : '',
+      product.is_hot ? '<span class="badge-hot">رائج</span>' : '',
+      product.is_new ? '<span class="badge-new">جديد</span>' : ''
+    ].join('');
+    const oldPrice = product.old_price
+      ? `<span class="price-original">${this.escape(product.old_price)} ج.م</span>`
+      : '';
+
+    return `
+      <article class="product-card home-product-card">
+        <div class="product-image-wrap">
+          <a href="${this.escape(product.url)}">${image}</a>
+          <div class="product-badges">${badges}</div>
+          <a href="${this.escape(product.url)}" class="product-image-cta">عرض التفاصيل</a>
+        </div>
+        <div class="product-info">
+          <div class="product-meta-row">
+            <div class="product-category-tag">${this.escape(product.category || '')}</div>
+            <div class="product-rating-mini" aria-label="تقييم ${rating} من 5">
+              <i class="fas fa-star" aria-hidden="true"></i>
+              <span>${rating}</span>
+            </div>
+          </div>
+          <h3 class="product-name"><a href="${this.escape(product.url)}">${this.escape(product.name)}</a></h3>
+          <div class="product-price-row">
+            <div class="price-group">
+              <span class="price-current">${this.escape(product.price)} ج.م</span>
+              ${oldPrice}
+            </div>
+            <button class="add-to-cart-btn" data-action="add-to-cart" data-product-id="${product.id}" data-product-name="${this.escape(product.name)}" data-product-price="${this.escape(product.price)}" data-quantity="1" data-product-image="${this.escape(product.image || '')}" aria-label="أضف ${this.escape(product.name)} إلى السلة">
+              <i class="fas fa-shopping-cart"></i>
+            </button>
+          </div>
+        </div>
+      </article>
+    `;
+  },
+
+  setStatus(status, message) {
+    if (!status) return;
+    status.textContent = message;
+    status.hidden = false;
+  },
+
+  clearStatus(status) {
+    if (!status) return;
+    status.textContent = '';
+    status.hidden = true;
+  },
+
+  escape(value) {
+    return String(value ?? '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
+};
+
 // ============ Filter Toggle ============
 function initFilterToggle() {
   const btn=document.querySelector('.filter-toggle-btn'); const sidebar=document.querySelector('.filter-sidebar');
@@ -424,7 +611,7 @@ function initPage() {
   MobileMenu.init(); initSearch(); initPromoBanner(); initCartButtons(); initWishlistButtons();
   setActiveNavLinks(); syncWishlistBtns(); UI.updateCartBadge(); UI.updateWishlistBadge();
   // CartPage.init(); // Disabled - CartManager handles cart 
-  ProductDetail.init(); WishlistPage.init(); initFilterToggle(); HeroSlider.init();
+  ProductDetail.init(); WishlistPage.init(); initFilterToggle(); HeroSlider.init(); HomeProductTabs.init();
 }
 
 document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', initPage) : initPage();
