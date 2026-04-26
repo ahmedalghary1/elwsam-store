@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}تم إنشاء الطلب بنجاح | متجر الوسام{% endblock title %}
+
+{% block content %}
+<main>
+  <div class="order-success-page">
+    <div class="container">
+      <div class="success-card">
+        <div class="success-icon">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        
+        <h1>تم إنشاء طلبك بنجاح!</h1>
+        <p class="order-number">رقم الطلب: <strong>#{{ order.id }}</strong></p>
+        
+        <div class="success-message">
+          <p>شكراً لك! تم استلام طلبك وسيتم معالجته قريباً.</p>
+          <p>سنتواصل معك على رقم الهاتف: <strong>{{ order.shipping_phone }}</strong></p>
+        </div>
+
+        <div class="order-details-card">
+          <h2>تفاصيل الطلب</h2>
+          
+          <div class="detail-row">
+            <span class="detail-label">الاسم:</span>
+            <span class="detail-value">{{ order.shipping_name }}</span>
+          </div>
+          
+          <div class="detail-row">
+            <span class="detail-label">رقم الهاتف:</span>
+            <span class="detail-value">{{ order.shipping_phone }}</span>
+          </div>
+          
+          <div class="detail-row">
+            <span class="detail-label">المحافظة:</span>
+            <span class="detail-value">{{ order.shipping_city }}</span>
+          </div>
+          
+          <div class="detail-row">
+            <span class="detail-label">العنوان:</span>
+            <span class="detail-value">{{ order.shipping_address }}</span>
+          </div>
+          
+          {% if order.shipping_notes %}
+          <div class="detail-row">
+            <span class="detail-label">ملاحظات:</span>
+            <span class="detail-value">{{ order.shipping_notes }}</span>
+          </div>
+          {% endif %}
+          
+          <div class="detail-row">
+            <span class="detail-label">طريقة الدفع:</span>
+            <span class="detail-value">الدفع عند الاستلام</span>
+          </div>
+          
+          <div class="detail-row">
+            <span class="detail-label">طريقة التواصل المفضلة:</span>
+            <span class="detail-value">
+              {% if order.contact_method == 'whatsapp' %}
+                <i class="fab fa-whatsapp" style="color: #25D366;"></i> واتساب
+              {% elif order.contact_method == 'call' %}
+                <i class="fas fa-phone-alt" style="color: var(--color-primary);"></i> مكالمة هاتفية
+              {% else %}
+                {{ order.get_contact_method_display }}
+              {% endif %}
+            </span>
+          </div>
+          
+          {% if order.order_notes %}
+          <div class="detail-row notes-row">
+            <span class="detail-label">ملاحظات الطلب:</span>
+            <span class="detail-value notes-content">{{ order.order_notes }}</span>
+          </div>
+          {% endif %}
+          
+          <div class="detail-row total">
+            <span class="detail-label">المجموع الكلي:</span>
+            <span class="detail-value">{{ order.total_price }} جنيه</span>
+          </div>
+        </div>
+
+        <div class="order-items-section">
+          <h3>المنتجات المطلوبة</h3>
+          <div class="items-list">
+            {% for item in order_items %}
+            <div class="item-row">
+              <div class="item-info">
+                <span class="item-name">{{ item.product.name }}</span>
+                {% with vd=item.get_variant_display %}
+                  {% if vd %}
+                    <span class="item-variant">
+                      {% if item.color_code %}
+                        <span class="color-dot" style="background:{{ item.color_code }};"></span>
+                      {% endif %}
+                      {{ vd }}
+                    </span>
+                  {% endif %}
+                {% endwith %}
+                <span class="item-qty">× {{ item.quantity }}</span>
+              </div>
+              <span class="item-price">{{ item.get_total_price }} جنيه</span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="action-buttons">
+          <a href="{% url 'index' %}" class="btn btn-primary">العودة للرئيسية</a>
+          <a href="{% url 'category_list' %}" class="btn btn-outline">تصفح المزيد</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<style>
+.order-success-page {
+  padding: 3rem 0;
+  background: var(--color-gray-50);
+  min-height: 70vh;
+}
+
+.success-card {
+  max-width: 700px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+.success-icon {
+  font-size: 5rem;
+  color: #22c55e;
+  margin-bottom: 1.5rem;
+}
+
+.success-card h1 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: var(--color-gray-800);
+}
+
+.order-number {
+  font-size: 1.2rem;
+  color: var(--color-gray-600);
+  margin-bottom: 2rem;
+}
+
+.order-number strong {
+  color: var(--color-primary);
+  font-size: 1.4rem;
+}
+
+.success-message {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.success-message p {
+  margin: 0.5rem 0;
+  color: var(--color-gray-700);
+  line-height: 1.6;
+}
+
+.order-details-card {
+  background: var(--color-gray-50);
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  text-align: right;
+}
+
+.order-details-card h2 {
+  margin-bottom: 1.5rem;
+  color: var(--color-gray-800);
+  font-size: 1.5rem;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-row.total {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  border-top: 2px solid var(--color-gray-300);
+  padding-top: 1rem;
+  margin-top: 0.5rem;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: var(--color-gray-600);
+}
+
+.detail-value {
+  color: var(--color-gray-800);
+}
+
+.detail-row.notes-row {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.notes-content {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  width: 100%;
+  text-align: right;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.order-items-section {
+  background: var(--color-gray-50);
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  text-align: right;
+}
+
+.order-items-section h3 {
+  margin-bottom: 1rem;
+  color: var(--color-gray-800);
+}
+
+.items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: white;
+  border-radius: 8px;
+}
+
+.item-info {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.item-name {
+  font-weight: 500;
+  color: var(--color-gray-800);
+}
+
+.item-qty {
+  color: var(--color-gray-500);
+  font-size: 0.9rem;
+}
+
+.item-price {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+@media (max-width: 768px) {
+  .success-card {
+    padding: 2rem 1.5rem;
+  }
+  
+  .success-icon {
+    font-size: 3.5rem;
+  }
+  
+  .success-card h1 {
+    font-size: 1.5rem;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
+  
+  .action-buttons .btn {
+    width: 100%;
+  }
+}
+</style>
+
+<script>
+// Clear cart from localStorage after successful order
+document.addEventListener('DOMContentLoaded', function() {
+  localStorage.removeItem('noor_cart');
+  if (window.cartManager) {
+    window.cartManager.updateCartBadge();
+  }
+});
+</script>
+{% endblock %}
