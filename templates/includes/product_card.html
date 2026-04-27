@@ -32,9 +32,15 @@
           <span class="price-original">{{ product.old_price }} ج.م</span>
         {% endif %}
       </div>
-      <button class="add-to-cart-btn" data-action="add-to-cart" data-product-id="{{ product.id }}" data-product-name="{{ product.name }}" data-product-price="{{ product.price }}" data-quantity="1" data-product-image="{% if product.image %}{{ product.image.url }}{% endif %}" aria-label="أضف {{ product.name }} إلى السلة">
-        <i class="fas fa-shopping-cart"></i>
-      </button>
+      {% if product.is_simple_product %}
+        <button class="add-to-cart-btn" data-action="add-to-cart" data-product-id="{{ product.id }}" data-product-name="{{ product.name }}" data-product-price="{{ product.price }}" data-quantity="1" data-product-image="{% if product.image %}{{ product.image.url }}{% endif %}" aria-label="أضف {{ product.name }} إلى السلة">
+          <i class="fas fa-shopping-cart"></i>
+        </button>
+      {% else %}
+        <a class="add-to-cart-btn choose-options-btn" href="{% url 'product_detail' id=product.id slug=product.slug %}" aria-label="اختيار مواصفات {{ product.name }}">
+          <i class="fas fa-sliders"></i>
+        </a>
+      {% endif %}
     </div>
   </div>
 </article>

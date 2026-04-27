@@ -102,7 +102,7 @@
             </div>
           </div>
         {% else %}
-          <!-- Ø§Ù„Ø³Ù„Ø© ÙØ§Ø±ØºØ© Ù„Ù„Ù…Ø³ØªØ®Ø¯Ù… Ø§Ù„Ù…Ø³Ø¬Ù„ -->
+          <!-- السلة فارغة للمستخدم المسجل -->
           <div class="empty-cart">
             <div class="empty-cart-icon"><i class="fas fa-shopping-cart"></i></div>
             <h2>سلة التسوق فارغة</h2>
@@ -112,7 +112,7 @@
         {% endif %}
 
       {% else %}
-        {# Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… ØºÙŠØ± Ù…Ø³Ø¬Ù„ â€“ Ù†Ø¹Ø±Ø¶ Ù…Ù†Ø·Ù‚Ø© Ø§Ù„Ø¶ÙŠÙ Ù…Ø¨Ø§Ø´Ø±Ø© #}
+        {# المستخدم غير مسجل – نعرض منطقة الضيف مباشرة #}
         <div id="guest-cart-container" style="display: block;">
           <div class="cart-content">
             <div class="cart-items" id="guest-cart-items"></div>
@@ -141,11 +141,11 @@
   </div>
 
   <!-- Variant Details Modal -->
-  <div id="variant-modal" class="modal" style="display: none;">
+  <div id="variant-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="variant-modal-title" aria-hidden="true" style="display: none;">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>تفاصيل المنتج</h3>
-        <button class="modal-close" onclick="closeVariantModal()">&times;</button>
+        <h3 id="variant-modal-title">تفاصيل المنتج</h3>
+        <button type="button" class="modal-close" onclick="closeVariantModal()" aria-label="إغلاق">&times;</button>
       </div>
       <div class="modal-body" id="modal-variant-details">
         <!-- Variant details will be inserted here -->
@@ -155,7 +155,7 @@
 </main>
 
 <script>
-  // ÙÙŠ Ø­Ø§Ù„Ø© Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… ØºÙŠØ± Ù…Ø³Ø¬Ù„ØŒ Ù†Ø¹ØªÙ…Ø¯ Ø¹Ù„Ù‰ CartManager Ù„ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ù…Ø­ØªÙˆÙ‰
+  // في حالة المستخدم غير مسجل، نعتمد على CartManager لتحميل المحتوى
   document.addEventListener('DOMContentLoaded', function() {
     const isAuthenticated = document.body.dataset.auth === 'true';
     if (!isAuthenticated && window.cartManager) {
@@ -225,8 +225,7 @@
       }
 
       html += '<div class="variant-detail-item"><strong>السعر:</strong> ' + (item.price || 0).toFixed(2) + ' جنيه</div>';
-      document.getElementById('modal-variant-details').innerHTML = html;
-      document.getElementById('variant-modal').style.display = 'flex';
+      openVariantModal(html);
     } catch (error) {
       console.error('Error fetching variant details:', error);
     }
@@ -264,21 +263,36 @@
       html += '<div class="variant-detail-item"><strong>رقم المنتج:</strong> ' + data.sku + '</div>';
     }
 
-    document.getElementById('modal-variant-details').innerHTML = html;
-    document.getElementById('variant-modal').style.display = 'flex';
+    openVariantModal(html);
+  }
+
+  function openVariantModal(html) {
+    const modal = document.getElementById('variant-modal');
+    const body = document.getElementById('modal-variant-details');
+    if (!modal || !body) return;
+    body.innerHTML = html;
+    modal.style.display = 'flex';
+    modal.setAttribute('aria-hidden', 'false');
+    modal.querySelector('.modal-close')?.focus();
   }
 
   function closeVariantModal() {
-    document.getElementById('variant-modal').style.display = 'none';
+    const modal = document.getElementById('variant-modal');
+    if (!modal) return;
+    modal.style.display = 'none';
+    modal.setAttribute('aria-hidden', 'true');
   }
 
   // Close modal when clicking outside
-  window.onclick = function(event) {
+  window.addEventListener('click', function(event) {
     const modal = document.getElementById('variant-modal');
     if (event.target === modal) {
       closeVariantModal();
     }
-  };
+  });
+  window.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') closeVariantModal();
+  });
 </script>
 
 <style>

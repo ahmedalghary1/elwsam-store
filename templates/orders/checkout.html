@@ -637,6 +637,10 @@
 document.addEventListener('DOMContentLoaded', function() {
   const isGuest = document.body.dataset.auth !== 'true';
   const checkoutForm = document.getElementById('checkout-form');
+  const notify = (message) => {
+    if (window.UI?.showToast) window.UI.showToast(message, '⚠️');
+    else alert(message);
+  };
   
   if (isGuest && checkoutForm) {
     // For guest users, populate cart data from localStorage before submit
@@ -649,19 +653,34 @@ document.addEventListener('DOMContentLoaded', function() {
         const cart = JSON.parse(cartData);
         if (!cart || cart.length === 0) {
           e.preventDefault();
-          alert('سلة التسوق فارغة');
+          notify('سلة التسوق فارغة');
           window.location.href = '{% url "orders:cart" %}';
           return false;
         }
       } catch(err) {
         e.preventDefault();
-        alert('حدث خطأ في بيانات السلة');
+        notify('حدث خطأ في بيانات السلة');
         return false;
       }
     });
     
     // Render guest cart summary
     renderGuestCartSummary();
+  }
+
+  if (checkoutForm) {
+    checkoutForm.addEventListener('submit', function(e) {
+      if (e.defaultPrevented) return;
+      const submitButton = checkoutForm.querySelector('button[type="submit"], input[type="submit"]');
+      if (!submitButton) return;
+      submitButton.disabled = true;
+      submitButton.dataset.originalText = submitButton.innerHTML || submitButton.value || '';
+      if (submitButton.tagName === 'BUTTON') {
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> جاري تأكيد الطلب...';
+      } else {
+        submitButton.value = 'جاري تأكيد الطلب...';
+      }
+    });
   }
 });
 

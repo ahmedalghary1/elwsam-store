@@ -55,7 +55,7 @@ class ProductAdminPriceFilterTests(TestCase):
 
         filtered_products = price_filter.queryset(request, Product.objects.all())
 
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             filtered_products.order_by('id'),
             [self.mid],
             transform=lambda obj: obj,
@@ -103,7 +103,7 @@ class PatternAdminPriceFilterTests(TestCase):
 
         filtered_patterns = price_filter.queryset(request, Pattern.objects.all())
 
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             filtered_patterns.order_by('id'),
             [self.high_pattern],
             transform=lambda obj: obj,

@@ -37,6 +37,7 @@
   <link rel="stylesheet" href="{% static 'css/responsive-fixes.css' %}" />
 </head>
 <body data-auth="{% if user.is_authenticated %}true{% else %}false{% endif %}">
+  <a href="#main-content" class="skip-to-main">تخطي إلى المحتوى</a>
   <!-- NAVBAR -->
   <nav class="navbar" role="navigation" aria-label="التنقل الرئيسي">
     <div class="navbar-inner">
@@ -61,7 +62,23 @@
           </a>
         </div>
       </div>
-      
+      <div class="navbar-row2">
+        <form class="navbar-search" action="{% url 'product_list' %}" method="get" role="search">
+          <div class="search-box">
+            <input
+              type="search"
+              name="q"
+              value="{{ request.GET.q|default:'' }}"
+              placeholder="ابحث عن مشترك، كشاف، بريزة..."
+              aria-label="بحث عن منتج"
+              autocomplete="off"
+            >
+            <button class="search-btn" type="submit" aria-label="بحث">
+              <i class="fas fa-search" aria-hidden="true"></i>
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   </nav>
 
@@ -90,7 +107,9 @@
     </nav>
   </aside>
 
+  <div id="main-content" tabindex="-1">
     {% block content %}{% endblock content %}
+  </div>
 
 
   <!-- ============================
@@ -158,10 +177,10 @@
           <p style="font-size:0.82rem;color:rgba(255,255,255,0.5);margin-bottom:14px;line-height:1.7;">
             اشترك ليصلك آخر العروض والتخفيضات الحصرية أولاً.
           </p>
-          <div class="footer-newsletter">
-            <input type="email" placeholder="بريدك الإلكتروني" aria-label="البريد الإلكتروني" />
-            <button type="button" aria-label="اشتراك">اشترك</button>
-          </div>
+          <form class="footer-newsletter" id="newsletter-form">
+            <input type="email" name="email" placeholder="بريدك الإلكتروني" aria-label="البريد الإلكتروني" autocomplete="email" required />
+            <button type="submit" aria-label="اشتراك">اشترك</button>
+          </form>
           <p style="font-size:0.75rem;color:rgba(255,255,255,0.3);margin-top:10px;">
             🔒 لن نشارك بريدك الإلكتروني مع أي طرف ثالث
           </p>

@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.urls import reverse
+from django.views.decorators.cache import never_cache
 
 from products.models import Category
 from products.services import get_product_collection_queryset
@@ -12,6 +13,7 @@ from .seo import (
 )
 
 
+@never_cache
 def index(request):
     """
     الصفحة الرئيسية - عرض الأقسام وتبويبات المنتجات

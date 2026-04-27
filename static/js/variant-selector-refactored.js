@@ -500,9 +500,9 @@ class VariantSelector {
 
         if (galleryThumbs) {
             galleryThumbs.innerHTML = validImages.map((url, i) =>
-                `<div class="gallery-thumb ${i === 0 ? 'active' : ''}" data-src="${url}">
+                `<button type="button" class="gallery-thumb ${i === 0 ? 'active' : ''}" data-src="${url}" aria-label="عرض صورة ${i + 1}" ${i === 0 ? 'aria-current="true"' : ''}>
                     <img src="${url}" alt="صورة المنتج" loading="lazy">
-                </div>`
+                </button>`
             ).join('');
 
             galleryThumbs.querySelectorAll('.gallery-thumb').forEach(thumb => {
@@ -510,8 +510,12 @@ class VariantSelector {
                     if (mainImage) {
                         mainImage.src = e.currentTarget.dataset.src;
                     }
-                    galleryThumbs.querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
+                    galleryThumbs.querySelectorAll('.gallery-thumb').forEach(t => {
+                        t.classList.remove('active');
+                        t.removeAttribute('aria-current');
+                    });
                     e.currentTarget.classList.add('active');
+                    e.currentTarget.setAttribute('aria-current', 'true');
                 });
             });
         }
@@ -810,9 +814,9 @@ class VariantSelector {
         
         if (galleryThumbs && this.defaultImageUrl) {
             galleryThumbs.innerHTML = `
-                <div class="gallery-thumb active" data-src="${this.defaultImageUrl}">
+                <button type="button" class="gallery-thumb active" data-src="${this.defaultImageUrl}" aria-label="عرض صورة المنتج" aria-current="true">
                     <img src="${this.defaultImageUrl}" alt="صورة المنتج">
-                </div>`;
+                </button>`;
         }
     }
     

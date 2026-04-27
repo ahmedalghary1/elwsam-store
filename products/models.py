@@ -70,7 +70,6 @@ class Category(models.Model):
         from django.urls import reverse
         return reverse('category_products', kwargs={'id': self.id, 'slug': self.slug})
 
-
 # =========================
 # Product (ترتيب المنتجات)
 # =========================
@@ -280,12 +279,28 @@ class Product(models.Model):
         """
         Check if product is available in stock
         For simple products: check product.stock
-        For products with variants: check if any variant has stock
+        For configurable products: prefer variant stock when variants exist,
+        otherwise treat configured options as available when they exist.
         """
         if self.is_simple_product():
             return self.stock > 0
-        else:
+
+        if self.variants.exists():
             return self.variants.filter(stock__gt=0).exists()
+
+        if self.product_types.exists():
+            return True
+
+        if self.product_sizes.exists():
+            return True
+
+        if self.patterns.filter(pattern_sizes__stock__gt=0).exists():
+            return True
+
+        if self.product_colors.exists():
+            return True
+
+        return False
     
     def get_stock(self):
         """
@@ -483,6 +498,64 @@ class Product(models.Model):
         return json.dumps(schema, ensure_ascii=False)
 
     
+class HomeProductCollectionItem(models.Model):
+    COLLECTION_OFFERS = "offers"
+    COLLECTION_BEST_SELLERS = "best-sellers"
+    COLLECTION_LATEST = "latest"
+    LEGACY_COLLECTION_ALIASES = {
+        "1": COLLECTION_OFFERS,
+        "2": COLLECTION_BEST_SELLERS,
+        "3": COLLECTION_LATEST,
+    }
+
+    COLLECTION_CHOICES = (
+        (COLLECTION_OFFERS, "العروض"),
+        (COLLECTION_BEST_SELLERS, "الأفضل مبيعا"),
+        (COLLECTION_LATEST, "حديثا"),
+    )
+
+    collection_type = models.CharField(
+        max_length=32,
+        choices=COLLECTION_CHOICES,
+        db_index=True,
+        verbose_name="تبويب الصفحة الرئيسية",
+    )
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="home_collection_items",
+        verbose_name="المنتج",
+    )
+    is_active = models.BooleanField(default=True, verbose_name="نشط")
+    order = models.PositiveIntegerField(default=0, verbose_name="الترتيب")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["collection_type", "order", "-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["collection_type", "product"],
+                name="unique_home_collection_product",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["collection_type", "is_active", "order"]),
+        ]
+        verbose_name = "عنصر تبويب الصفحة الرئيسية"
+        verbose_name_plural = "عناصر تبويبات الصفحة الرئيسية"
+
+    def __str__(self):
+        return f"{self.get_collection_type_display()} - {self.product.name}"
+
+    def save(self, *args, **kwargs):
+        self.collection_type = self.LEGACY_COLLECTION_ALIASES.get(
+            str(self.collection_type),
+            self.collection_type,
+        )
+        super().save(*args, **kwargs)
+
+
 # =========================
 # Pattern (ترتيب الأنماط)
 # =========================

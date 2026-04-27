@@ -55,11 +55,11 @@
                 <div class="slide">
                   <img src="{% static 'image/slide3.webp' %}" alt="دوايات وإكسسوارات كهرباء" width="1600" height="901" loading="lazy">
                 </div>
-                <div class="slider-dots">
-                  <button class="dot active" aria-label="الشريحة 1"></button>
-                  <button class="dot" aria-label="الشريحة 2"></button>
-                  <button class="dot" aria-label="الشريحة 3"></button>
-                </div>
+        <div class="slider-dots" role="tablist" aria-label="التنقل بين شرائح العرض">
+          <button type="button" class="dot active" aria-label="الشريحة 1" aria-current="true"></button>
+          <button type="button" class="dot" aria-label="الشريحة 2"></button>
+          <button type="button" class="dot" aria-label="الشريحة 3"></button>
+        </div>
               </div>
             </div>
             <div class="hero-image-caption">
@@ -121,9 +121,12 @@
           {% for tab in product_tabs %}
             <button
               type="button"
+              id="home-product-tab-{{ tab.type }}"
               class="product-tab-btn{% if tab.type == initial_product_tab.type %} active{% endif %}"
               role="tab"
               aria-selected="{% if tab.type == initial_product_tab.type %}true{% else %}false{% endif %}"
+              aria-controls="home-products-panel"
+              tabindex="{% if tab.type == initial_product_tab.type %}0{% else %}-1{% endif %}"
               data-product-tab="{{ tab.type }}"
               data-heading="{{ tab.heading }}"
               data-description="{{ tab.description }}"
@@ -133,8 +136,8 @@
           {% endfor %}
         </div>
 
-        <div class="home-products-status" data-products-status hidden></div>
-        <div class="products-grid home-products-grid" data-products-grid>
+        <div class="home-products-status" data-products-status role="status" aria-live="polite" hidden></div>
+        <div class="products-grid home-products-grid" id="home-products-panel" role="tabpanel" aria-live="polite" aria-labelledby="home-product-tab-{{ initial_product_tab.type }}" data-products-grid>
           {% for product in initial_tab_products %}
             {% include "includes/product_card.html" with product=product %}
           {% endfor %}

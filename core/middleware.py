@@ -68,5 +68,8 @@ class PublicCacheMiddleware:
             return False
         if response.status_code != 200 or response.has_header("Set-Cookie"):
             return False
+        cache_control = response.get("Cache-Control", "").lower()
+        if any(directive in cache_control for directive in ("no-store", "no-cache", "private")):
+            return False
         path = request.path_info or "/"
         return not path.startswith(self.private_prefixes)

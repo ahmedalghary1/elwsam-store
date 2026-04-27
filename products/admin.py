@@ -7,11 +7,13 @@ from decimal import Decimal, InvalidOperation
 from django.contrib import messages
 from django.contrib.admin.filters import ListFilter
 from django import forms
+from django.db.models import Max
 from adminsortable2.admin import SortableAdminMixin, SortableInlineAdminMixin
 from .models import (
     Category, Product, Pattern, Color, ProductColor, Size, Type, ProductSize,
     ProductType, ProductTypeColor, ProductTypeImage, ProductImage, ProductVariant,
-    ProductSpecification, PatternSize, PatternColor, PatternImage
+    ProductSpecification, PatternSize, PatternColor, PatternImage,
+    HomeProductCollectionItem
 )
 
 import csv
@@ -38,7 +40,9 @@ class BasePriceInputFilter(ListFilter):
         for parameter in self.expected_parameters():
             if parameter in params:
                 value = params.pop(parameter)
-                self.used_parameters[parameter] = value[-1]
+                if isinstance(value, (list, tuple)):
+                    value = value[-1] if value else ''
+                self.used_parameters[parameter] = value
 
     def expected_parameters(self):
         return [self.min_parameter_name, self.max_parameter_name]
@@ -218,6 +222,15 @@ class ProductSpecificationInline(SortableInlineAdminMixin, admin.TabularInline):
     ordering = ['order']
     verbose_name = '\u0645\u0648\u0627\u0635\u0641\u0629'
     verbose_name_plural = '\u0627\u0644\u0645\u0648\u0627\u0635\u0641\u0627\u062a'
+
+
+class HomeProductCollectionInline(SortableInlineAdminMixin, admin.TabularInline):
+    model = HomeProductCollectionItem
+    extra = 0
+    fields = ['collection_type', 'is_active']
+    ordering = ['order']
+    verbose_name = 'ظهور في تبويب الصفحة الرئيسية'
+    verbose_name_plural = 'تبويبات الصفحة الرئيسية'
 
 
 class SimpleProductVariantInline(SortableInlineAdminMixin, admin.TabularInline):
@@ -574,6 +587,7 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
     )
 
     inlines = [
+        HomeProductCollectionInline,
         PatternInline,
         ProductColorInline,
         ProductSizeInline,
@@ -588,6 +602,9 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
         'deactivate',
         'mark_hot',
         'mark_new',
+        'add_to_home_offers',
+        'add_to_home_best_sellers',
+        'add_to_home_latest',
         'generate_simple_variants',
         'generate_color_only_variants',
         'export_products_csv',
@@ -815,6 +832,111 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
         queryset.update(is_new=True)
         self.message_user(request, 'تم التحديد كجديد', messages.SUCCESS)
     mark_new.short_description = 'تحديد كجديد'
+
+    def _add_products_to_home_collection(self, request, queryset, collection_type):
+        labels = dict(HomeProductCollectionItem.COLLECTION_CHOICES)
+        next_order = (
+            HomeProductCollectionItem.objects
+            .filter(collection_type=collection_type)
+            .aggregate(max_order=Max('order'))['max_order']
+        )
+        next_order = 0 if next_order is None else next_order + 1
+        created_count = 0
+        reactivated_count = 0
+        skipped_count = 0
+
+        for product in queryset.order_by('order', 'id'):
+            item, created = HomeProductCollectionItem.objects.get_or_create(
+                collection_type=collection_type,
+                product=product,
+                defaults={'is_active': True, 'order': next_order},
+            )
+            if created:
+                created_count += 1
+                next_order += 1
+            elif not item.is_active:
+                item.is_active = True
+                item.save(update_fields=['is_active', 'updated_at'])
+                reactivated_count += 1
+            else:
+                skipped_count += 1
+
+        self.message_user(
+            request,
+            (
+                f'تمت إضافة {created_count} منتج إلى تبويب {labels[collection_type]}. '
+                f'أعيد تفعيل {reactivated_count}، وتم تخطي {skipped_count} موجود مسبقا.'
+            ),
+            messages.SUCCESS,
+        )
+
+    def add_to_home_offers(self, request, queryset):
+        self._add_products_to_home_collection(
+            request,
+            queryset,
+            HomeProductCollectionItem.COLLECTION_OFFERS,
+        )
+    add_to_home_offers.short_description = 'إضافة إلى تبويب العروض في الرئيسية'
+
+    def add_to_home_best_sellers(self, request, queryset):
+        self._add_products_to_home_collection(
+            request,
+            queryset,
+            HomeProductCollectionItem.COLLECTION_BEST_SELLERS,
+        )
+    add_to_home_best_sellers.short_description = 'إضافة إلى تبويب الأفضل مبيعا في الرئيسية'
+
+    def add_to_home_latest(self, request, queryset):
+        self._add_products_to_home_collection(
+            request,
+            queryset,
+            HomeProductCollectionItem.COLLECTION_LATEST,
+        )
+    add_to_home_latest.short_description = 'إضافة إلى تبويب حديثا في الرئيسية'
+
+
+@admin.register(HomeProductCollectionItem)
+class HomeProductCollectionItemAdmin(SortableAdminMixin, admin.ModelAdmin):
+    sortable_field_name = "order"
+    list_display = [
+        'product_preview', 'product', 'collection_type', 'product_category',
+        'is_active', 'order'
+    ]
+    list_display_links = ['product']
+    list_editable = ['is_active']
+    list_filter = ['collection_type', 'is_active', 'product__category']
+    search_fields = ['product__name', 'product__category__name']
+    autocomplete_fields = ['product']
+    ordering = ['collection_type', 'order', '-created_at']
+    list_per_page = 40
+    list_select_related = ['product', 'product__category']
+
+    fieldsets = (
+        ('إضافة منتج لتبويب الصفحة الرئيسية', {
+            'fields': ('collection_type', 'product', 'is_active', 'order'),
+            'description': (
+                'اختر التبويب المطلوب ثم المنتج. إذا لم تضف منتجات لتبويب معين، '
+                'سيستخدم الموقع الترتيب التلقائي القديم لهذا التبويب.'
+            ),
+        }),
+    )
+
+    def product_preview(self, obj):
+        if obj.product and obj.product.image:
+            return format_html(
+                '<img src="{}" style="width:44px;height:44px;object-fit:cover;border-radius:6px;border:1px solid #eee;" />',
+                obj.product.image.url,
+            )
+        return mark_safe('<span style="font-size:1.4rem;">📦</span>')
+    product_preview.short_description = ''
+
+    def product_category(self, obj):
+        if obj.product and obj.product.category:
+            return obj.product.category.name
+        return '—'
+    product_category.short_description = 'القسم'
+
+
 # ================================================
 # Color Admin  (required for autocomplete)
 # ================================================

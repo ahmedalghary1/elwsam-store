@@ -8,6 +8,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q, Exists, OuterRef
 from django.core.cache import cache
 from django.utils.text import slugify
+from django.views.decorators.cache import never_cache
 from core.seo import (
     build_absolute_uri,
     build_breadcrumb_schema,
@@ -277,6 +278,7 @@ class ProductListView(ListView):
         return context
 
 
+@never_cache
 def product_collection_api(request):
     """
     Return home product-tab collections.

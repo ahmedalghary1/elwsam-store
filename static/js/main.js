@@ -112,6 +112,7 @@ const UI = {
   },
   formatPrice(p) { return Number(p).toLocaleString('ar-SA') + ' ج.م'; }
 };
+window.UI = UI;
 
 // ============ Mobile Menu ============
 const MobileMenu = {
@@ -135,38 +136,52 @@ function initSearch() {
     const el = document.createElement('div');
     el.id = 'searchOverlay';
     el.className = 'search-overlay';
-    el.innerHTML = `<div class="search-overlay-box"><div class="search-overlay-input-wrap"><span style="font-size:1.2rem">🔍</span><input type="search" class="search-overlay-input" id="searchOverlayInput" placeholder="ابحث عن منتج، ماركة..." autocomplete="off" /><button class="search-overlay-close" id="searchOverlayClose">✕</button></div><div class="search-suggestions"><p>🔥 الأكثر بحثاً</p><div class="search-suggestion-tags"><span class="search-tag">سماعات</span><span class="search-tag">ساعات ذكية</span><span class="search-tag">أحذية</span><span class="search-tag">عطور</span><span class="search-tag">حقائب</span><span class="search-tag">كاميرات</span></div></div></div>`;
+    el.setAttribute('role', 'dialog');
+    el.setAttribute('aria-modal', 'true');
+    el.setAttribute('aria-hidden', 'true');
+    el.innerHTML = `<form class="search-overlay-box" id="searchOverlayForm" role="search"><div class="search-overlay-input-wrap"><span style="font-size:1.2rem" aria-hidden="true">🔍</span><input type="search" class="search-overlay-input" id="searchOverlayInput" name="q" placeholder="ابحث عن مشترك، كشاف، بريزة..." autocomplete="off" aria-label="بحث عن منتج" /><button type="submit" class="search-overlay-submit" aria-label="بحث"><i class="fas fa-search" aria-hidden="true"></i></button><button type="button" class="search-overlay-close" id="searchOverlayClose" aria-label="إغلاق البحث">✕</button></div><div class="search-suggestions"><p>الأكثر بحثاً</p><div class="search-suggestion-tags"><button type="button" class="search-tag">مشترك كهرباء</button><button type="button" class="search-tag">كشاف ليد</button><button type="button" class="search-tag">برايز</button><button type="button" class="search-tag">دواية</button><button type="button" class="search-tag">فيشة</button><button type="button" class="search-tag">لمبة ليد</button></div></div></form>`;
     document.body.appendChild(el);
-    const closeOverlay = () => el.classList.remove('open');
+    const closeOverlay = () => {
+      el.classList.remove('open');
+      el.setAttribute('aria-hidden', 'true');
+    };
     document.getElementById('searchOverlayClose').addEventListener('click', closeOverlay);
     el.addEventListener('click', e => { if (e.target === el) closeOverlay(); });
-    document.getElementById('searchOverlayInput').addEventListener('keydown', e => {
-      if (e.key === 'Enter' && e.target.value.trim()) window.location.href = `/products/?q=${encodeURIComponent(e.target.value.trim())}`;
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && el.classList.contains('open')) closeOverlay(); });
+    document.getElementById('searchOverlayForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const input = document.getElementById('searchOverlayInput');
+      const q = input?.value.trim();
+      if (q) window.location.href = `/products/?q=${encodeURIComponent(q)}`;
     });
     el.querySelectorAll('.search-tag').forEach(tag => {
       tag.addEventListener('click', () => { window.location.href = `/products/?q=${encodeURIComponent(tag.textContent)}`; });
     });
   }
-  // open on search btn click
-  document.querySelectorAll('.search-btn').forEach(btn => {
-    btn.addEventListener('click', openSearch);
-  });
-  // mobile row2 input opens overlay
-  const mobileInput = document.querySelector('.navbar-row2 .search-box input');
-  if (mobileInput) {
-    mobileInput.addEventListener('mousedown', e => { e.preventDefault(); openSearch(); });
-    mobileInput.addEventListener('focus', e => { e.target.blur(); openSearch(); });
-  }
-  // desktop search input
-  const desktopInput = document.querySelector('.navbar-row2-desktop .search-box input, .navbar-search .search-box input');
-  if (desktopInput && !desktopInput.closest('.navbar-row2')) {
-    desktopInput.addEventListener('focus', openSearch);
-  }
 }
 
 function openSearch() {
   const ov = document.getElementById('searchOverlay');
-  if (ov) { ov.classList.add('open'); setTimeout(() => document.getElementById('searchOverlayInput')?.focus(), 80); }
+  if (ov) {
+    ov.classList.add('open');
+    ov.setAttribute('aria-hidden', 'false');
+    setTimeout(() => document.getElementById('searchOverlayInput')?.focus(), 80);
+  }
+}
+
+function initNewsletter() {
+  const form = document.getElementById('newsletter-form');
+  if (!form) return;
+  form.addEventListener('submit', event => {
+    event.preventDefault();
+    const input = form.querySelector('input[type="email"]');
+    if (!input?.checkValidity()) {
+      input?.reportValidity();
+      return;
+    }
+    UI.showToast('تم تسجيل بريدك لمتابعة أحدث العروض', '✉️');
+    form.reset();
+  });
 }
 
 // ============ Promo Banner ============
@@ -300,8 +315,12 @@ const ProductDetail = {
         mainImg.src = newSrc;
 
         // active class
-        thumbs.forEach(x => x.classList.remove('active'));
+        thumbs.forEach(x => {
+          x.classList.remove('active');
+          x.removeAttribute('aria-current');
+        });
         t.classList.add('active');
+        t.setAttribute('aria-current', 'true');
       });
     });
   },
@@ -365,8 +384,41 @@ const ProductDetail = {
     galleryMain.addEventListener('dragstart', (event) => event.preventDefault());
   },
   initTabs() {
-    const tabs=document.querySelectorAll('.tab-btn'); const contents=document.querySelectorAll('.tab-content');
-    tabs.forEach(tab=>tab.addEventListener('click',()=>{tabs.forEach(t=>t.classList.remove('active'));contents.forEach(c=>c.classList.remove('active'));tab.classList.add('active');const target=document.getElementById(tab.dataset.tab);if(target)target.classList.add('active');}));
+    const tabs = Array.from(document.querySelectorAll('.tab-btn'));
+    const contents = document.querySelectorAll('.tab-content');
+    if (!tabs.length) return;
+
+    const activate = (tab, shouldFocus = false) => {
+      tabs.forEach(t => {
+        const selected = t === tab;
+        t.classList.toggle('active', selected);
+        t.setAttribute('aria-selected', selected ? 'true' : 'false');
+        t.setAttribute('tabindex', selected ? '0' : '-1');
+      });
+      contents.forEach(content => {
+        const selected = content.id === tab.dataset.tab;
+        content.classList.toggle('active', selected);
+        content.hidden = !selected;
+      });
+      if (shouldFocus) tab.focus();
+    };
+
+    tabs.forEach((tab, index) => {
+      tab.addEventListener('click', () => activate(tab));
+      tab.addEventListener('keydown', event => {
+        const keys = ['ArrowLeft', 'ArrowRight', 'Home', 'End'];
+        if (!keys.includes(event.key)) return;
+        event.preventDefault();
+        let nextIndex = index;
+        if (event.key === 'Home') nextIndex = 0;
+        if (event.key === 'End') nextIndex = tabs.length - 1;
+        if (event.key === 'ArrowLeft') nextIndex = (index + 1) % tabs.length;
+        if (event.key === 'ArrowRight') nextIndex = (index - 1 + tabs.length) % tabs.length;
+        activate(tabs[nextIndex], true);
+      });
+    });
+
+    activate(tabs.find(tab => tab.classList.contains('active')) || tabs[0]);
   },
   initVariants() {
     document.querySelectorAll('.color-option,.size-option').forEach(o=>o.addEventListener('click',()=>{if(o.classList.contains('disabled'))return;const g=o.closest('.color-options,.size-options');g?.querySelectorAll('.color-option,.size-option').forEach(x=>x.classList.remove('active'));o.classList.add('active');}));
@@ -413,7 +465,21 @@ const HeroSlider = {
       slider.appendChild(dotsWrap);
     }
 
+    const dotsWrap = slider.querySelector('.slider-dots');
+    if (dotsWrap) {
+      dotsWrap.setAttribute('role', 'tablist');
+      dotsWrap.setAttribute('aria-label', 'التنقل بين الشرائح');
+    }
     const dots = slider.querySelectorAll('.dot');
+    dots.forEach((dot, i) => {
+      dot.type = 'button';
+      dot.setAttribute('aria-label', `الشريحة ${i + 1}`);
+      if (i === this.current) {
+        dot.setAttribute('aria-current', 'true');
+      } else {
+        dot.removeAttribute('aria-current');
+      }
+    });
     slider.querySelector('.slider-prev')?.addEventListener('click', () => { this.prev(); this.resetAuto(); });
     slider.querySelector('.slider-next')?.addEventListener('click', () => { this.next(); this.resetAuto(); });
     dots.forEach((dot, i) => dot.addEventListener('click', () => { this.goTo(i); this.resetAuto(); }));
@@ -421,6 +487,8 @@ const HeroSlider = {
     this.startAuto();
     slider.addEventListener('mouseenter', () => this.stopAuto());
     slider.addEventListener('mouseleave', () => this.startAuto());
+    slider.addEventListener('focusin', () => this.stopAuto());
+    slider.addEventListener('focusout', () => this.startAuto());
   },
   goTo(n) {
     const slider = document.getElementById('heroSlider');
@@ -438,6 +506,7 @@ const HeroSlider = {
   startAuto() {
     this.stopAuto();
     if (this.total <= 1) return;
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
     this.interval = setInterval(() => this.next(), this.delay);
   },
   stopAuto() {
@@ -461,14 +530,34 @@ const HomeProductTabs = {
     const empty = root.querySelector('[data-products-empty]');
     const heading = root.querySelector('[data-home-products-heading]');
     const description = root.querySelector('[data-home-products-description]');
+    const tabList = root.querySelector('.product-tabs');
     const apiUrl = root.dataset.apiUrl;
     const limit = root.dataset.limit || '10';
     if (!buttons.length || !grid || !apiUrl) return;
 
-    buttons.forEach(button => {
+    const activeButton = root.querySelector('[data-product-tab].active') || buttons[0];
+    this.updateIndicator(tabList, activeButton);
+    window.addEventListener('resize', () => this.updateIndicator(tabList, root.querySelector('[data-product-tab].active')));
+
+    buttons.forEach((button, index) => {
       button.addEventListener('click', () => {
         if (button.classList.contains('active')) return;
         this.activate(root, button, { grid, status, empty, heading, description, apiUrl, limit });
+      });
+      button.addEventListener('keydown', event => {
+        const keys = ['ArrowLeft', 'ArrowRight', 'Home', 'End'];
+        if (!keys.includes(event.key)) return;
+        event.preventDefault();
+        let nextIndex = index;
+        if (event.key === 'Home') nextIndex = 0;
+        if (event.key === 'End') nextIndex = buttons.length - 1;
+        if (event.key === 'ArrowLeft') nextIndex = (index + 1) % buttons.length;
+        if (event.key === 'ArrowRight') nextIndex = (index - 1 + buttons.length) % buttons.length;
+        const nextButton = buttons[nextIndex];
+        nextButton.focus();
+        if (!nextButton.classList.contains('active')) {
+          this.activate(root, nextButton, { grid, status, empty, heading, description, apiUrl, limit });
+        }
       });
     });
   },
@@ -476,17 +565,23 @@ const HomeProductTabs = {
   async activate(root, activeButton, refs) {
     const { grid, status, empty, heading, description, apiUrl, limit } = refs;
     const type = activeButton.dataset.productTab;
+    const requestId = (this.requestId || 0) + 1;
+    this.requestId = requestId;
 
     root.querySelectorAll('[data-product-tab]').forEach(button => {
       const isActive = button === activeButton;
       button.classList.toggle('active', isActive);
       button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      button.setAttribute('tabindex', isActive ? '0' : '-1');
     });
+    if (grid && activeButton.id) grid.setAttribute('aria-labelledby', activeButton.id);
+    this.updateIndicator(activeButton.closest('.product-tabs'), activeButton);
 
+    root.classList.add('is-switching');
     if (heading) heading.textContent = activeButton.dataset.heading || activeButton.textContent.trim();
     if (description) description.textContent = activeButton.dataset.description || '';
     this.setStatus(status, 'جاري تحميل المنتجات...');
-    empty.hidden = true;
+    if (empty) empty.hidden = true;
     grid.classList.add('is-loading');
 
     try {
@@ -495,19 +590,30 @@ const HomeProductTabs = {
       url.searchParams.set('limit', limit);
 
       const response = await fetch(url, {
+        cache: 'no-store',
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
       });
       const data = await response.json();
       if (!response.ok || !data.success) throw new Error(data.message || 'تعذر تحميل المنتجات');
+      if (requestId !== this.requestId) return;
 
       grid.innerHTML = data.products.map(product => this.renderProduct(product)).join('');
-      empty.hidden = data.products.length > 0;
+      if (empty) empty.hidden = data.products.length > 0;
       this.clearStatus(status);
     } catch (error) {
+      if (requestId !== this.requestId) return;
       this.setStatus(status, error.message || 'حدث خطأ أثناء تحميل المنتجات. حاول مرة أخرى.');
     } finally {
+      if (requestId !== this.requestId) return;
       grid.classList.remove('is-loading');
+      root.classList.remove('is-switching');
     }
+  },
+
+  updateIndicator(tabList, activeButton) {
+    if (!tabList || !activeButton) return;
+    tabList.style.setProperty('--active-tab-x', `${activeButton.offsetLeft}px`);
+    tabList.style.setProperty('--active-tab-width', `${activeButton.offsetWidth}px`);
   },
 
   renderProduct(product) {
@@ -524,6 +630,13 @@ const HomeProductTabs = {
     const oldPrice = product.old_price
       ? `<span class="price-original">${this.escape(product.old_price)} ج.م</span>`
       : '';
+    const action = product.is_simple
+      ? `<button class="add-to-cart-btn" data-action="add-to-cart" data-product-id="${product.id}" data-product-name="${this.escape(product.name)}" data-product-price="${this.escape(product.price)}" data-quantity="1" data-product-image="${this.escape(product.image || '')}" aria-label="أضف ${this.escape(product.name)} إلى السلة">
+          <i class="fas fa-shopping-cart"></i>
+        </button>`
+      : `<a class="add-to-cart-btn choose-options-btn" href="${this.escape(product.url)}" aria-label="اختيار مواصفات ${this.escape(product.name)}">
+          <i class="fas fa-sliders"></i>
+        </a>`;
 
     return `
       <article class="product-card home-product-card">
@@ -546,9 +659,7 @@ const HomeProductTabs = {
               <span class="price-current">${this.escape(product.price)} ج.م</span>
               ${oldPrice}
             </div>
-            <button class="add-to-cart-btn" data-action="add-to-cart" data-product-id="${product.id}" data-product-name="${this.escape(product.name)}" data-product-price="${this.escape(product.price)}" data-quantity="1" data-product-image="${this.escape(product.image || '')}" aria-label="أضف ${this.escape(product.name)} إلى السلة">
-              <i class="fas fa-shopping-cart"></i>
-            </button>
+            ${action}
           </div>
         </div>
       </article>
@@ -608,7 +719,7 @@ function syncWishlistBtns() {
 
 // ============ Bootstrap ============
 function initPage() {
-  MobileMenu.init(); initSearch(); initPromoBanner(); initCartButtons(); initWishlistButtons();
+  MobileMenu.init(); initSearch(); initPromoBanner(); initNewsletter(); initCartButtons(); initWishlistButtons();
   setActiveNavLinks(); syncWishlistBtns(); UI.updateCartBadge(); UI.updateWishlistBadge();
   // CartPage.init(); // Disabled - CartManager handles cart 
   ProductDetail.init(); WishlistPage.init(); initFilterToggle(); HeroSlider.init(); HomeProductTabs.init();

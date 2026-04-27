@@ -607,6 +607,10 @@
         }
 
         showToast(message) {
+            if (window.UI?.showToast) {
+                window.UI.showToast(message, '🛒');
+                return;
+            }
             const toast = document.createElement('div');
             toast.textContent = message;
             toast.style.cssText = `

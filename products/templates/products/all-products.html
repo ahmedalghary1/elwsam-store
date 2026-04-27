@@ -129,18 +129,25 @@
               </div>
 
               <div class="product-actions all-products-actions">
-                <div class="qty-controls" aria-label="تحديد الكمية">
-                  <button type="button" class="qty-decrease" data-product-id="{{ product.id }}" aria-label="تقليل الكمية">-</button>
-                  <input type="number" class="qty-input" data-product-id="{{ product.id }}" value="1" min="1" max="99" aria-label="كمية {{ product.name }}">
-                  <button type="button" class="qty-increase" data-product-id="{{ product.id }}" aria-label="زيادة الكمية">+</button>
-                </div>
-                <button class="add-to-cart-btn" data-action="add-to-cart" data-product-id="{{ product.id }}"
-                  data-product-name="{{ product.name }}" data-product-price="{{ product.price }}" data-quantity="1"
-                  data-product-image="{% if product.image %}{{ product.image.url }}{% endif %}"
-                  aria-label="أضف {{ product.name }} إلى السلة">
-                  <i class="fas fa-shopping-cart" aria-hidden="true"></i>
-                  <span>أضف للسلة</span>
-                </button>
+                {% if product.is_simple_product %}
+                  <div class="qty-controls" aria-label="تحديد الكمية">
+                    <button type="button" class="qty-decrease" data-product-id="{{ product.id }}" aria-label="تقليل الكمية">-</button>
+                    <input type="number" class="qty-input" data-product-id="{{ product.id }}" value="1" min="1" max="99" aria-label="كمية {{ product.name }}">
+                    <button type="button" class="qty-increase" data-product-id="{{ product.id }}" aria-label="زيادة الكمية">+</button>
+                  </div>
+                  <button class="add-to-cart-btn" data-action="add-to-cart" data-product-id="{{ product.id }}"
+                    data-product-name="{{ product.name }}" data-product-price="{{ product.price }}" data-quantity="1"
+                    data-product-image="{% if product.image %}{{ product.image.url }}{% endif %}"
+                    aria-label="أضف {{ product.name }} إلى السلة">
+                    <i class="fas fa-shopping-cart" aria-hidden="true"></i>
+                    <span>أضف للسلة</span>
+                  </button>
+                {% else %}
+                  <a class="btn btn-primary choose-options-link" href="{% url 'product_detail' id=product.id slug=product.slug %}" aria-label="اختيار مواصفات {{ product.name }}">
+                    <i class="fas fa-sliders" aria-hidden="true"></i>
+                    <span>اختيار المواصفات</span>
+                  </a>
+                {% endif %}
               </div>
             </div>
           </div>

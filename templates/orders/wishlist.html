@@ -63,6 +63,11 @@
 <!-- Wishlist JavaScript -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const notify = (message) => {
+        if (window.UI?.showToast) window.UI.showToast(message, '⚠️');
+        else alert(message);
+    };
+
     // Handle add to cart
     document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
         btn.addEventListener('click', function() {
@@ -105,7 +110,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('حدث خطأ أثناء إضافة المنتج للسلة');
+            notify('حدث خطأ أثناء إضافة المنتج للسلة');
         });
     }
 
@@ -122,12 +127,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.querySelector(`[data-product-id="${productId}"]`).remove();
                 checkEmptyWishlist();
             } else {
-                alert('حدث خطأ أثناء حذف المنتج من المفضلة');
+                notify('حدث خطأ أثناء حذف المنتج من المفضلة');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('حدث خطأ أثناء حذف المنتج من المفضلة');
+            notify('حدث خطأ أثناء حذف المنتج من المفضلة');
         });
     }
 

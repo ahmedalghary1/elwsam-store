@@ -255,7 +255,7 @@ class WishlistManager {
                     </div>
                     <h2>المفضلة فارغة</h2>
                     <p>لم تقم بإضافة أي منتجات للمفضلة بعد</p>
-                    <a href="{% url 'products:product_list' %}" class="btn btn-primary">تصفح المنتجات</a>
+                    <a href="/products/" class="btn btn-primary">تصفح المنتجات</a>
                 </div>
             `;
             // Replace container content
@@ -350,6 +350,10 @@ class WishlistManager {
 
     // Show toast message
     showToast(message) {
+        if (window.UI?.showToast) {
+            window.UI.showToast(message, '❤️');
+            return;
+        }
         const toast = document.createElement('div');
         toast.className = 'toast';
         toast.textContent = message;
