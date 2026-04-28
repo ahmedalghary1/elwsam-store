@@ -3,7 +3,17 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 
 from orders.models import Order
-from products.models import Category, HomeProductCollectionItem, Product
+from products.models import (
+    Category,
+    Color,
+    HomeProductCollectionItem,
+    Product,
+    ProductColor,
+    ProductType,
+    ProductTypeColor,
+    ProductTypeImage,
+    Type,
+)
 
 
 def _apply_dashboard_widgets(form):
@@ -24,6 +34,61 @@ def _apply_dashboard_widgets(form):
             widget.attrs.setdefault("class", "dash-input dash-file")
         else:
             widget.attrs.setdefault("class", "dash-input")
+
+
+def _clean_color_code(value):
+    value = (value or "").strip()
+    if not value:
+        return ""
+    if not value.startswith("#"):
+        value = f"#{value}"
+    if len(value) != 7:
+        raise ValidationError("كود اللون يجب أن يكون مثل #ffcc00.")
+    hex_part = value[1:]
+    if any(char not in "0123456789abcdefABCDEF" for char in hex_part):
+        raise ValidationError("كود اللون يجب أن يحتوي على أرقام أو حروف HEX فقط.")
+    return value.lower()
+
+
+class ColorChoiceMixin:
+    color_field_name = "color"
+
+    def _prepare_color_fields(self):
+        self.fields[self.color_field_name].queryset = Color.objects.order_by("name")
+        self.fields[self.color_field_name].required = False
+        self.fields["new_color_name"].required = False
+        self.fields["new_color_code"].required = False
+
+    def _clean_color_choice(self):
+        color = self.cleaned_data.get(self.color_field_name)
+        new_color_name = (self.cleaned_data.get("new_color_name") or "").strip()
+        new_color_code = self.cleaned_data.get("new_color_code") or ""
+
+        if color and new_color_name:
+            raise ValidationError("اختر لونًا موجودًا أو اكتب لونًا جديدًا، وليس الاثنين معًا.")
+        if not color and not new_color_name:
+            raise ValidationError("اختر لونًا موجودًا أو اكتب اسم لون جديد.")
+        if color:
+            return color, "", ""
+
+        existing_color = Color.objects.filter(name__iexact=new_color_name).order_by("id").first()
+        return existing_color, new_color_name, new_color_code
+
+    def _save_color_choice(self):
+        color = self.cleaned_data.get("_resolved_color")
+        new_color_name = self.cleaned_data.get("_new_color_name") or ""
+        new_color_code = self.cleaned_data.get("_new_color_code") or ""
+
+        if not color:
+            return Color.objects.create(name=new_color_name, code=new_color_code)
+
+        if new_color_name and new_color_code and color.code != new_color_code:
+            color.code = new_color_code
+            color.save(update_fields=["code"])
+        return color
+
+    def clean_new_color_code(self):
+        return _clean_color_code(self.cleaned_data.get("new_color_code"))
 
 
 class ProductForm(forms.ModelForm):
@@ -113,6 +178,174 @@ class ProductForm(forms.ModelForm):
         if stock is not None and stock < 0:
             self.add_error("stock", "المخزون لا يمكن أن يكون أقل من صفر.")
         return cleaned_data
+
+
+class ProductColorForm(ColorChoiceMixin, forms.ModelForm):
+    new_color_name = forms.CharField(label="اسم لون جديد", required=False)
+    new_color_code = forms.CharField(label="كود اللون", required=False)
+
+    class Meta:
+        model = ProductColor
+        fields = ["color", "order"]
+        labels = {
+            "color": "لون موجود",
+            "order": "ترتيب اللون",
+        }
+
+    def __init__(self, *args, product=None, **kwargs):
+        self.product = product
+        super().__init__(*args, **kwargs)
+        self._prepare_color_fields()
+        _apply_dashboard_widgets(self)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if not self.product:
+            raise ValidationError("يجب حفظ المنتج أولًا قبل إضافة الألوان.")
+
+        color, new_color_name, new_color_code = self._clean_color_choice()
+        if color and ProductColor.objects.filter(product=self.product, color=color).exclude(pk=self.instance.pk).exists():
+            raise ValidationError("هذا اللون مربوط بهذا المنتج بالفعل.")
+        cleaned_data["_resolved_color"] = color
+        cleaned_data["_new_color_name"] = new_color_name
+        cleaned_data["_new_color_code"] = new_color_code
+        return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.product = self.product
+        instance.color = self._save_color_choice()
+        if commit:
+            instance.save()
+        return instance
+
+
+class ProductTypeDashboardForm(forms.ModelForm):
+    new_type_name = forms.CharField(label="اسم نوع جديد", required=False)
+
+    class Meta:
+        model = ProductType
+        fields = ["type", "image", "price", "description", "order"]
+        labels = {
+            "type": "نوع موجود",
+            "image": "صورة النوع",
+            "price": "سعر هذا النوع",
+            "description": "تفاصيل هذا النوع",
+            "order": "ترتيب النوع",
+        }
+        widgets = {
+            "description": forms.Textarea(attrs={"rows": 4}),
+        }
+
+    def __init__(self, *args, product=None, **kwargs):
+        self.product = product
+        super().__init__(*args, **kwargs)
+        self.fields["type"].queryset = Type.objects.order_by("name")
+        self.fields["type"].required = False
+        self.fields["new_type_name"].required = False
+        self.fields["description"].required = False
+        _apply_dashboard_widgets(self)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if not self.product:
+            raise ValidationError("يجب حفظ المنتج أولًا قبل إضافة الأنواع.")
+
+        selected_type = cleaned_data.get("type")
+        new_type_name = (cleaned_data.get("new_type_name") or "").strip()
+        if selected_type and new_type_name:
+            raise ValidationError("اختر نوعًا موجودًا أو اكتب نوعًا جديدًا، وليس الاثنين معًا.")
+        if not selected_type and not new_type_name:
+            raise ValidationError("اختر نوعًا موجودًا أو اكتب اسم نوع جديد.")
+        if new_type_name:
+            selected_type = Type.objects.filter(name__iexact=new_type_name).order_by("id").first()
+
+        if selected_type and ProductType.objects.filter(product=self.product, type=selected_type).exclude(pk=self.instance.pk).exists():
+            raise ValidationError("هذا النوع مربوط بهذا المنتج بالفعل.")
+        cleaned_data["_resolved_type"] = selected_type
+        cleaned_data["_new_type_name"] = new_type_name
+        return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.product = self.product
+        instance.type = self.cleaned_data["_resolved_type"] or Type.objects.create(
+            name=self.cleaned_data["_new_type_name"],
+        )
+        if commit:
+            instance.save()
+        return instance
+
+
+class ProductTypeColorForm(ColorChoiceMixin, forms.ModelForm):
+    new_color_name = forms.CharField(label="اسم لون جديد", required=False)
+    new_color_code = forms.CharField(label="كود اللون", required=False)
+
+    class Meta:
+        model = ProductTypeColor
+        fields = ["color", "order"]
+        labels = {
+            "color": "لون موجود",
+            "order": "ترتيب اللون",
+        }
+
+    def __init__(self, *args, product_type=None, **kwargs):
+        self.product_type = product_type
+        super().__init__(*args, **kwargs)
+        self._prepare_color_fields()
+        _apply_dashboard_widgets(self)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if not self.product_type:
+            raise ValidationError("يجب حفظ النوع أولًا قبل إضافة الألوان.")
+
+        color, new_color_name, new_color_code = self._clean_color_choice()
+        duplicate = color and ProductTypeColor.objects.filter(
+            product_type=self.product_type,
+            color=color,
+        ).exclude(pk=self.instance.pk).exists()
+        if duplicate:
+            raise ValidationError("هذا اللون مربوط بهذا النوع بالفعل.")
+        cleaned_data["_resolved_color"] = color
+        cleaned_data["_new_color_name"] = new_color_name
+        cleaned_data["_new_color_code"] = new_color_code
+        return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.product_type = self.product_type
+        instance.color = self._save_color_choice()
+        if commit:
+            instance.save()
+        return instance
+
+
+class ProductTypeImageForm(forms.ModelForm):
+    class Meta:
+        model = ProductTypeImage
+        fields = ["color", "image", "order"]
+        labels = {
+            "color": "لون الصورة",
+            "image": "الصورة",
+            "order": "ترتيب الصورة",
+        }
+
+    def __init__(self, *args, product_type=None, **kwargs):
+        self.product_type = product_type
+        super().__init__(*args, **kwargs)
+        self.fields["color"].queryset = Color.objects.filter(
+            product_type_colors__product_type=product_type,
+        ).distinct().order_by("name") if product_type else Color.objects.none()
+        self.fields["color"].required = False
+        _apply_dashboard_widgets(self)
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.product_type = self.product_type
+        if commit:
+            instance.save()
+        return instance
 
 
 class CategoryForm(forms.ModelForm):

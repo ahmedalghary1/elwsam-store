@@ -1,0 +1,136 @@
+{% extends "staff_dashboard/base.html" %}
+
+{% block page_title %}{{ page_title }}{% endblock page_title %}
+{% block page_actions %}
+  <a class="dash-btn" href="{{ cancel_url }}"><i class="fas fa-arrow-right"></i> رجوع للمنتج</a>
+  {% if advanced_url %}
+    <a class="dash-btn" href="{{ advanced_url }}"><i class="fas fa-screwdriver-wrench"></i> تعديل متقدم</a>
+  {% endif %}
+{% endblock page_actions %}
+
+{% block content %}
+  <section class="dash-card form-card">
+    <div class="card-head">
+      <div>
+        <h2>{{ page_title }}</h2>
+        <p>{{ product.name }}</p>
+      </div>
+      {% if delete_url %}
+        <a class="dash-btn dash-btn-danger" href="{{ delete_url }}"><i class="fas fa-trash"></i> حذف النوع</a>
+      {% endif %}
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="dash-form">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+        <div class="form-errors">{{ form.non_field_errors }}</div>
+      {% endif %}
+      <div class="form-grid">
+        {% for field in form.visible_fields %}
+          <div class="dash-field field-{{ field.name }}{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+            {% if field.errors %}<div class="field-error">{{ field.errors|join:", " }}</div>{% endif %}
+          </div>
+        {% endfor %}
+      </div>
+      <div class="form-actions">
+        <button class="dash-btn dash-btn-primary" type="submit"><i class="fas fa-floppy-disk"></i> حفظ النوع</button>
+        <a class="dash-btn" href="{{ cancel_url }}">إلغاء</a>
+      </div>
+    </form>
+  </section>
+
+  {% if product_type %}
+    <section class="dash-two-columns product-management">
+      <article class="dash-card">
+        <div class="card-head">
+          <div>
+            <h2>ألوان هذا النوع</h2>
+            <p>الألوان التي تظهر داخل اختيار هذا النوع.</p>
+          </div>
+        </div>
+
+        <form class="dash-form mini-form" method="post" action="{% url 'staff_dashboard:product_type_color_add' product_type.pk %}">
+          {% csrf_token %}
+          <div class="mini-form-grid">
+            {% for field in type_color_form.visible_fields %}
+              <div class="dash-field">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}<div class="field-error">{{ field.errors|join:", " }}</div>{% endif %}
+              </div>
+            {% endfor %}
+            <button class="dash-btn dash-btn-primary" type="submit"><i class="fas fa-plus"></i> إضافة اللون</button>
+          </div>
+        </form>
+
+        <div class="relation-list">
+          {% for type_color in type_colors %}
+            <div class="relation-item">
+              <div class="relation-main">
+                <span class="color-dot" style="background: {{ type_color.color.code|default:'#d1d5db' }}"></span>
+                <div>
+                  <strong>{{ type_color.color.name }}</strong>
+                  <small>ترتيب: {{ type_color.order }}</small>
+                </div>
+              </div>
+              <form method="post" action="{% url 'staff_dashboard:product_type_color_delete' product_type.pk type_color.pk %}">
+                {% csrf_token %}
+                <button class="dash-icon-btn danger" type="submit" title="حذف اللون"><i class="fas fa-trash"></i></button>
+              </form>
+            </div>
+          {% empty %}
+            <div class="empty-panel">لم تتم إضافة ألوان لهذا النوع بعد.</div>
+          {% endfor %}
+        </div>
+      </article>
+
+      <article class="dash-card">
+        <div class="card-head">
+          <div>
+            <h2>صور هذا النوع</h2>
+            <p>أضف صورًا عامة أو صورًا مرتبطة بلون محدد.</p>
+          </div>
+        </div>
+
+        <form class="dash-form mini-form" method="post" enctype="multipart/form-data" action="{% url 'staff_dashboard:product_type_image_add' product_type.pk %}">
+          {% csrf_token %}
+          <div class="mini-form-grid image-form-grid">
+            {% for field in type_image_form.visible_fields %}
+              <div class="dash-field">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}<div class="field-error">{{ field.errors|join:", " }}</div>{% endif %}
+              </div>
+            {% endfor %}
+            <button class="dash-btn dash-btn-primary" type="submit"><i class="fas fa-plus"></i> إضافة الصورة</button>
+          </div>
+        </form>
+
+        <div class="type-image-grid">
+          {% for type_image in type_images %}
+            <div class="type-image-item">
+              <img src="{{ type_image.image.url }}" alt="{{ product_type.type.name }}">
+              <div>
+                <strong>{% if type_image.color %}{{ type_image.color.name }}{% else %}صورة عامة{% endif %}</strong>
+                <small>ترتيب: {{ type_image.order }}</small>
+              </div>
+              <form method="post" action="{% url 'staff_dashboard:product_type_image_delete' product_type.pk type_image.pk %}">
+                {% csrf_token %}
+                <button class="dash-icon-btn danger" type="submit" title="حذف الصورة"><i class="fas fa-trash"></i></button>
+              </form>
+            </div>
+          {% empty %}
+            <div class="empty-panel">لم تتم إضافة صور لهذا النوع بعد.</div>
+          {% endfor %}
+        </div>
+      </article>
+    </section>
+  {% else %}
+    <section class="dash-card">
+      <div class="empty-panel">احفظ النوع أولًا، ثم ستظهر إدارة ألوانه وصوره.</div>
+    </section>
+  {% endif %}
+{% endblock content %}

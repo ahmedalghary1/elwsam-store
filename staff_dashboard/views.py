@@ -11,14 +11,27 @@ from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 
 from orders.models import Cart, Order, OrderItem
-from products.models import Category, HomeProductCollectionItem, Product, ProductVariant
+from products.models import (
+    Category,
+    HomeProductCollectionItem,
+    Product,
+    ProductColor,
+    ProductType,
+    ProductTypeColor,
+    ProductTypeImage,
+    ProductVariant,
+)
 
 from .forms import (
     CategoryForm,
     CustomerForm,
     HomeCollectionItemForm,
     OrderStatusForm,
+    ProductColorForm,
     ProductForm,
+    ProductTypeColorForm,
+    ProductTypeDashboardForm,
+    ProductTypeImageForm,
 )
 
 
@@ -75,6 +88,23 @@ def _status_context():
         }
         for value, label in Order.STATUS_CHOICES
     ]
+
+
+def _product_management_context(product):
+    if not product:
+        return {}
+    return {
+        "product_management": True,
+        "product": product,
+        "product_colors": ProductColor.objects.filter(product=product).select_related("color").order_by("order", "id"),
+        "product_types": ProductType.objects.filter(product=product)
+        .select_related("type")
+        .prefetch_related("type_colors__color", "type_images__color")
+        .order_by("order", "id"),
+        "product_color_form": ProductColorForm(product=product),
+        "product_color_add_url": reverse("staff_dashboard:product_color_add", args=[product.pk]),
+        "product_type_add_url": reverse("staff_dashboard:product_type_add", args=[product.pk]),
+    }
 
 
 @superuser_required
@@ -204,21 +234,23 @@ def product_form(request, pk=None):
     else:
         form = ProductForm(instance=product)
 
-    return _render(
-        request,
-        "staff_dashboard/form.html",
-        {
+    context = {
             "active_nav": "products",
             "form": form,
             "page_title": "تعديل منتج" if product else "إضافة منتج",
-            "page_subtitle": "بيانات المنتج الأساسية. المتغيرات والصور التفصيلية متاحة من رابط التعديل المتقدم.",
+            "page_subtitle": (
+                "بيانات المنتج الأساسية. بعد حفظ المنتج ستظهر إدارة الألوان والأنواع وتفاصيل كل نوع هنا."
+                if not product
+                else "بيانات المنتج الأساسية مع إدارة الألوان والأنواع المرتبطة به."
+            ),
             "cancel_url": reverse("staff_dashboard:products"),
             "delete_url": reverse("staff_dashboard:product_delete", args=[product.pk]) if product else "",
             "advanced_url": _admin_change_url(product) if product else "",
             "advanced_label": "تعديل متقدم في Django Admin",
             "multipart": True,
-        },
-    )
+        }
+    context.update(_product_management_context(product))
+    return _render(request, "staff_dashboard/form.html", context)
 
 
 @superuser_required
@@ -245,6 +277,145 @@ def product_delete(request, pk):
             "warning": "إذا كان المنتج مرتبطًا بطلبات سابقة سيتم إخفاؤه بدل حذفه حفاظًا على سجل الطلبات.",
         },
     )
+
+
+@superuser_required
+def product_color_add(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    if request.method != "POST":
+        return redirect("staff_dashboard:product_edit", pk=product.pk)
+
+    form = ProductColorForm(request.POST, product=product)
+    if form.is_valid():
+        form.save()
+        if not product.has_colors:
+            product.has_colors = True
+            product.save(update_fields=["has_colors", "updated_at"])
+        messages.success(request, "تم ربط اللون بالمنتج بنجاح.")
+    else:
+        messages.error(request, "تعذر إضافة اللون. تأكد من اختيار لون أو كتابة لون جديد غير مكرر.")
+    return redirect("staff_dashboard:product_edit", pk=product.pk)
+
+
+@superuser_required
+def product_color_delete(request, pk, color_pk):
+    product = get_object_or_404(Product, pk=pk)
+    product_color = get_object_or_404(ProductColor, pk=color_pk, product=product)
+    if request.method == "POST":
+        color_name = product_color.color.name
+        product_color.delete()
+        if not ProductColor.objects.filter(product=product).exists() and product.has_colors:
+            product.has_colors = False
+            product.save(update_fields=["has_colors", "updated_at"])
+        messages.success(request, f"تم حذف لون {color_name} من المنتج.")
+    return redirect("staff_dashboard:product_edit", pk=product.pk)
+
+
+@superuser_required
+def product_type_form(request, product_pk, type_pk=None):
+    product = get_object_or_404(Product, pk=product_pk)
+    product_type = get_object_or_404(ProductType, pk=type_pk, product=product) if type_pk else None
+
+    if request.method == "POST":
+        form = ProductTypeDashboardForm(request.POST, request.FILES, instance=product_type, product=product)
+        if form.is_valid():
+            saved_type = form.save()
+            messages.success(request, "تم حفظ نوع المنتج بنجاح.")
+            return redirect("staff_dashboard:product_type_edit", product_pk=product.pk, type_pk=saved_type.pk)
+        messages.error(request, "يرجى مراجعة بيانات النوع.")
+    else:
+        form = ProductTypeDashboardForm(instance=product_type, product=product)
+
+    context = {
+        "active_nav": "products",
+        "product": product,
+        "product_type": product_type,
+        "form": form,
+        "type_colors": ProductTypeColor.objects.filter(product_type=product_type).select_related("color").order_by("order", "id") if product_type else [],
+        "type_images": ProductTypeImage.objects.filter(product_type=product_type).select_related("color").order_by("order", "id") if product_type else [],
+        "type_color_form": ProductTypeColorForm(product_type=product_type) if product_type else None,
+        "type_image_form": ProductTypeImageForm(product_type=product_type) if product_type else None,
+        "cancel_url": reverse("staff_dashboard:product_edit", args=[product.pk]),
+        "delete_url": reverse("staff_dashboard:product_type_delete", args=[product.pk, product_type.pk]) if product_type else "",
+        "advanced_url": _admin_change_url(product_type) if product_type else "",
+        "page_title": "تعديل نوع المنتج" if product_type else "إضافة نوع للمنتج",
+        "multipart": True,
+    }
+    return _render(request, "staff_dashboard/product_type_form.html", context)
+
+
+@superuser_required
+def product_type_delete(request, product_pk, type_pk):
+    product = get_object_or_404(Product, pk=product_pk)
+    product_type = get_object_or_404(ProductType, pk=type_pk, product=product)
+    if request.method == "POST":
+        type_name = product_type.type.name
+        product_type.delete()
+        messages.success(request, f"تم حذف نوع {type_name} من المنتج.")
+        return redirect("staff_dashboard:product_edit", pk=product.pk)
+
+    return _render(
+        request,
+        "staff_dashboard/confirm_delete.html",
+        {
+            "active_nav": "products",
+            "object_name": str(product_type),
+            "object_type": "نوع منتج",
+            "cancel_url": reverse("staff_dashboard:product_type_edit", args=[product.pk, product_type.pk]),
+            "warning": "سيتم حذف تفاصيل هذا النوع وألوانه وصوره من هذا المنتج فقط.",
+        },
+    )
+
+
+@superuser_required
+def product_type_color_add(request, type_pk):
+    product_type = get_object_or_404(ProductType.objects.select_related("product"), pk=type_pk)
+    if request.method != "POST":
+        return redirect("staff_dashboard:product_type_edit", product_pk=product_type.product_id, type_pk=product_type.pk)
+
+    form = ProductTypeColorForm(request.POST, product_type=product_type)
+    if form.is_valid():
+        form.save()
+        messages.success(request, "تم ربط اللون بهذا النوع بنجاح.")
+    else:
+        messages.error(request, "تعذر إضافة اللون لهذا النوع. تأكد من أن اللون غير مكرر.")
+    return redirect("staff_dashboard:product_type_edit", product_pk=product_type.product_id, type_pk=product_type.pk)
+
+
+@superuser_required
+def product_type_color_delete(request, type_pk, color_pk):
+    product_type = get_object_or_404(ProductType.objects.select_related("product"), pk=type_pk)
+    type_color = get_object_or_404(ProductTypeColor, pk=color_pk, product_type=product_type)
+    if request.method == "POST":
+        color_name = type_color.color.name
+        type_color.delete()
+        messages.success(request, f"تم حذف لون {color_name} من هذا النوع.")
+    return redirect("staff_dashboard:product_type_edit", product_pk=product_type.product_id, type_pk=product_type.pk)
+
+
+@superuser_required
+def product_type_image_add(request, type_pk):
+    product_type = get_object_or_404(ProductType.objects.select_related("product"), pk=type_pk)
+    if request.method != "POST":
+        return redirect("staff_dashboard:product_type_edit", product_pk=product_type.product_id, type_pk=product_type.pk)
+
+    form = ProductTypeImageForm(request.POST, request.FILES, product_type=product_type)
+    if form.is_valid():
+        form.save()
+        messages.success(request, "تم إضافة صورة النوع بنجاح.")
+    else:
+        messages.error(request, "تعذر إضافة الصورة. تأكد من اختيار ملف صورة صالح.")
+    return redirect("staff_dashboard:product_type_edit", product_pk=product_type.product_id, type_pk=product_type.pk)
+
+
+@superuser_required
+def product_type_image_delete(request, type_pk, image_pk):
+    product_type = get_object_or_404(ProductType.objects.select_related("product"), pk=type_pk)
+    type_image = get_object_or_404(ProductTypeImage, pk=image_pk, product_type=product_type)
+    if request.method == "POST":
+        type_image.delete()
+        messages.success(request, "تم حذف صورة النوع.")
+    return redirect("staff_dashboard:product_type_edit", product_pk=product_type.product_id, type_pk=product_type.pk)
 
 
 @superuser_required

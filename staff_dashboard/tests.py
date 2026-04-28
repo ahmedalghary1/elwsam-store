@@ -1,9 +1,19 @@
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 
 from orders.models import Order, OrderItem
-from products.models import Category, Product
+from products.models import (
+    Category,
+    Color,
+    Product,
+    ProductColor,
+    ProductType,
+    ProductTypeColor,
+    ProductTypeImage,
+    Type,
+)
 
 
 class StaffDashboardAccessTests(TestCase):
@@ -75,6 +85,89 @@ class StaffDashboardProductTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertTrue(Product.objects.filter(name="منتج تجريبي").exists())
 
+    def test_superuser_can_add_color_to_product(self):
+        product = Product.objects.create(
+            name="Color Product",
+            category=self.category,
+            description="Product with colors",
+            price="100.00",
+        )
+
+        response = self.client.post(
+            reverse("staff_dashboard:product_color_add", args=[product.pk]),
+            {
+                "color": "",
+                "new_color_name": "Black",
+                "new_color_code": "#111111",
+                "order": "1",
+            },
+        )
+
+        self.assertRedirects(response, reverse("staff_dashboard:product_edit", args=[product.pk]))
+        self.assertTrue(ProductColor.objects.filter(product=product, color__name="Black").exists())
+        product.refresh_from_db()
+        self.assertTrue(product.has_colors)
+
+    def test_superuser_can_add_product_type_and_manage_details(self):
+        product = Product.objects.create(
+            name="Typed Product",
+            category=self.category,
+            description="Product with types",
+            price="100.00",
+        )
+
+        response = self.client.post(
+            reverse("staff_dashboard:product_type_add", args=[product.pk]),
+            {
+                "type": "",
+                "new_type_name": "Premium",
+                "price": "150.00",
+                "description": "Premium details",
+                "order": "1",
+            },
+        )
+
+        product_type = ProductType.objects.get(product=product, type__name="Premium")
+        self.assertRedirects(
+            response,
+            reverse("staff_dashboard:product_type_edit", args=[product.pk, product_type.pk]),
+        )
+        self.assertTrue(Type.objects.filter(name="Premium").exists())
+
+        color_response = self.client.post(
+            reverse("staff_dashboard:product_type_color_add", args=[product_type.pk]),
+            {
+                "color": "",
+                "new_color_name": "Gold",
+                "new_color_code": "#f5c542",
+                "order": "1",
+            },
+        )
+        self.assertRedirects(
+            color_response,
+            reverse("staff_dashboard:product_type_edit", args=[product.pk, product_type.pk]),
+        )
+        self.assertTrue(ProductTypeColor.objects.filter(product_type=product_type, color__name="Gold").exists())
+
+        image = SimpleUploadedFile(
+            "type.gif",
+            b"GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;",
+            content_type="image/gif",
+        )
+        image_response = self.client.post(
+            reverse("staff_dashboard:product_type_image_add", args=[product_type.pk]),
+            {
+                "color": Color.objects.get(name="Gold").pk,
+                "image": image,
+                "order": "1",
+            },
+        )
+        self.assertRedirects(
+            image_response,
+            reverse("staff_dashboard:product_type_edit", args=[product.pk, product_type.pk]),
+        )
+        self.assertTrue(ProductTypeImage.objects.filter(product_type=product_type, color__name="Gold").exists())
+
 
 class StaffDashboardSmokeTests(TestCase):
     def setUp(self):
@@ -124,6 +217,7 @@ class StaffDashboardSmokeTests(TestCase):
             reverse("staff_dashboard:customers"),
             reverse("staff_dashboard:home_collections"),
             reverse("staff_dashboard:settings"),
+            reverse("staff_dashboard:product_type_add", args=[self.product.pk]),
         ]
 
         for url in urls:

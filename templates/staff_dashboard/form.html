@@ -43,4 +43,88 @@
       </div>
     </form>
   </section>
+
+  {% if product_management %}
+    <section class="dash-two-columns product-management">
+      <article class="dash-card">
+        <div class="card-head">
+          <div>
+            <h2>ألوان المنتج</h2>
+            <p>اربط المنتج بالألوان المتاحة في صفحة المنتج.</p>
+          </div>
+        </div>
+
+        <form class="dash-form mini-form" method="post" action="{{ product_color_add_url }}">
+          {% csrf_token %}
+          {% if product_color_form.non_field_errors %}
+            <div class="form-errors">{{ product_color_form.non_field_errors }}</div>
+          {% endif %}
+          <div class="mini-form-grid">
+            {% for field in product_color_form.visible_fields %}
+              <div class="dash-field">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}<div class="field-error">{{ field.errors|join:", " }}</div>{% endif %}
+              </div>
+            {% endfor %}
+            <button class="dash-btn dash-btn-primary" type="submit"><i class="fas fa-plus"></i> إضافة اللون</button>
+          </div>
+        </form>
+
+        <div class="relation-list">
+          {% for product_color in product_colors %}
+            <div class="relation-item">
+              <div class="relation-main">
+                <span class="color-dot" style="background: {{ product_color.color.code|default:'#d1d5db' }}"></span>
+                <div>
+                  <strong>{{ product_color.color.name }}</strong>
+                  <small>ترتيب: {{ product_color.order }}</small>
+                </div>
+              </div>
+              <form method="post" action="{% url 'staff_dashboard:product_color_delete' product.pk product_color.pk %}">
+                {% csrf_token %}
+                <button class="dash-icon-btn danger" type="submit" title="حذف اللون"><i class="fas fa-trash"></i></button>
+              </form>
+            </div>
+          {% empty %}
+            <div class="empty-panel">لم تتم إضافة ألوان لهذا المنتج بعد.</div>
+          {% endfor %}
+        </div>
+      </article>
+
+      <article class="dash-card">
+        <div class="card-head">
+          <div>
+            <h2>أنواع المنتج</h2>
+            <p>لكل نوع سعر، صورة، وصف، ألوان وصور خاصة.</p>
+          </div>
+          <a href="{{ product_type_add_url }}">إضافة نوع</a>
+        </div>
+
+        <div class="relation-list">
+          {% for product_type in product_types %}
+            <div class="relation-item type-item">
+              <div class="relation-main">
+                {% if product_type.image %}
+                  <img class="relation-thumb" src="{{ product_type.image.url }}" alt="{{ product_type.type.name }}">
+                {% else %}
+                  <span class="thumb-placeholder"><i class="fas fa-tags"></i></span>
+                {% endif %}
+                <div>
+                  <strong>{{ product_type.type.name }}</strong>
+                  <small>{{ product_type.price }} ج.م · {{ product_type.type_colors.count }} لون · {{ product_type.type_images.count }} صورة</small>
+                </div>
+              </div>
+              <div class="table-actions">
+                <a class="dash-icon-btn" href="{% url 'staff_dashboard:product_type_edit' product.pk product_type.pk %}" title="تعديل النوع"><i class="fas fa-pen"></i></a>
+                <a class="dash-icon-btn danger" href="{% url 'staff_dashboard:product_type_delete' product.pk product_type.pk %}" title="حذف النوع"><i class="fas fa-trash"></i></a>
+              </div>
+            </div>
+          {% empty %}
+            <div class="empty-panel">لم تتم إضافة أنواع لهذا المنتج بعد.</div>
+          {% endfor %}
+        </div>
+      </article>
+    </section>
+  {% endif %}
 {% endblock content %}
