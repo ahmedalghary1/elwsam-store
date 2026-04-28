@@ -196,6 +196,7 @@ class ProductColorForm(ColorChoiceMixin, forms.ModelForm):
         self.product = product
         super().__init__(*args, **kwargs)
         self._prepare_color_fields()
+        self.fields["new_color_code"].widget.attrs.update({"placeholder": "#f5c542", "dir": "ltr"})
         _apply_dashboard_widgets(self)
 
     def clean(self):
@@ -293,6 +294,7 @@ class ProductTypeColorForm(ColorChoiceMixin, forms.ModelForm):
         self.product_type = product_type
         super().__init__(*args, **kwargs)
         self._prepare_color_fields()
+        self.fields["new_color_code"].widget.attrs.update({"placeholder": "#f5c542", "dir": "ltr"})
         _apply_dashboard_widgets(self)
 
     def clean(self):
@@ -346,6 +348,36 @@ class ProductTypeImageForm(forms.ModelForm):
         if commit:
             instance.save()
         return instance
+
+
+class ColorForm(forms.ModelForm):
+    class Meta:
+        model = Color
+        fields = ["name", "code"]
+        labels = {
+            "name": "اسم اللون",
+            "code": "كود اللون",
+        }
+        widgets = {
+            "code": forms.TextInput(attrs={"placeholder": "#f5c542", "dir": "ltr"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["code"].required = False
+        _apply_dashboard_widgets(self)
+
+    def clean_name(self):
+        name = (self.cleaned_data.get("name") or "").strip()
+        if not name:
+            raise ValidationError("اسم اللون مطلوب.")
+        duplicate = Color.objects.filter(name__iexact=name).exclude(pk=self.instance.pk).exists()
+        if duplicate:
+            raise ValidationError("يوجد لون بنفس الاسم بالفعل.")
+        return name
+
+    def clean_code(self):
+        return _clean_color_code(self.cleaned_data.get("code"))
 
 
 class CategoryForm(forms.ModelForm):

@@ -108,6 +108,19 @@ class StaffDashboardProductTests(TestCase):
         product.refresh_from_db()
         self.assertTrue(product.has_colors)
 
+    def test_superuser_can_manage_color_library(self):
+        response = self.client.post(
+            reverse("staff_dashboard:color_add"),
+            {
+                "name": "Warm White",
+                "code": "#fff1c2",
+            },
+        )
+
+        color = Color.objects.get(name="Warm White")
+        self.assertRedirects(response, reverse("staff_dashboard:color_edit", args=[color.pk]))
+        self.assertEqual(color.code, "#fff1c2")
+
     def test_superuser_can_add_product_type_and_manage_details(self):
         product = Product.objects.create(
             name="Typed Product",
@@ -217,6 +230,9 @@ class StaffDashboardSmokeTests(TestCase):
             reverse("staff_dashboard:customers"),
             reverse("staff_dashboard:home_collections"),
             reverse("staff_dashboard:settings"),
+            reverse("staff_dashboard:colors"),
+            reverse("staff_dashboard:product_add"),
+            reverse("staff_dashboard:product_edit", args=[self.product.pk]),
             reverse("staff_dashboard:product_type_add", args=[self.product.pk]),
         ]
 

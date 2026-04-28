@@ -1,0 +1,48 @@
+{% extends "staff_dashboard/base.html" %}
+
+{% block page_title %}إدارة الألوان{% endblock page_title %}
+{% block page_actions %}
+  <a class="dash-btn" href="{% url 'staff_dashboard:products' %}"><i class="fas fa-boxes-stacked"></i> المنتجات</a>
+  <a class="dash-btn dash-btn-primary" href="{% url 'staff_dashboard:color_add' %}"><i class="fas fa-plus"></i> إضافة لون</a>
+{% endblock page_actions %}
+
+{% block content %}
+  <form class="dash-filters compact-filter" method="get">
+    <input class="dash-input" type="search" name="q" value="{{ filters.q }}" placeholder="ابحث باسم اللون أو الكود">
+    <button class="dash-btn" type="submit"><i class="fas fa-magnifying-glass"></i> بحث</button>
+  </form>
+
+  <section class="dash-card">
+    <div class="card-head">
+      <div>
+        <h2>مكتبة الألوان</h2>
+        <p>{{ total_count }} لون متاح للاستخدام داخل المنتجات والأنواع</p>
+      </div>
+    </div>
+
+    <div class="color-library-grid">
+      {% for color in colors %}
+        <article class="color-library-card">
+          <span class="color-dot xl" style="background: {{ color.code|default:'#d1d5db' }}"></span>
+          <div>
+            <strong>{{ color.name }}</strong>
+            <small>{{ color.code|default:"بدون كود" }}</small>
+          </div>
+          <div class="color-usage">
+            <span>{{ color.product_links_count }} منتج</span>
+            <span>{{ color.type_links_count }} نوع</span>
+            <span>{{ color.image_links_count }} صورة</span>
+          </div>
+          <div class="table-actions">
+            <a class="dash-icon-btn" href="{% url 'staff_dashboard:color_edit' color.pk %}" title="تعديل"><i class="fas fa-pen"></i></a>
+            <a class="dash-icon-btn danger" href="{% url 'staff_dashboard:color_delete' color.pk %}" title="حذف"><i class="fas fa-trash"></i></a>
+          </div>
+        </article>
+      {% empty %}
+        <div class="empty-panel">لا توجد ألوان مطابقة.</div>
+      {% endfor %}
+    </div>
+
+    {% include "staff_dashboard/includes/pagination.html" %}
+  </section>
+{% endblock content %}

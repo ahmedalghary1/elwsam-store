@@ -9,72 +9,125 @@
 {% endblock page_actions %}
 
 {% block content %}
-  <section class="dash-card form-card">
-    <div class="card-head">
-      <div>
-        <h2>{{ page_title }}</h2>
-        <p>{{ product.name }}</p>
-      </div>
-      {% if delete_url %}
-        <a class="dash-btn dash-btn-danger" href="{{ delete_url }}"><i class="fas fa-trash"></i> حذف النوع</a>
+  <section class="product-editor-hero compact-hero">
+    <div class="product-hero-media">
+      {% if product_type and product_type.image %}
+        <img src="{{ product_type.image.url }}" alt="{{ product_type.type.name }}">
+      {% else %}
+        <span><i class="fas fa-tags"></i></span>
       {% endif %}
     </div>
-
-    <form method="post" enctype="multipart/form-data" class="dash-form">
-      {% csrf_token %}
-      {% if form.non_field_errors %}
-        <div class="form-errors">{{ form.non_field_errors }}</div>
+    <div class="product-hero-content">
+      <div>
+        <p class="dash-kicker">{{ product.name }}</p>
+        <h2>{% if product_type %}{{ product_type.type.name }}{% else %}نوع جديد{% endif %}</h2>
+        <p>السعر والصورة والتفاصيل الخاصة بهذا النوع.</p>
+      </div>
+      {% if product_type %}
+        <div class="product-summary-pills">
+          <span class="dash-badge">{{ product_type.price }} ج.م</span>
+          <span class="dash-badge primary">{{ type_colors|length }} لون</span>
+          <span class="dash-badge">{{ type_images|length }} صورة</span>
+        </div>
       {% endif %}
-      <div class="form-grid">
-        {% for field in form.visible_fields %}
-          <div class="dash-field field-{{ field.name }}{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}">
-            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-            {{ field }}
-            {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
-            {% if field.errors %}<div class="field-error">{{ field.errors|join:", " }}</div>{% endif %}
-          </div>
-        {% endfor %}
-      </div>
-      <div class="form-actions">
-        <button class="dash-btn dash-btn-primary" type="submit"><i class="fas fa-floppy-disk"></i> حفظ النوع</button>
-        <a class="dash-btn" href="{{ cancel_url }}">إلغاء</a>
-      </div>
-    </form>
+    </div>
   </section>
 
+  <form method="post" enctype="multipart/form-data" class="product-editor-form">
+    {% csrf_token %}
+    {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+    {% if form.non_field_errors %}
+      <div class="form-errors">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="editor-layout type-editor-layout">
+      <div class="editor-main">
+        {% for section in form_sections %}
+          <section class="dash-card form-section" id="{{ section.id }}">
+            <div class="section-title">
+              <i class="fas {{ section.icon }}"></i>
+              <h2>{{ section.title }}</h2>
+            </div>
+            <div class="section-grid">
+              {% for item in section.fields %}
+                {% with field=item.field %}
+                  <div class="dash-field field-{{ field.name }}{% if item.wide %} field-span-full{% endif %}">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                    {% if field.errors %}<div class="field-error">{{ field.errors|join:", " }}</div>{% endif %}
+                  </div>
+                {% endwith %}
+              {% endfor %}
+            </div>
+          </section>
+        {% endfor %}
+      </div>
+
+      <aside class="editor-side">
+        <section class="dash-card side-panel">
+          <h2>حفظ النوع</h2>
+          <p>احفظ النوع قبل إضافة الألوان أو الصور.</p>
+          <button class="dash-btn dash-btn-primary side-action" type="submit"><i class="fas fa-floppy-disk"></i> حفظ النوع</button>
+          {% if delete_url %}
+            <a class="dash-btn dash-btn-danger side-action" href="{{ delete_url }}"><i class="fas fa-trash"></i> حذف النوع</a>
+          {% endif %}
+        </section>
+        <section class="dash-card side-panel">
+          <h2>روابط سريعة</h2>
+          <div class="side-links">
+            <a href="{{ cancel_url }}"><i class="fas fa-box"></i> صفحة المنتج</a>
+            <a href="{{ colors_library_url }}"><i class="fas fa-swatchbook"></i> مكتبة الألوان</a>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </form>
+
   {% if product_type %}
-    <section class="dash-two-columns product-management">
-      <article class="dash-card">
+    <section class="product-management-grid">
+      <article class="dash-card relation-panel">
         <div class="card-head">
           <div>
             <h2>ألوان هذا النوع</h2>
-            <p>الألوان التي تظهر داخل اختيار هذا النوع.</p>
+            <p>{{ type_colors|length }} لون لهذا النوع</p>
           </div>
         </div>
 
-        <form class="dash-form mini-form" method="post" action="{% url 'staff_dashboard:product_type_color_add' product_type.pk %}">
+        <form class="color-add-panel" method="post" action="{% url 'staff_dashboard:product_type_color_add' product_type.pk %}">
           {% csrf_token %}
-          <div class="mini-form-grid">
-            {% for field in type_color_form.visible_fields %}
-              <div class="dash-field">
-                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                {{ field }}
-                {% if field.errors %}<div class="field-error">{{ field.errors|join:", " }}</div>{% endif %}
-              </div>
-            {% endfor %}
-            <button class="dash-btn dash-btn-primary" type="submit"><i class="fas fa-plus"></i> إضافة اللون</button>
+          <div class="color-add-options">
+            <div class="dash-field">
+              <label for="{{ type_color_form.color.id_for_label }}">{{ type_color_form.color.label }}</label>
+              {{ type_color_form.color }}
+              {% if type_color_form.color.errors %}<div class="field-error">{{ type_color_form.color.errors|join:", " }}</div>{% endif %}
+            </div>
+            <div class="dash-field">
+              <label for="{{ type_color_form.new_color_name.id_for_label }}">{{ type_color_form.new_color_name.label }}</label>
+              {{ type_color_form.new_color_name }}
+              {% if type_color_form.new_color_name.errors %}<div class="field-error">{{ type_color_form.new_color_name.errors|join:", " }}</div>{% endif %}
+            </div>
+            <div class="dash-field">
+              <label for="{{ type_color_form.new_color_code.id_for_label }}">{{ type_color_form.new_color_code.label }}</label>
+              {{ type_color_form.new_color_code }}
+              {% if type_color_form.new_color_code.errors %}<div class="field-error">{{ type_color_form.new_color_code.errors|join:", " }}</div>{% endif %}
+            </div>
+            <div class="dash-field">
+              <label for="{{ type_color_form.order.id_for_label }}">{{ type_color_form.order.label }}</label>
+              {{ type_color_form.order }}
+              {% if type_color_form.order.errors %}<div class="field-error">{{ type_color_form.order.errors|join:", " }}</div>{% endif %}
+            </div>
           </div>
+          <button class="dash-btn dash-btn-primary" type="submit"><i class="fas fa-plus"></i> إضافة اللون</button>
         </form>
 
-        <div class="relation-list">
+        <div class="color-chip-grid">
           {% for type_color in type_colors %}
-            <div class="relation-item">
-              <div class="relation-main">
-                <span class="color-dot" style="background: {{ type_color.color.code|default:'#d1d5db' }}"></span>
-                <div>
-                  <strong>{{ type_color.color.name }}</strong>
-                  <small>ترتيب: {{ type_color.order }}</small>
-                </div>
+            <div class="color-chip-card">
+              <span class="color-dot large" style="background: {{ type_color.color.code|default:'#d1d5db' }}"></span>
+              <div>
+                <strong>{{ type_color.color.name }}</strong>
+                <small>{{ type_color.color.code|default:"بدون كود" }} · ترتيب {{ type_color.order }}</small>
               </div>
               <form method="post" action="{% url 'staff_dashboard:product_type_color_delete' product_type.pk type_color.pk %}">
                 {% csrf_token %}
@@ -82,22 +135,22 @@
               </form>
             </div>
           {% empty %}
-            <div class="empty-panel">لم تتم إضافة ألوان لهذا النوع بعد.</div>
+            <div class="empty-panel">لا توجد ألوان لهذا النوع.</div>
           {% endfor %}
         </div>
       </article>
 
-      <article class="dash-card">
+      <article class="dash-card relation-panel">
         <div class="card-head">
           <div>
             <h2>صور هذا النوع</h2>
-            <p>أضف صورًا عامة أو صورًا مرتبطة بلون محدد.</p>
+            <p>{{ type_images|length }} صورة مرتبطة بهذا النوع</p>
           </div>
         </div>
 
-        <form class="dash-form mini-form" method="post" enctype="multipart/form-data" action="{% url 'staff_dashboard:product_type_image_add' product_type.pk %}">
+        <form class="color-add-panel" method="post" enctype="multipart/form-data" action="{% url 'staff_dashboard:product_type_image_add' product_type.pk %}">
           {% csrf_token %}
-          <div class="mini-form-grid image-form-grid">
+          <div class="image-add-options">
             {% for field in type_image_form.visible_fields %}
               <div class="dash-field">
                 <label for="{{ field.id_for_label }}">{{ field.label }}</label>
@@ -105,8 +158,8 @@
                 {% if field.errors %}<div class="field-error">{{ field.errors|join:", " }}</div>{% endif %}
               </div>
             {% endfor %}
-            <button class="dash-btn dash-btn-primary" type="submit"><i class="fas fa-plus"></i> إضافة الصورة</button>
           </div>
+          <button class="dash-btn dash-btn-primary" type="submit"><i class="fas fa-plus"></i> إضافة الصورة</button>
         </form>
 
         <div class="type-image-grid">
@@ -123,14 +176,14 @@
               </form>
             </div>
           {% empty %}
-            <div class="empty-panel">لم تتم إضافة صور لهذا النوع بعد.</div>
+            <div class="empty-panel">لا توجد صور لهذا النوع.</div>
           {% endfor %}
         </div>
       </article>
     </section>
   {% else %}
-    <section class="dash-card">
-      <div class="empty-panel">احفظ النوع أولًا، ثم ستظهر إدارة ألوانه وصوره.</div>
+    <section class="dash-card muted-panel">
+      <div class="empty-panel">احفظ النوع أولًا، ثم ستظهر إدارة الألوان والصور.</div>
     </section>
   {% endif %}
 {% endblock content %}

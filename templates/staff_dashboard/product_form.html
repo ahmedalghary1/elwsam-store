@@ -1,0 +1,227 @@
+{% extends "staff_dashboard/base.html" %}
+
+{% block page_title %}{{ page_title }}{% endblock page_title %}
+{% block page_actions %}
+  <a class="dash-btn" href="{{ cancel_url }}"><i class="fas fa-arrow-right"></i> رجوع للمنتجات</a>
+  {% if product_public_url %}
+    <a class="dash-btn" href="{{ product_public_url }}"><i class="fas fa-eye"></i> عرض في المتجر</a>
+  {% endif %}
+  {% if advanced_url %}
+    <a class="dash-btn" href="{{ advanced_url }}"><i class="fas fa-screwdriver-wrench"></i> {{ advanced_label }}</a>
+  {% endif %}
+{% endblock page_actions %}
+
+{% block content %}
+  <section class="product-editor-hero">
+    <div class="product-hero-media">
+      {% if product %}
+        {% with first_image=product.get_first_image %}
+          {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}">
+          {% elif first_image %}
+            <img src="{{ first_image.image.url }}" alt="{{ product.name }}">
+          {% else %}
+            <span><i class="fas fa-box-open"></i></span>
+          {% endif %}
+        {% endwith %}
+      {% else %}
+        <span><i class="fas fa-box-open"></i></span>
+      {% endif %}
+    </div>
+    <div class="product-hero-content">
+      <div>
+        <p class="dash-kicker">تفاصيل المنتج</p>
+        <h2>{% if product %}{{ product.name }}{% else %}منتج جديد{% endif %}</h2>
+        {% if page_subtitle %}<p>{{ page_subtitle }}</p>{% endif %}
+      </div>
+      <div class="product-summary-pills">
+        {% if product %}
+          <span class="dash-badge {% if product.is_active %}success{% else %}muted{% endif %}">
+            {% if product.is_active %}ظاهر{% else %}مخفي{% endif %}
+          </span>
+          <span class="dash-badge primary">{{ product.category.name }}</span>
+          <span class="dash-badge">{{ product.price }} ج.م</span>
+        {% else %}
+          <span class="dash-badge warning">لم يتم الحفظ بعد</span>
+        {% endif %}
+      </div>
+    </div>
+    {% if product %}
+      <div class="product-hero-stats">
+        <div><strong>{{ product_color_count }}</strong><span>ألوان</span></div>
+        <div><strong>{{ product_type_count }}</strong><span>أنواع</span></div>
+        <div><strong>{{ product.stock }}</strong><span>مخزون</span></div>
+      </div>
+    {% endif %}
+  </section>
+
+  <nav class="editor-jump-nav" aria-label="أقسام المنتج">
+    {% for section in form_sections %}
+      <a href="#{{ section.id }}"><i class="fas {{ section.icon }}"></i> {{ section.title }}</a>
+    {% endfor %}
+    {% if product_management %}
+      <a href="#product-colors"><i class="fas fa-palette"></i> الألوان</a>
+      <a href="#product-types"><i class="fas fa-tags"></i> الأنواع</a>
+    {% endif %}
+  </nav>
+
+  <form method="post" {% if multipart %}enctype="multipart/form-data"{% endif %} class="product-editor-form">
+    {% csrf_token %}
+    {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+    {% if form.non_field_errors %}
+      <div class="form-errors">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="editor-layout">
+      <div class="editor-main">
+        {% for section in form_sections %}
+          <section class="dash-card form-section" id="{{ section.id }}">
+            <div class="section-title">
+              <i class="fas {{ section.icon }}"></i>
+              <h2>{{ section.title }}</h2>
+            </div>
+            <div class="section-grid">
+              {% for item in section.fields %}
+                {% with field=item.field %}
+                  <div class="dash-field field-{{ field.name }}{% if item.wide %} field-span-full{% endif %}{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                    {% if field.errors %}<div class="field-error">{{ field.errors|join:", " }}</div>{% endif %}
+                  </div>
+                {% endwith %}
+              {% endfor %}
+            </div>
+          </section>
+        {% endfor %}
+      </div>
+
+      <aside class="editor-side">
+        <section class="dash-card side-panel">
+          <h2>حفظ المنتج</h2>
+          <p>احفظ التغييرات قبل إدارة الألوان أو الأنواع.</p>
+          <button class="dash-btn dash-btn-primary side-action" type="submit"><i class="fas fa-floppy-disk"></i> حفظ التغييرات</button>
+          {% if delete_url %}
+            <a class="dash-btn dash-btn-danger side-action" href="{{ delete_url }}"><i class="fas fa-trash"></i> حذف المنتج</a>
+          {% endif %}
+        </section>
+
+        {% if not product %}
+          <section class="dash-card side-panel muted-panel">
+            <h2>الخطوة التالية</h2>
+            <p>بعد الحفظ ستظهر أدوات الألوان والأنواع تلقائيًا.</p>
+          </section>
+        {% else %}
+          <section class="dash-card side-panel">
+            <h2>اختصارات</h2>
+            <div class="side-links">
+              <a href="#product-colors"><i class="fas fa-palette"></i> إدارة ألوان المنتج</a>
+              <a href="#product-types"><i class="fas fa-tags"></i> إدارة أنواع المنتج</a>
+              <a href="{{ colors_library_url }}"><i class="fas fa-swatchbook"></i> مكتبة الألوان</a>
+            </div>
+          </section>
+        {% endif %}
+      </aside>
+    </div>
+  </form>
+
+  {% if product_management %}
+    <section class="product-management-grid">
+      <article class="dash-card relation-panel" id="product-colors">
+        <div class="card-head">
+          <div>
+            <h2>ألوان المنتج</h2>
+            <p>{{ product_color_count }} لون مرتبط بهذا المنتج</p>
+          </div>
+          <a class="dash-btn" href="{{ colors_library_url }}"><i class="fas fa-swatchbook"></i> مكتبة الألوان</a>
+        </div>
+
+        <form class="color-add-panel" method="post" action="{{ product_color_add_url }}">
+          {% csrf_token %}
+          {% if product_color_form.non_field_errors %}
+            <div class="form-errors">{{ product_color_form.non_field_errors }}</div>
+          {% endif %}
+          <div class="color-add-options">
+            <div class="dash-field">
+              <label for="{{ product_color_form.color.id_for_label }}">{{ product_color_form.color.label }}</label>
+              {{ product_color_form.color }}
+              {% if product_color_form.color.errors %}<div class="field-error">{{ product_color_form.color.errors|join:", " }}</div>{% endif %}
+            </div>
+            <div class="dash-field">
+              <label for="{{ product_color_form.new_color_name.id_for_label }}">{{ product_color_form.new_color_name.label }}</label>
+              {{ product_color_form.new_color_name }}
+              {% if product_color_form.new_color_name.errors %}<div class="field-error">{{ product_color_form.new_color_name.errors|join:", " }}</div>{% endif %}
+            </div>
+            <div class="dash-field">
+              <label for="{{ product_color_form.new_color_code.id_for_label }}">{{ product_color_form.new_color_code.label }}</label>
+              {{ product_color_form.new_color_code }}
+              {% if product_color_form.new_color_code.errors %}<div class="field-error">{{ product_color_form.new_color_code.errors|join:", " }}</div>{% endif %}
+            </div>
+            <div class="dash-field">
+              <label for="{{ product_color_form.order.id_for_label }}">{{ product_color_form.order.label }}</label>
+              {{ product_color_form.order }}
+              {% if product_color_form.order.errors %}<div class="field-error">{{ product_color_form.order.errors|join:", " }}</div>{% endif %}
+            </div>
+          </div>
+          <button class="dash-btn dash-btn-primary" type="submit"><i class="fas fa-plus"></i> إضافة اللون</button>
+        </form>
+
+        <div class="color-chip-grid">
+          {% for product_color in product_colors %}
+            <div class="color-chip-card">
+              <span class="color-dot large" style="background: {{ product_color.color.code|default:'#d1d5db' }}"></span>
+              <div>
+                <strong>{{ product_color.color.name }}</strong>
+                <small>{{ product_color.color.code|default:"بدون كود" }} · ترتيب {{ product_color.order }}</small>
+              </div>
+              <form method="post" action="{% url 'staff_dashboard:product_color_delete' product.pk product_color.pk %}">
+                {% csrf_token %}
+                <button class="dash-icon-btn danger" type="submit" title="حذف اللون"><i class="fas fa-trash"></i></button>
+              </form>
+            </div>
+          {% empty %}
+            <div class="empty-panel">لا توجد ألوان مرتبطة بهذا المنتج.</div>
+          {% endfor %}
+        </div>
+      </article>
+
+      <article class="dash-card relation-panel" id="product-types">
+        <div class="card-head">
+          <div>
+            <h2>أنواع المنتج</h2>
+            <p>{{ product_type_count }} نوع داخل هذا المنتج</p>
+          </div>
+          <a class="dash-btn dash-btn-primary" href="{{ product_type_add_url }}"><i class="fas fa-plus"></i> إضافة نوع</a>
+        </div>
+
+        <div class="type-card-grid">
+          {% for product_type in product_types %}
+            <div class="type-card">
+              <div class="type-card-media">
+                {% if product_type.image %}
+                  <img src="{{ product_type.image.url }}" alt="{{ product_type.type.name }}">
+                {% else %}
+                  <span><i class="fas fa-tags"></i></span>
+                {% endif %}
+              </div>
+              <div class="type-card-body">
+                <strong>{{ product_type.type.name }}</strong>
+                <small>{{ product_type.price }} ج.م</small>
+                <div class="type-meta-row">
+                  <span><i class="fas fa-palette"></i> {{ product_type.type_colors.count }} لون</span>
+                  <span><i class="fas fa-image"></i> {{ product_type.type_images.count }} صورة</span>
+                </div>
+              </div>
+              <div class="type-card-actions">
+                <a class="dash-btn" href="{% url 'staff_dashboard:product_type_edit' product.pk product_type.pk %}"><i class="fas fa-pen"></i> تعديل</a>
+                <a class="dash-icon-btn danger" href="{% url 'staff_dashboard:product_type_delete' product.pk product_type.pk %}" title="حذف النوع"><i class="fas fa-trash"></i></a>
+              </div>
+            </div>
+          {% empty %}
+            <div class="empty-panel">لا توجد أنواع لهذا المنتج بعد.</div>
+          {% endfor %}
+        </div>
+      </article>
+    </section>
+  {% endif %}
+{% endblock content %}

@@ -13,9 +13,13 @@ from django.utils import timezone
 from orders.models import Cart, Order, OrderItem
 from products.models import (
     Category,
+    Color,
     HomeProductCollectionItem,
+    PatternColor,
+    PatternImage,
     Product,
     ProductColor,
+    ProductImage,
     ProductType,
     ProductTypeColor,
     ProductTypeImage,
@@ -24,6 +28,7 @@ from products.models import (
 
 from .forms import (
     CategoryForm,
+    ColorForm,
     CustomerForm,
     HomeCollectionItemForm,
     OrderStatusForm,
@@ -90,21 +95,96 @@ def _status_context():
     ]
 
 
+def _field_items(form, names, wide_names=()):
+    return [
+        {"field": form[name], "wide": name in wide_names}
+        for name in names
+        if name in form.fields
+    ]
+
+
+def _product_form_sections(form):
+    return [
+        {
+            "id": "basic",
+            "title": "بيانات المنتج",
+            "icon": "fa-box-open",
+            "fields": _field_items(form, ["name", "slug", "category", "image", "description"], {"description"}),
+        },
+        {
+            "id": "price",
+            "title": "السعر والمخزون",
+            "icon": "fa-coins",
+            "fields": _field_items(form, ["price", "old_price", "stock", "rating", "order"]),
+        },
+        {
+            "id": "display",
+            "title": "الظهور والاختيارات",
+            "icon": "fa-toggle-on",
+            "fields": _field_items(
+                form,
+                ["is_active", "is_new", "is_hot", "has_colors", "has_patterns", "has_product_level_sizes"],
+            ),
+        },
+        {
+            "id": "seo",
+            "title": "بيانات SEO",
+            "icon": "fa-magnifying-glass-chart",
+            "fields": _field_items(
+                form,
+                ["seo_title", "meta_description", "seo_h1", "seo_description", "focus_keywords"],
+                {"meta_description", "seo_description", "focus_keywords"},
+            ),
+        },
+    ]
+
+
+def _product_type_form_sections(form):
+    return [
+        {
+            "id": "type-info",
+            "title": "بيانات النوع",
+            "icon": "fa-tags",
+            "fields": _field_items(form, ["type", "new_type_name", "price", "image", "description", "order"], {"description"}),
+        }
+    ]
+
+
 def _product_management_context(product):
     if not product:
         return {}
+    product_colors = ProductColor.objects.filter(product=product).select_related("color").order_by("order", "id")
+    product_types = (
+        ProductType.objects.filter(product=product)
+        .select_related("type")
+        .prefetch_related("type_colors__color", "type_images__color")
+        .order_by("order", "id")
+    )
     return {
         "product_management": True,
         "product": product,
-        "product_colors": ProductColor.objects.filter(product=product).select_related("color").order_by("order", "id"),
-        "product_types": ProductType.objects.filter(product=product)
-        .select_related("type")
-        .prefetch_related("type_colors__color", "type_images__color")
-        .order_by("order", "id"),
+        "product_colors": product_colors,
+        "product_types": product_types,
+        "product_color_count": product_colors.count(),
+        "product_type_count": product_types.count(),
         "product_color_form": ProductColorForm(product=product),
         "product_color_add_url": reverse("staff_dashboard:product_color_add", args=[product.pk]),
         "product_type_add_url": reverse("staff_dashboard:product_type_add", args=[product.pk]),
+        "colors_library_url": reverse("staff_dashboard:colors"),
+        "product_public_url": product.get_absolute_url(),
     }
+
+
+def _color_usage_count(color):
+    return (
+        ProductColor.objects.filter(color=color).count()
+        + ProductTypeColor.objects.filter(color=color).count()
+        + ProductTypeImage.objects.filter(color=color).count()
+        + ProductImage.objects.filter(color=color).count()
+        + PatternColor.objects.filter(color=color).count()
+        + PatternImage.objects.filter(color=color).count()
+        + ProductVariant.objects.filter(color=color).count()
+    )
 
 
 @superuser_required
@@ -235,22 +315,23 @@ def product_form(request, pk=None):
         form = ProductForm(instance=product)
 
     context = {
-            "active_nav": "products",
-            "form": form,
-            "page_title": "تعديل منتج" if product else "إضافة منتج",
-            "page_subtitle": (
-                "بيانات المنتج الأساسية. بعد حفظ المنتج ستظهر إدارة الألوان والأنواع وتفاصيل كل نوع هنا."
-                if not product
-                else "بيانات المنتج الأساسية مع إدارة الألوان والأنواع المرتبطة به."
-            ),
-            "cancel_url": reverse("staff_dashboard:products"),
-            "delete_url": reverse("staff_dashboard:product_delete", args=[product.pk]) if product else "",
-            "advanced_url": _admin_change_url(product) if product else "",
-            "advanced_label": "تعديل متقدم في Django Admin",
-            "multipart": True,
-        }
+        "active_nav": "products",
+        "form": form,
+        "form_sections": _product_form_sections(form),
+        "page_title": "تعديل منتج" if product else "إضافة منتج",
+        "page_subtitle": (
+            "احفظ البيانات الأساسية أولًا، ثم أضف الألوان والأنواع من نفس الصفحة."
+            if not product
+            else "إدارة بيانات المنتج وألوانه وأنواعه من مكان واحد."
+        ),
+        "cancel_url": reverse("staff_dashboard:products"),
+        "delete_url": reverse("staff_dashboard:product_delete", args=[product.pk]) if product else "",
+        "advanced_url": _admin_change_url(product) if product else "",
+        "advanced_label": "تعديل متقدم",
+        "multipart": True,
+    }
     context.update(_product_management_context(product))
-    return _render(request, "staff_dashboard/form.html", context)
+    return _render(request, "staff_dashboard/product_form.html", context)
 
 
 @superuser_required
@@ -331,10 +412,12 @@ def product_type_form(request, product_pk, type_pk=None):
         "product": product,
         "product_type": product_type,
         "form": form,
+        "form_sections": _product_type_form_sections(form),
         "type_colors": ProductTypeColor.objects.filter(product_type=product_type).select_related("color").order_by("order", "id") if product_type else [],
         "type_images": ProductTypeImage.objects.filter(product_type=product_type).select_related("color").order_by("order", "id") if product_type else [],
         "type_color_form": ProductTypeColorForm(product_type=product_type) if product_type else None,
         "type_image_form": ProductTypeImageForm(product_type=product_type) if product_type else None,
+        "colors_library_url": reverse("staff_dashboard:colors"),
         "cancel_url": reverse("staff_dashboard:product_edit", args=[product.pk]),
         "delete_url": reverse("staff_dashboard:product_type_delete", args=[product.pk, product_type.pk]) if product_type else "",
         "advanced_url": _admin_change_url(product_type) if product_type else "",
@@ -416,6 +499,89 @@ def product_type_image_delete(request, type_pk, image_pk):
         type_image.delete()
         messages.success(request, "تم حذف صورة النوع.")
     return redirect("staff_dashboard:product_type_edit", product_pk=product_type.product_id, type_pk=product_type.pk)
+
+
+@superuser_required
+def colors_list(request):
+    queryset = Color.objects.annotate(
+        product_links_count=Count("productcolor", distinct=True),
+        type_links_count=Count("product_type_colors", distinct=True),
+        image_links_count=Count("product_type_images", distinct=True),
+    ).order_by("name")
+    query = request.GET.get("q", "").strip()
+    if query:
+        queryset = queryset.filter(Q(name__icontains=query) | Q(code__icontains=query))
+
+    page_obj = _paginate(request, queryset, per_page=24)
+    return _render(
+        request,
+        "staff_dashboard/colors_list.html",
+        {
+            "active_nav": "colors",
+            "page_obj": page_obj,
+            "colors": page_obj.object_list,
+            "filters": {"q": query},
+            "total_count": queryset.count(),
+        },
+    )
+
+
+@superuser_required
+def color_form(request, pk=None):
+    color = get_object_or_404(Color, pk=pk) if pk else None
+    if request.method == "POST":
+        form = ColorForm(request.POST, instance=color)
+        if form.is_valid():
+            saved_color = form.save()
+            messages.success(request, "تم حفظ اللون بنجاح.")
+            return redirect("staff_dashboard:color_edit", pk=saved_color.pk)
+        messages.error(request, "يرجى مراجعة بيانات اللون.")
+    else:
+        form = ColorForm(instance=color)
+
+    return _render(
+        request,
+        "staff_dashboard/form.html",
+        {
+            "active_nav": "colors",
+            "form": form,
+            "page_title": "تعديل لون" if color else "إضافة لون",
+            "page_subtitle": "أضف لونًا مرة واحدة ثم استخدمه داخل المنتجات والأنواع.",
+            "cancel_url": reverse("staff_dashboard:colors"),
+            "delete_url": reverse("staff_dashboard:color_delete", args=[color.pk]) if color else "",
+            "advanced_url": _admin_change_url(color) if color else "",
+            "advanced_label": "تعديل متقدم",
+        },
+    )
+
+
+@superuser_required
+def color_delete(request, pk):
+    color = get_object_or_404(Color, pk=pk)
+    usage_count = _color_usage_count(color)
+    if request.method == "POST":
+        if usage_count:
+            messages.error(request, "لا يمكن حذف لون مستخدم داخل منتجات أو أنواع. احذف الروابط أولًا.")
+            return redirect("staff_dashboard:color_edit", pk=color.pk)
+        color.delete()
+        messages.success(request, "تم حذف اللون بنجاح.")
+        return redirect("staff_dashboard:colors")
+
+    return _render(
+        request,
+        "staff_dashboard/confirm_delete.html",
+        {
+            "active_nav": "colors",
+            "object_name": color.name,
+            "object_type": "لون",
+            "cancel_url": reverse("staff_dashboard:color_edit", args=[color.pk]),
+            "warning": (
+                f"هذا اللون مستخدم في {usage_count} موضع، لذلك لن يتم حذفه قبل إزالة الروابط."
+                if usage_count
+                else "سيتم حذف اللون من مكتبة الألوان."
+            ),
+        },
+    )
 
 
 @superuser_required
