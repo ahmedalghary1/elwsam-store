@@ -98,6 +98,7 @@ class HomeProductCollectionTests(TestCase):
         response = self.client.get(reverse("index"))
 
         self.assertContains(response, self.second_product.name)
+        self.assertContains(response, 'data-api-url="/api/products/"')
         self.assertIn("no-store", response.headers["Cache-Control"])
 
     def test_product_collection_api_returns_curated_latest_without_public_cache(self):

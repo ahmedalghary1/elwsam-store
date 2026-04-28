@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from django.views.decorators.cache import never_cache
 
 from products.models import Category
@@ -42,12 +42,17 @@ def index(request):
     initial_product_tab = product_tabs[0]
     initial_tab_products = get_product_collection_queryset(initial_product_tab['type'])[:10]
     absolute_home_url = build_absolute_uri(request, '/')
+    try:
+        product_collection_api_url = reverse('product_collection_api')
+    except NoReverseMatch:
+        product_collection_api_url = '/api/products/'
     
     context = {
         'categories': categories,
         'product_tabs': product_tabs,
         'initial_product_tab': initial_product_tab,
         'initial_tab_products': initial_tab_products,
+        'product_collection_api_url': product_collection_api_url,
         'seo_title': f"{SITE_NAME} | مشترك كهرباء ومستلزمات الكهرباء في مصر",
         'seo_h1': "متجر الوسام لمستلزمات الكهرباء المنزلية",
         'seo_meta_description': (

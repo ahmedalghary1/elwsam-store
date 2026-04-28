@@ -140,7 +140,7 @@
       </div>
     </section>
 
-    <section class="home-products-section page-section" aria-labelledby="home-products-heading" data-home-product-tabs data-api-url="{% url 'product_collection_api' %}" data-limit="10">
+    <section class="home-products-section page-section" aria-labelledby="home-products-heading" data-home-product-tabs data-api-url="{{ product_collection_api_url|default:'/api/products/' }}" data-limit="10">
       <div class="container">
         <div class="home-products-header">
           <div class="section-title">
