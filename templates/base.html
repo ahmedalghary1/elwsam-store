@@ -24,18 +24,50 @@
   {% block structured_data %}{% for schema in seo_structured_data %}<script type="application/ld+json">{{ schema|safe }}</script>{% endfor %}{% endblock structured_data %}
   {% block preload_assets %}{% endblock preload_assets %}
 
+  <style>
+    :root{--color-primary:#fed82d;--color-primary-dark:#e6c200;--color-black:#0a0a0a;--color-white:#fff;--color-gray-300:#e0e0e0;--font-main:'Cairo','Tajawal',Arial,sans-serif;--radius-sm:6px;--radius-md:12px;--radius-full:999px;--transition:.25s cubic-bezier(.4,0,.2,1);--transition-fast:.15s ease;--navbar-height:108px;--navbar-row-height:64px;--bottom-nav-height:64px;--container-max:1280px;--container-padding:16px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{direction:rtl;font-size:16px;-webkit-text-size-adjust:100%}
+    body{font-family:var(--font-main);background:var(--color-white);color:var(--color-black);line-height:1.6;overflow-x:hidden;padding-bottom:var(--bottom-nav-height)}
+    @media (min-width:768px){body{padding-bottom:0}:root{--navbar-height:64px}}
+    img{max-width:100%;display:block}a{text-decoration:none;color:inherit}button,input{font-family:var(--font-main)}button{cursor:pointer;border:0;background:none}
+    .skip-to-main{position:absolute;right:16px;top:-48px;z-index:300;background:var(--color-primary);color:var(--color-black);padding:8px 14px;border-radius:var(--radius-sm);font-weight:700}.skip-to-main:focus{top:12px}
+    .navbar{position:sticky;top:0;z-index:100;background:var(--color-black);border-bottom:2px solid var(--color-primary)}
+    .navbar-inner{width:100%;max-width:var(--container-max);margin:0 auto;padding:0 var(--container-padding);display:flex;flex-wrap:wrap;align-items:center}
+    .navbar-row1{display:flex;align-items:center;width:100%;height:var(--navbar-row-height);gap:8px}.navbar-row2{display:flex;width:100%;padding:8px 0 10px}
+    .navbar-logo{display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:auto}.navbar-logo .logo-icon{width:36px;height:36px;background:var(--color-primary);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0}.navbar-logo .logo-text{font-size:1.3rem;font-weight:900;color:var(--color-white);white-space:nowrap}.navbar-logo .logo-text span{color:var(--color-primary)}
+    .navbar-search{width:100%;min-width:0}.search-box{position:relative;width:100%}.search-box input{width:100%;height:38px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.15);border-radius:var(--radius-full);color:var(--color-white);padding:0 40px 0 16px;font-size:.88rem}.search-box .search-btn{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.5);font-size:1rem;padding:4px}
+    .navbar-actions{display:flex;align-items:center;gap:2px;flex-shrink:0;margin-right:auto}.nav-icon-btn{width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);color:var(--color-white);font-size:1.1rem;position:relative}.nav-badge{position:absolute;top:3px;left:3px;min-width:17px;height:17px;background:var(--color-primary);color:var(--color-black);border-radius:var(--radius-full);font-size:.6rem;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 3px}
+    .hamburger-btn{width:38px;height:38px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;border-radius:var(--radius-sm);color:var(--color-white);flex-shrink:0}.hamburger-btn span{display:block;width:20px;height:2px;background:currentColor;border-radius:2px}.navbar-links{display:none;flex-shrink:0}
+    .mobile-menu{display:block;position:fixed;top:0;right:-100%;width:min(320px,100vw);height:100vh;background:var(--color-black);z-index:200;overflow-y:auto}.mobile-menu-overlay{display:none}
+    @media (min-width:768px){.navbar-inner{flex-wrap:nowrap;height:var(--navbar-height);gap:12px}.navbar-row1{width:auto;flex:0 0 auto;height:auto;gap:12px}.navbar-row2{flex:1;padding:0;min-width:0}.navbar-logo{margin-left:0}.navbar-actions{margin-right:0;gap:4px}.navbar-links{display:flex;align-items:center;gap:2px}.navbar-links a{color:rgba(255,255,255,.75);font-size:.88rem;font-weight:600;padding:6px 10px;border-radius:var(--radius-sm);white-space:nowrap}.hamburger-btn{display:none}}
+    h1{font-size:clamp(1.6rem,5vw,2.8rem);font-weight:800;line-height:1.2}.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 24px;border-radius:var(--radius-md);font-weight:700;font-size:.95rem;line-height:1}.btn-primary{background:var(--color-primary);color:var(--color-black)}.btn-outline-white{background:transparent;color:var(--color-white);border:2px solid rgba(255,255,255,.4)}.btn-lg{padding:15px 32px;font-size:1.05rem}
+    .home-page{background:linear-gradient(180deg,#fff 0%,#fbfbfb 42%,#fff 100%)}.hero{background:var(--color-black);display:flex;align-items:flex-start;position:relative}.hero-bg-pattern,.hero-grid-overlay{position:absolute;inset:0;pointer-events:none}.hero-inner{display:flex;flex-direction:column;width:100%;position:relative;z-index:2}.hero-content{padding:48px var(--container-padding) 32px;display:flex;flex-direction:column;justify-content:center;max-width:var(--container-max);margin:0 auto;width:100%}.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,215,0,.15);color:var(--color-primary);border:1px solid rgba(255,215,0,.3);padding:6px 14px;border-radius:var(--radius-full);font-size:.8rem;font-weight:700;margin-bottom:20px;width:fit-content}.hero-title{color:var(--color-white);margin-bottom:16px}.hero-title .highlight{color:var(--color-primary)}.hero-subtitle{color:rgba(255,255,255,.6);font-size:clamp(.9rem,2.5vw,1.1rem);margin-bottom:32px;max-width:500px;line-height:1.7}.hero-actions{display:flex;gap:12px;flex-wrap:wrap}.hero-image-side{display:flex;align-items:center;justify-content:center;padding:0;width:100%;overflow:hidden}.hero-slider-wrap{position:relative;display:flex;width:100%}.hero-slider{position:relative;width:100%;aspect-ratio:16/9;border-radius:0;overflow:hidden;background:rgba(255,255,255,.04)}.hero-slider .slide{position:absolute;inset:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;opacity:0;transform:scale(.93);pointer-events:none}.hero-slider .slide.active{opacity:1;transform:scale(1);pointer-events:auto}.hero-slider .slide img{width:100%;height:100%;object-fit:cover}
+    .home-page .hero{min-height:min(720px,calc(100vh - var(--navbar-height)));overflow:hidden;align-items:center;background:linear-gradient(135deg,#050505 0%,#111 52%,#050505 100%)}.home-page .hero-inner{width:100%;max-width:1380px;margin:0 auto;padding:clamp(40px,5.5vw,76px) var(--container-padding);display:grid;grid-template-columns:minmax(280px,.74fr) minmax(0,1.26fr);align-items:center;gap:clamp(24px,4vw,56px)}.home-page .hero-content{width:100%;max-width:none;margin:0;padding:0;flex:none}.home-page .hero-title{margin-bottom:16px;font-size:clamp(2rem,4.15vw,3.95rem);font-weight:900;line-height:1.08}.home-page .hero-subtitle{max-width:560px;margin-bottom:24px;color:rgba(255,255,255,.74);font-size:clamp(.92rem,1.18vw,1.06rem)}.home-page .hero-actions .btn{min-height:52px;border-radius:var(--radius-full)}.home-page .hero-highlights{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}.home-page .hero-highlights span{display:inline-flex;align-items:center;gap:7px;min-height:36px;padding:0 12px;border:1px solid rgba(255,255,255,.12);border-radius:var(--radius-full);color:rgba(255,255,255,.72);background:rgba(255,255,255,.04);font-size:.82rem;font-weight:800}.home-page .hero-media-frame{position:relative;width:100%;padding:3px;border:1px solid rgba(254,216,45,.28);border-radius:24px;background:linear-gradient(145deg,rgba(254,216,45,.46),rgba(255,255,255,.12) 36%,rgba(254,216,45,.14));box-shadow:0 28px 80px rgba(0,0,0,.42)}.home-page .hero-slider{border-radius:18px;background:var(--color-black)!important}
+    @media (max-width:767px){.home-page .hero{min-height:auto}.home-page .hero-inner{display:flex;flex-direction:column;padding:40px var(--container-padding) 28px}.home-page .hero-actions{flex-direction:column}.home-page .hero-actions .btn{width:100%}.home-page .hero-image-side{overflow:visible}.home-page .hero-media-frame{border-radius:18px}}
+  </style>
+
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.onload=null;this.media='all'" />
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet" /></noscript>
 
   <!-- icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" media="print" onload="this.onload=null;this.media='all'">
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"></noscript>
 
   <!-- Styles -->
-  <link rel="stylesheet" href="{% static 'css/style.css' %}" />
-  <link rel="stylesheet" href="{% static 'css/seo-fixes.css' %}" />
-  <link rel="stylesheet" href="{% static 'css/responsive-fixes.css' %}" />
+  <link rel="preload" href="{% static 'css/style.css' %}" as="style" fetchpriority="high" />
+  <link rel="stylesheet" href="{% static 'css/style.css' %}" media="print" onload="this.onload=null;this.media='all'" />
+  <link rel="stylesheet" href="{% static 'css/seo-fixes.css' %}" media="print" onload="this.onload=null;this.media='all'" />
+  <link rel="stylesheet" href="{% static 'css/responsive-fixes.css' %}" media="print" onload="this.onload=null;this.media='all'" />
+  <noscript>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/seo-fixes.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/responsive-fixes.css' %}" />
+  </noscript>
 </head>
 <body data-auth="{% if user.is_authenticated %}true{% else %}false{% endif %}">
   <a href="#main-content" class="skip-to-main">تخطي إلى المحتوى</a>
@@ -215,9 +247,9 @@
   </nav>
 
   <!-- Scripts -->
-  <script src="{% static 'js/cart.js' %}"></script>
-  <script src="{% static 'js/main.js' %}"></script>
-  <script src="{% static 'js/wishlist.js' %}"></script>
+  <script src="{% static 'js/cart.js' %}" defer></script>
+  <script src="{% static 'js/main.js' %}" defer></script>
+  <script src="{% static 'js/wishlist.js' %}" defer></script>
 
   <!-- Profile Button Handler -->
   <script>
