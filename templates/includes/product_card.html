@@ -1,8 +1,9 @@
+{% load image_thumbs %}
 <article class="product-card home-product-card">
   <div class="product-image-wrap">
     <a href="{% url 'product_detail' id=product.id slug=product.slug %}">
       {% if product.image %}
-        <img src="{{ product.image.url }}" alt="{{ product.get_primary_image_alt }}" loading="lazy" decoding="async">
+        <img src="{{ product.image|thumbnail_url:'400x400:cover' }}" alt="{{ product.get_primary_image_alt }}" width="400" height="400" loading="lazy" decoding="async">
       {% else %}
         <div class="product-img-placeholder"><i class="fas fa-image"></i></div>
       {% endif %}
@@ -33,7 +34,7 @@
         {% endif %}
       </div>
       {% if product.is_simple_product %}
-        <button class="add-to-cart-btn" data-action="add-to-cart" data-product-id="{{ product.id }}" data-product-name="{{ product.name }}" data-product-price="{{ product.price }}" data-quantity="1" data-product-image="{% if product.image %}{{ product.image.url }}{% endif %}" aria-label="أضف {{ product.name }} إلى السلة">
+        <button class="add-to-cart-btn" data-action="add-to-cart" data-product-id="{{ product.id }}" data-product-name="{{ product.name }}" data-product-price="{{ product.price }}" data-quantity="1" data-product-image="{% if product.image %}{{ product.image|thumbnail_url:'400x400:cover' }}{% endif %}" aria-label="أضف {{ product.name }} إلى السلة">
           <i class="fas fa-shopping-cart"></i>
         </button>
       {% else %}

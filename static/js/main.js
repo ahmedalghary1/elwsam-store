@@ -5,6 +5,22 @@
 
 'use strict';
 
+function runWhenIdle(callback, timeout = 1500) {
+  const run = () => {
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(callback, { timeout });
+    } else {
+      window.setTimeout(callback, 0);
+    }
+  };
+
+  if (document.readyState === 'complete') {
+    run();
+  } else {
+    window.addEventListener('load', run, { once: true });
+  }
+}
+
 // ============ Store (State) ============
 const Store = {
   cart: JSON.parse(localStorage.getItem('noor_cart') || '[]'),
@@ -448,6 +464,7 @@ const HeroSlider = {
     
     const activeIndex = Array.from(slides).findIndex(s => s.classList.contains('active'));
     this.current = activeIndex >= 0 ? activeIndex : 0;
+    this.loadSlideImage(slides[this.current]);
     
     if (!slider.querySelector('.slider-dots')) {
       const dotsWrap = document.createElement('div');
@@ -484,6 +501,7 @@ const HeroSlider = {
     slider.querySelector('.slider-next')?.addEventListener('click', () => { this.next(); this.resetAuto(); });
     dots.forEach((dot, i) => dot.addEventListener('click', () => { this.goTo(i); this.resetAuto(); }));
 
+    runWhenIdle(() => this.loadDeferredSlides(), 2500);
     this.startAuto();
     slider.addEventListener('mouseenter', () => this.stopAuto());
     slider.addEventListener('mouseleave', () => this.startAuto());
@@ -495,11 +513,33 @@ const HeroSlider = {
     if (!slider) return;
     const slides = slider.querySelectorAll('.slide');
     const dots = slider.querySelectorAll('.dot');
+    const nextIndex = (n + this.total) % this.total;
+    this.loadSlideImage(slides[nextIndex]);
     slides[this.current]?.classList.remove('active');
     if (dots[this.current]) { dots[this.current].classList.remove('active'); dots[this.current].removeAttribute('aria-current'); }
-    this.current = (n + this.total) % this.total;
+    this.current = nextIndex;
     slides[this.current]?.classList.add('active');
     if (dots[this.current]) { dots[this.current].classList.add('active'); dots[this.current].setAttribute('aria-current','true'); }
+  },
+  loadSlideImage(slide) {
+    if (!slide || slide.dataset.loaded === 'true') return;
+    slide.querySelectorAll('source[data-srcset]').forEach(source => {
+      source.srcset = source.dataset.srcset;
+      source.removeAttribute('data-srcset');
+    });
+    const image = slide.querySelector('img[data-src]');
+    if (image) {
+      image.src = image.dataset.src;
+      image.removeAttribute('data-src');
+    }
+    slide.dataset.loaded = 'true';
+  },
+  loadDeferredSlides() {
+    const slider = document.getElementById('heroSlider');
+    if (!slider) return;
+    slider.querySelectorAll('.slide').forEach((slide, index) => {
+      if (index !== this.current) this.loadSlideImage(slide);
+    });
   },
   next() { this.goTo(this.current + 1); },
   prev() { this.goTo(this.current - 1); },
@@ -535,11 +575,7 @@ const HomeProductTabs = {
     const limit = root.dataset.limit || '10';
     if (!buttons.length || !grid || !apiUrl) return;
 
-    const syncIndicator = () => {
-      window.requestAnimationFrame(() => {
-        this.updateIndicator(tabList, root.querySelector('[data-product-tab].active') || buttons[0]);
-      });
-    };
+    const syncIndicator = () => this.scheduleIndicatorUpdate(tabList, root.querySelector('[data-product-tab].active') || buttons[0]);
 
     syncIndicator();
     window.addEventListener('resize', syncIndicator);
@@ -574,6 +610,7 @@ const HomeProductTabs = {
     const type = activeButton.dataset.productTab;
     const requestId = (this.requestId || 0) + 1;
     this.requestId = requestId;
+    const indicatorMetrics = this.measureIndicator(activeButton.closest('.product-tabs'), activeButton);
 
     root.querySelectorAll('[data-product-tab]').forEach(button => {
       const isActive = button === activeButton;
@@ -582,7 +619,7 @@ const HomeProductTabs = {
       button.setAttribute('tabindex', isActive ? '0' : '-1');
     });
     if (grid && activeButton.id) grid.setAttribute('aria-labelledby', activeButton.id);
-    this.updateIndicator(activeButton.closest('.product-tabs'), activeButton);
+    this.applyIndicator(indicatorMetrics);
 
     root.classList.add('is-switching');
     if (heading) heading.textContent = activeButton.dataset.heading || activeButton.textContent.trim();
@@ -618,19 +655,38 @@ const HomeProductTabs = {
   },
 
   updateIndicator(tabList, activeButton) {
+    this.applyIndicator(this.measureIndicator(tabList, activeButton));
+  },
+
+  scheduleIndicatorUpdate(tabList, activeButton) {
+    if (this.indicatorFrame) window.cancelAnimationFrame(this.indicatorFrame);
+    this.indicatorFrame = window.requestAnimationFrame(() => {
+      this.indicatorFrame = null;
+      this.updateIndicator(tabList, activeButton);
+    });
+  },
+
+  measureIndicator(tabList, activeButton) {
     if (!tabList || !activeButton) return;
     const tabRect = tabList.getBoundingClientRect();
     const buttonRect = activeButton.getBoundingClientRect();
     const x = buttonRect.left - tabRect.left;
     const width = buttonRect.width;
-    tabList.style.setProperty('--active-tab-x', `${x.toFixed(2)}px`);
-    tabList.style.setProperty('--active-tab-width', `${width.toFixed(2)}px`);
-    tabList.style.setProperty('--active-tab-opacity', width > 0 ? '1' : '0');
+    return { tabList, x, width };
+  },
+
+  applyIndicator(metrics) {
+    if (!metrics) return;
+    window.requestAnimationFrame(() => {
+      metrics.tabList.style.setProperty('--active-tab-x', `${metrics.x.toFixed(2)}px`);
+      metrics.tabList.style.setProperty('--active-tab-width', `${metrics.width.toFixed(2)}px`);
+      metrics.tabList.style.setProperty('--active-tab-opacity', metrics.width > 0 ? '1' : '0');
+    });
   },
 
   renderProduct(product) {
     const image = product.image
-      ? `<img src="${this.escape(product.image)}" alt="${this.escape(product.image_alt || product.name)}" loading="lazy">`
+      ? `<img src="${this.escape(product.image)}" alt="${this.escape(product.image_alt || product.name)}" width="400" height="400" loading="lazy" decoding="async">`
       : '<div class="product-img-placeholder"><i class="fas fa-image"></i></div>';
     const discountLabel = product.discount_percent ? `خصم ${this.escape(product.discount_percent)}%` : 'خصم';
     const rating = Number(product.rating || 5).toFixed(1);
@@ -731,10 +787,24 @@ function syncWishlistBtns() {
 
 // ============ Bootstrap ============
 function initPage() {
-  MobileMenu.init(); initSearch(); initPromoBanner(); initNewsletter(); initCartButtons(); initWishlistButtons();
-  setActiveNavLinks(); syncWishlistBtns(); UI.updateCartBadge(); UI.updateWishlistBadge();
+  const isHomePage = Boolean(document.querySelector('.home-page'));
+
+  MobileMenu.init(); initSearch(); initCartButtons();
+  setActiveNavLinks(); UI.updateCartBadge();
+  HeroSlider.init(); HomeProductTabs.init();
+
+  const initNonCriticalFeatures = () => {
+    initPromoBanner(); initNewsletter(); initWishlistButtons();
+    syncWishlistBtns(); UI.updateWishlistBadge();
+    ProductDetail.init(); WishlistPage.init(); initFilterToggle();
+  };
+
   // CartPage.init(); // Disabled - CartManager handles cart 
-  ProductDetail.init(); WishlistPage.init(); initFilterToggle(); HeroSlider.init(); HomeProductTabs.init();
+  if (isHomePage) {
+    runWhenIdle(initNonCriticalFeatures, 2500);
+  } else {
+    initNonCriticalFeatures();
+  }
 }
 
 document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', initPage) : initPage();

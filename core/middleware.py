@@ -27,6 +27,21 @@ class CanonicalDomainMiddleware:
 class PublicCacheMiddleware:
     """Make anonymous public pages easier to cache without touching private flows."""
 
+    immutable_asset_extensions = (
+        ".webp",
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".svg",
+        ".css",
+        ".js",
+        ".woff2",
+    )
+    asset_prefixes = (
+        "/static/",
+        "/media/",
+        "/shop_media/",
+    )
     private_prefixes = (
         "/admin/",
         "/accounts/",
@@ -42,6 +57,10 @@ class PublicCacheMiddleware:
 
     def __call__(self, request):
         response = self.get_response(request)
+
+        if self._is_immutable_asset(request, response):
+            patch_cache_control(response, public=True, max_age=31536000, immutable=True)
+            return response
 
         if not self._is_public_cache_candidate(request, response):
             return response
@@ -60,6 +79,12 @@ class PublicCacheMiddleware:
 
         patch_cache_control(response, public=True, max_age=300, stale_while_revalidate=1800)
         return response
+
+    def _is_immutable_asset(self, request, response):
+        if request.method not in {"GET", "HEAD"} or response.status_code != 200:
+            return False
+        path = (request.path_info or "").lower()
+        return path.startswith(self.asset_prefixes) and path.endswith(self.immutable_asset_extensions)
 
     def _is_public_cache_candidate(self, request, response):
         if request.method not in {"GET", "HEAD"}:

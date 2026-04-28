@@ -1,3 +1,6 @@
+from django.conf import settings
+
+
 NOINDEX_ROUTES = {
     (None, "search_products"),
     ("orders", "cart"),
@@ -27,6 +30,7 @@ def seo_context(request):
         meta_robots = "noindex,follow"
 
     return {
+        "asset_version": getattr(settings, "ASSET_VERSION", "20260428-lcp-tbt"),
         "meta_robots": meta_robots,
         "seo_site_name": "متجر الوسام",
     }
