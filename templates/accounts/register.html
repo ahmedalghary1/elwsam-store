@@ -334,6 +334,31 @@
 
     .form-error-msg.show { display: block; }
 
+    .auth-alert {
+      display: none;
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 18px;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .auth-alert.show { display: flex; }
+
+    .auth-alert.error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    .auth-alert.success {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+
     .password-toggle {
       position: absolute;
       left: 14px;
@@ -627,16 +652,18 @@
 
       <!-- عرض رسائل الخطأ العامة (مثل البريد موجود مسبقاً) -->
       {% if form.non_field_errors %}
-        <div class="auth-alert error show">
-          <span>⚠️</span>
-          <span>{{ form.non_field_errors.0 }}</span>
-        </div>
+        {% for error in form.non_field_errors %}
+          <div class="auth-alert error show" role="alert">
+            <span>⚠️</span>
+            <span>{{ error }}</span>
+          </div>
+        {% endfor %}
       {% endif %}
 
       <!-- عرض رسائل النجاح (من messages) -->
       {% if messages %}
         {% for message in messages %}
-          <div class="auth-alert {% if message.tags == 'error' %}error{% else %}success{% endif %} show">
+          <div class="auth-alert {% if message.tags == 'error' %}error{% else %}success{% endif %} show" role="alert">
             <span>{% if message.tags == 'error' %}⚠️{% else %}✅{% endif %}</span>
             <span>{{ message }}</span>
           </div>
@@ -652,10 +679,12 @@
           <div class="form-input-wrap">
             <span class="form-input-icon"><i class="fas fa-user"></i></span>
             <input type="text" name="username" id="id_username" class="form-input {% if form.username.errors %}error{% endif %}"
-                   value="{{ form.username.value|default:'' }}" placeholder="أدخل اسم المستخدم" required>
+                   value="{{ form.username.value|default:'' }}" placeholder="مثال: أحمد علي" required>
           </div>
           {% if form.username.errors %}
             <span class="form-error-msg show">{{ form.username.errors.0 }}</span>
+          {% else %}
+            <span class="form-error-msg">اسم المستخدم مطلوب.</span>
           {% endif %}
         </div>
 
@@ -670,19 +699,23 @@
             </div>
             {% if form.email.errors %}
               <span class="form-error-msg show">{{ form.email.errors.0 }}</span>
+            {% else %}
+              <span class="form-error-msg">يرجى إدخال بريد إلكتروني صحيح.</span>
             {% endif %}
           </div>
 
-          <!-- حقل رقم الجوال (اختياري) -->
+          <!-- حقل رقم الجوال -->
           <div class="form-group">
             <label class="form-label" for="id_phone">رقم الجوال </label>
             <div class="form-input-wrap">
               <span class="form-input-icon">📱</span>
               <input type="tel" name="phone" id="id_phone" class="form-input {% if form.phone.errors %}error{% endif %}"
-                     value="{{ form.phone.value|default:'' }}" placeholder="+20 100 000 0000">
+                     value="{{ form.phone.value|default:'' }}" placeholder="+20 100 000 0000" autocomplete="tel" inputmode="tel" required>
             </div>
             {% if form.phone.errors %}
               <span class="form-error-msg show">{{ form.phone.errors.0 }}</span>
+            {% else %}
+              <span class="form-error-msg">يرجى إدخال رقم هاتف صحيح.</span>
             {% endif %}
           </div>
         </div>
@@ -702,6 +735,8 @@
           </div>
           {% if form.password1.errors %}
             <span class="form-error-msg show">{{ form.password1.errors.0 }}</span>
+          {% else %}
+            <span class="form-error-msg">كلمة المرور يجب أن تكون 8 أحرف على الأقل.</span>
           {% endif %}
         </div>
 
@@ -716,14 +751,21 @@
           </div>
           {% if form.password2.errors %}
             <span class="form-error-msg show">{{ form.password2.errors.0 }}</span>
+          {% else %}
+            <span class="form-error-msg">يرجى تأكيد كلمة المرور.</span>
           {% endif %}
         </div>
 
-        <!-- الموافقة على الشروط (يتم التحقق منها بواسطة JS) -->
+        <!-- الموافقة على الشروط -->
         <label class="terms-wrap">
-          <input type="checkbox" id="acceptTerms" required>
+          <input type="checkbox" name="accept_terms" id="acceptTerms" required {% if form.accept_terms.value %}checked{% endif %}>
           <span>أوافق على <a href="#">شروط الاستخدام</a> و<a href="#">سياسة الخصوصية</a> الخاصة بمتجر الوسام</span>
         </label>
+        {% if form.accept_terms.errors %}
+          <span class="form-error-msg show" id="termsError">{{ form.accept_terms.errors.0 }}</span>
+        {% else %}
+          <span class="form-error-msg" id="termsError">يجب الموافقة على شروط الاستخدام وسياسة الخصوصية.</span>
+        {% endif %}
 
         <button type="submit" class="auth-submit" id="registerBtn">
           <div class="spinner"></div>
@@ -808,6 +850,7 @@
     form.addEventListener('submit', function(e) {
       // Remove existing error messages
       document.querySelectorAll('.form-error-msg').forEach(el => el.classList.remove('show'));
+      document.querySelectorAll('.form-input').forEach(el => el.classList.remove('error', 'success'));
 
       let isValid = true;
 
@@ -819,6 +862,8 @@
         if (errorSpan) errorSpan.textContent = 'اسم المستخدم مطلوب.';
         if (errorSpan) errorSpan.classList.add('show');
         isValid = false;
+      } else {
+        username.classList.add('success');
       }
 
       // Check email
@@ -830,6 +875,21 @@
         if (errorSpan) errorSpan.textContent = 'يرجى إدخال بريد إلكتروني صحيح.';
         if (errorSpan) errorSpan.classList.add('show');
         isValid = false;
+      } else {
+        email.classList.add('success');
+      }
+
+      // Check phone
+      const phone = document.getElementById('id_phone');
+      const phoneRegex = /^\+?[\d\s\-()]{10,20}$/;
+      if (!phone.value.trim() || !phoneRegex.test(phone.value.trim())) {
+        phone.classList.add('error');
+        const errorSpan = phone.closest('.form-group').querySelector('.form-error-msg');
+        if (errorSpan) errorSpan.textContent = 'يرجى إدخال رقم هاتف صحيح.';
+        if (errorSpan) errorSpan.classList.add('show');
+        isValid = false;
+      } else {
+        phone.classList.add('success');
       }
 
       // Check password
@@ -840,6 +900,8 @@
         if (errorSpan) errorSpan.textContent = 'كلمة المرور يجب أن تكون 8 أحرف على الأقل.';
         if (errorSpan) errorSpan.classList.add('show');
         isValid = false;
+      } else {
+        password1.classList.add('success');
       }
 
       // Check password match
@@ -850,15 +912,14 @@
         if (errorSpan) errorSpan.textContent = 'كلمتا المرور غير متطابقتان.';
         if (errorSpan) errorSpan.classList.add('show');
         isValid = false;
+      } else {
+        password2.classList.add('success');
       }
 
       // Check terms
       if (!termsCheck.checked) {
-        if (window.UI?.showToast) {
-          window.UI.showToast('يجب الموافقة على شروط الاستخدام وسياسة الخصوصية.', '⚠️');
-        } else {
-          alert('يجب الموافقة على شروط الاستخدام وسياسة الخصوصية.');
-        }
+        const termsError = document.getElementById('termsError');
+        if (termsError) termsError.classList.add('show');
         isValid = false;
       }
 
@@ -869,6 +930,22 @@
         submitBtn.classList.add('loading');
       }
     });
+
+    document.querySelectorAll('.form-input').forEach(input => {
+      input.addEventListener('input', function() {
+        this.classList.remove('error');
+        const errorSpan = this.closest('.form-group')?.querySelector('.form-error-msg');
+        if (errorSpan) errorSpan.classList.remove('show');
+      });
+    });
+
+    if (termsCheck) {
+      termsCheck.addEventListener('change', function() {
+        if (this.checked) {
+          document.getElementById('termsError')?.classList.remove('show');
+        }
+      });
+    }
   });
 </script>
 {% endblock %}

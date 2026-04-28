@@ -62,10 +62,10 @@
         </div>
               </div>
             </div>
-            <div class="hero-image-caption">
+            <!-- <div class="hero-image-caption">
               <span>مختارات عملية للبيت والمكتب</span>
               <strong>إضاءة • برايز • مشتركات</strong>
-            </div>
+            </div> -->
           </div>
         </div>
 
@@ -106,6 +106,40 @@
         </div>
       </div>
     </div>
+
+    <!-- ============================
+         CATEGORIES SECTION
+         ============================ -->
+    <section class="categories-section page-section" aria-labelledby="categories-heading">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="section-kicker">تصفح أسرع</span>
+            <h2 id="categories-heading">تسوق حسب الفئة</h2>
+            <p>استكشف مجموعاتنا الواسعة</p>
+          </div>
+          <a href="{% url 'category_list' %}" class="view-all-btn">كل الفئات <i class="fas fa-arrow-left" aria-hidden="true"></i></a>
+        </div>
+
+        <div class="categories-grid">
+          {% for category in categories %}
+          <a href="{% url 'category_products' id=category.id slug=category.slug %}" class="category-card" aria-label="{{ category.name }}">
+            <div class="cat-icon">
+              {% if category.image %}
+                <img src="{{ category.image.url }}" alt="{{ category.name }}" loading="lazy">
+              {% else %}
+                <span class="cat-fallback-icon">{{ category.icon }}</span>
+              {% endif %}
+            </div>
+            <span class="cat-name">{{ category.name }}</span>
+            <span class="cat-count">{{ category.get_product_count }} منتج</span>
+            <span class="cat-arrow" aria-hidden="true"><i class="fas fa-arrow-left"></i></span>
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
     <section class="home-products-section page-section" aria-labelledby="home-products-heading" data-home-product-tabs data-api-url="{% url 'product_collection_api' %}" data-limit="10">
       <div class="container">
         <div class="home-products-header">
@@ -194,39 +228,6 @@
               <a href="{% url 'product_list' %}" class="btn btn-black btn-sm">تصفح الآن</a>
             </div>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============================
-         CATEGORIES SECTION
-         ============================ -->
-    <section class="categories-section page-section" aria-labelledby="categories-heading">
-      <div class="container">
-        <div class="section-header">
-          <div class="section-title">
-            <span class="section-kicker">تصفح أسرع</span>
-            <h2 id="categories-heading">تسوق حسب الفئة</h2>
-            <p>استكشف مجموعاتنا الواسعة</p>
-          </div>
-          <a href="{% url 'category_list' %}" class="view-all-btn">كل الفئات <i class="fas fa-arrow-left" aria-hidden="true"></i></a>
-        </div>
-
-        <div class="categories-grid">
-          {% for category in categories %}
-          <a href="{% url 'category_products' id=category.id slug=category.slug %}" class="category-card" aria-label="{{ category.name }}">
-            <div class="cat-icon">
-              {% if category.image %}
-                <img src="{{ category.image.url }}" alt="{{ category.name }}" loading="lazy">
-              {% else %}
-                <span class="cat-fallback-icon">{{ category.icon }}</span>
-              {% endif %}
-            </div>
-            <span class="cat-name">{{ category.name }}</span>
-            <span class="cat-count">{{ category.get_product_count }} منتج</span>
-            <span class="cat-arrow" aria-hidden="true"><i class="fas fa-arrow-left"></i></span>
-          </a>
-          {% endfor %}
         </div>
       </div>
     </section>

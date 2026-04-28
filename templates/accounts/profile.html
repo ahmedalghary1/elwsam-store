@@ -1,308 +1,777 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %} الملف الشخصي | متجر الوسام{% endblock title %}
+
+{% block title %}الملف الشخصي | متجر الوسام{% endblock title %}
 
 {% block content %}
-<main>
-  <div class="profile-page">
-    <div class="container">
-      <div class="profile-header">
-        <div class="profile-header-content">
-          <div class="profile-header-text">
-            <h1>الملف الشخصي</h1>
-            <p>إدارة حسابك الشخصي وعناوين الشحن</p>
+<main class="profile-page">
+  <div class="container">
+    <section class="profile-hero" aria-labelledby="profile-title">
+      <div class="profile-avatar-wrap">
+        {% if profile.avatar %}
+          <img src="{{ profile.avatar.url }}" alt="الصورة الشخصية" class="profile-avatar">
+        {% else %}
+          <div class="profile-avatar profile-avatar-placeholder" aria-hidden="true">
+            <i class="fas fa-user"></i>
           </div>
-          <a href="{% url 'accounts:logout' %}" class="btn btn-logout">
-            <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
-          </a>
-        </div>
+        {% endif %}
       </div>
 
-      <div class="profile-content">
-        <!-- Profile Info -->
-        <div class="profile-section">
-          <h2>معلومات الحساب</h2>
-          <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            <div class="form-row">
-              <div class="form-group">
-                <label>الاسم</label>
-                <input type="text" value="{{ user.username }}" readonly class="form-control">
-              </div>
-              <div class="form-group">
-                <label>البريد الإلكتروني</label>
-                <input type="email" value="{{ user.email }}" readonly class="form-control">
-              </div>
-            </div>
+      <div class="profile-hero-main">
+        <span class="profile-kicker">حسابي</span>
+        <h1 id="profile-title">{{ user.get_full_name|default:user.username }}</h1>
+        <p>إدارة بيانات الحساب، النبذة الشخصية، وعناوين الشحن المحفوظة.</p>
+      </div>
 
-            <div class="form-group">
-              <label for="{{ profile_form.bio.id_for_label }}">نبذة عنك</label>
-              {{ profile_form.bio }}
-            </div>
+      <div class="profile-hero-actions">
+        <a href="{% url 'accounts:address_create' %}" class="btn btn-primary">
+          <i class="fas fa-location-dot" aria-hidden="true"></i>
+          إضافة عنوان
+        </a>
+        <a href="{% url 'accounts:logout' %}" class="btn profile-logout-btn">
+          <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+          تسجيل الخروج
+        </a>
+      </div>
+    </section>
 
-            <div class="form-group">
-              <label for="{{ profile_form.avatar.id_for_label }}">الصورة الشخصية</label>
-              {{ profile_form.avatar }}
-              {% if user.profile.avatar %}
-                <img src="{{ user.profile.avatar.url }}" alt="الصورة الشخصية" class="current-avatar">
+    {% if messages %}
+      <div class="profile-messages" aria-live="polite">
+        {% for message in messages %}
+          <div class="profile-alert {% if message.tags %}{{ message.tags }}{% else %}info{% endif %}" role="alert">
+            <i class="fas {% if message.tags == 'error' %}fa-triangle-exclamation{% elif message.tags == 'success' %}fa-circle-check{% else %}fa-circle-info{% endif %}" aria-hidden="true"></i>
+            <span>{{ message }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <section class="profile-stats" aria-label="ملخص الحساب">
+      <article class="profile-stat-card">
+        <span class="stat-icon"><i class="fas fa-envelope" aria-hidden="true"></i></span>
+        <div>
+          <span class="stat-label">البريد الإلكتروني</span>
+          <strong>{{ user.email }}</strong>
+        </div>
+      </article>
+
+      <article class="profile-stat-card">
+        <span class="stat-icon"><i class="fas fa-phone" aria-hidden="true"></i></span>
+        <div>
+          <span class="stat-label">رقم الجوال</span>
+          <strong>{{ user.phone|default:"غير مضاف" }}</strong>
+        </div>
+      </article>
+
+      <article class="profile-stat-card">
+        <span class="stat-icon"><i class="fas fa-map-location-dot" aria-hidden="true"></i></span>
+        <div>
+          <span class="stat-label">العناوين المحفوظة</span>
+          <strong>{{ addresses_count }}</strong>
+        </div>
+      </article>
+
+      <article class="profile-stat-card">
+        <span class="stat-icon"><i class="fas fa-calendar-check" aria-hidden="true"></i></span>
+        <div>
+          <span class="stat-label">تاريخ الانضمام</span>
+          <strong>{{ user.date_joined|date:"Y/m/d" }}</strong>
+        </div>
+      </article>
+    </section>
+
+    <div class="profile-layout">
+      <section class="profile-panel account-panel" aria-labelledby="account-heading">
+        <div class="profile-panel-header">
+          <div>
+            <span class="panel-kicker">بيانات الحساب</span>
+            <h2 id="account-heading">معلوماتك الأساسية</h2>
+          </div>
+        </div>
+
+        <div class="account-info-grid">
+          <div class="info-item">
+            <span>اسم المستخدم</span>
+            <strong>{{ user.username }}</strong>
+          </div>
+          <div class="info-item">
+            <span>الاسم الكامل</span>
+            <strong>{{ user.get_full_name|default:"غير مضاف" }}</strong>
+          </div>
+          <div class="info-item">
+            <span>البريد الإلكتروني</span>
+            <strong>{{ user.email }}</strong>
+          </div>
+          <div class="info-item">
+            <span>رقم الجوال</span>
+            <strong>{{ user.phone|default:"غير مضاف" }}</strong>
+          </div>
+          <div class="info-item">
+            <span>حالة الحساب</span>
+            <strong>{% if user.is_active %}مفعّل{% else %}غير مفعّل{% endif %}</strong>
+          </div>
+          <div class="info-item">
+            <span>آخر دخول</span>
+            <strong>{% if user.last_login %}{{ user.last_login|date:"Y/m/d H:i" }}{% else %}لم يتم تسجيله بعد{% endif %}</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="profile-panel edit-panel" aria-labelledby="edit-profile-heading">
+        <div class="profile-panel-header">
+          <div>
+            <span class="panel-kicker">تعديل</span>
+            <h2 id="edit-profile-heading">بيانات التواصل والصورة</h2>
+          </div>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" class="profile-form">
+          {% csrf_token %}
+
+          <div class="profile-form-grid">
+            <div class="profile-form-row">
+              <label for="{{ profile_form.email.id_for_label }}">البريد الإلكتروني</label>
+              {{ profile_form.email }}
+              {% if profile_form.email.errors %}
+                <span class="profile-field-error">{{ profile_form.email.errors.0 }}</span>
               {% endif %}
             </div>
 
-            <button type="submit" class="btn btn-primary">حفظ التغييرات</button>
-          </form>
-        </div>
-
-        <!-- Addresses -->
-        <div class="profile-section">
-          <div class="section-header">
-            <h2>عناوين الشحن</h2>
-            <a href="{% url 'accounts:address_create' %}" class="btn btn-outline">إضافة عنوان جديد</a>
+            <div class="profile-form-row">
+              <label for="{{ profile_form.phone.id_for_label }}">رقم الجوال</label>
+              {{ profile_form.phone }}
+              {% if profile_form.phone.errors %}
+                <span class="profile-field-error">{{ profile_form.phone.errors.0 }}</span>
+              {% endif %}
+            </div>
           </div>
 
-          {% if addresses %}
-            <div class="addresses-grid">
-              {% for address in addresses %}
-                <div class="address-card {% if address.is_default %}default{% endif %}">
-                  {% if address.is_default %}
-                    <span class="default-badge">افتراضي</span>
-                  {% endif %}
+          <div class="profile-form-row">
+            <label for="{{ profile_form.bio.id_for_label }}">نبذة عنك</label>
+            {{ profile_form.bio }}
+            {% if profile_form.bio.errors %}
+              <span class="profile-field-error">{{ profile_form.bio.errors.0 }}</span>
+            {% endif %}
+          </div>
 
-                  <div class="address-content">
-                    <h3>{{ address.full_name }}</h3>
-                    <p>{{ address.street }}</p>
-                    <p>{{ address.city }}, {{ address.country }}</p>
-                    <p>{{ address.phone }}</p>
-                    {% if address.postal_code %}
-                      <p>الرمز البريدي: {{ address.postal_code }}</p>
-                    {% endif %}
-                  </div>
-
-                  <div class="address-actions">
-                    <a href="{% url 'accounts:address_update' address.pk %}" class="btn btn-sm btn-outline">تعديل</a>
-                    {% if not address.is_default %}
-                      <form method="post" action="{% url 'accounts:set_default_address' address.pk %}" style="display: inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-sm btn-secondary">تعيين كافتراضي</button>
-                      </form>
-                    {% endif %}
-                    <form method="post" action="{% url 'accounts:address_delete' address.pk %}" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا العنوان؟')">
-                      {% csrf_token %}
-                      <button type="submit" class="btn btn-sm btn-danger">حذف</button>
-                    </form>
-                  </div>
-                </div>
-              {% endfor %}
+          <div class="profile-form-row">
+            <label for="{{ profile_form.avatar.id_for_label }}">الصورة الشخصية</label>
+            <div class="avatar-input-row">
+              {{ profile_form.avatar }}
+              {% if profile.avatar %}
+                <a href="{{ profile.avatar.url }}" target="_blank" rel="noopener" class="avatar-preview-link">
+                  عرض الصورة الحالية
+                </a>
+              {% endif %}
             </div>
+            {% if profile_form.avatar.errors %}
+              <span class="profile-field-error">{{ profile_form.avatar.errors.0 }}</span>
+            {% endif %}
+          </div>
+
+          <button type="submit" class="btn btn-primary profile-save-btn">
+            <i class="fas fa-floppy-disk" aria-hidden="true"></i>
+            حفظ التغييرات
+          </button>
+        </form>
+      </section>
+    </div>
+
+    <section class="profile-panel addresses-panel" aria-labelledby="addresses-heading">
+      <div class="profile-panel-header addresses-header">
+        <div>
+          <span class="panel-kicker">الشحن</span>
+          <h2 id="addresses-heading">عناوين الشحن</h2>
+          {% if default_address %}
+            <p>العنوان الافتراضي الحالي: {{ default_address.city }}، {{ default_address.country }}</p>
           {% else %}
-            <div class="empty-state">
-              <p>لا توجد عناوين محفوظة</p>
-              <a href="{% url 'accounts:address_create' %}" class="btn btn-primary">إضافة عنوان أول</a>
-            </div>
+            <p>أضف عنوانًا افتراضيًا لتسريع عملية الطلب.</p>
           {% endif %}
         </div>
+        <a href="{% url 'accounts:address_create' %}" class="btn btn-outline">
+          <i class="fas fa-plus" aria-hidden="true"></i>
+          إضافة عنوان جديد
+        </a>
       </div>
-    </div>
+
+      {% if addresses %}
+        <div class="addresses-grid">
+          {% for address in addresses %}
+            <article class="address-card {% if address.is_default %}default{% endif %}">
+              <div class="address-card-header">
+                <div>
+                  <h3>{{ address.full_name }}</h3>
+                  <span>{{ address.city }}، {{ address.country }}</span>
+                </div>
+                {% if address.is_default %}
+                  <span class="default-badge">افتراضي</span>
+                {% endif %}
+              </div>
+
+              <dl class="address-details">
+                <div>
+                  <dt>العنوان</dt>
+                  <dd>{{ address.street }}</dd>
+                </div>
+                <div>
+                  <dt>الهاتف</dt>
+                  <dd>{{ address.phone }}</dd>
+                </div>
+                {% if address.postal_code %}
+                  <div>
+                    <dt>الرمز البريدي</dt>
+                    <dd>{{ address.postal_code }}</dd>
+                  </div>
+                {% endif %}
+              </dl>
+
+              <div class="address-actions">
+                <a href="{% url 'accounts:address_update' address.pk %}" class="btn btn-sm btn-outline">
+                  <i class="fas fa-pen" aria-hidden="true"></i>
+                  تعديل
+                </a>
+
+                {% if not address.is_default %}
+                  <form method="post" action="{% url 'accounts:set_default_address' address.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-secondary">تعيين كافتراضي</button>
+                  </form>
+                {% endif %}
+
+                <form method="post" action="{% url 'accounts:address_delete' address.pk %}" onsubmit="return confirm('هل أنت متأكد من حذف هذا العنوان؟')">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm profile-danger-btn">
+                    <i class="fas fa-trash" aria-hidden="true"></i>
+                    حذف
+                  </button>
+                </form>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="profile-empty-state">
+          <i class="fas fa-map-location-dot" aria-hidden="true"></i>
+          <h3>لا توجد عناوين محفوظة</h3>
+          <p>أضف عنوان الشحن الخاص بك ليظهر هنا وتستخدمه عند الطلب.</p>
+          <a href="{% url 'accounts:address_create' %}" class="btn btn-primary">إضافة عنوان أول</a>
+        </div>
+      {% endif %}
+    </section>
   </div>
 </main>
 
 <style>
 .profile-page {
-  padding: 2rem 0;
+  padding: clamp(24px, 4vw, 56px) 0 72px;
+  background: #f7f7f7;
 }
 
-.profile-header {
-  margin-bottom: 3rem;
+.profile-hero,
+.profile-panel,
+.profile-stat-card {
+  min-width: 0;
+  background: var(--color-white);
+  border: 1px solid rgba(10, 10, 10, 0.08);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.055);
 }
 
-.profile-header-content {
-  display: flex;
-  justify-content: space-between;
+.profile-hero {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  padding: 2rem;
+  gap: clamp(16px, 3vw, 28px);
+  padding: clamp(20px, 3.5vw, 34px);
+  margin-bottom: clamp(18px, 3vw, 28px);
 }
 
-.profile-header-text {
-  text-align: right;
+.profile-avatar-wrap {
+  position: relative;
 }
 
-.profile-header h1 {
-  font-size: clamp(1.5rem, 5vw, 2.5rem);
-  margin-bottom: 0.5rem;
+.profile-avatar {
+  width: clamp(76px, 9vw, 112px);
+  height: clamp(76px, 9vw, 112px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid var(--color-white);
+  border-radius: 50%;
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
+  object-fit: cover;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+  font-size: 2rem;
 }
 
-.profile-header p {
+.profile-kicker,
+.panel-kicker,
+.stat-label {
+  display: block;
+  color: var(--color-gray-500);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.profile-hero h1,
+.profile-panel h2 {
   margin: 0;
-  color: var(--color-gray-600);
+  color: var(--color-black);
+  font-weight: 900;
 }
 
-.btn-logout {
-  background: #dc3545;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  text-decoration: none;
+.profile-hero h1 {
+  margin-top: 4px;
+  font-size: clamp(1.45rem, 3vw, 2.4rem);
+  overflow-wrap: anywhere;
+}
+
+.profile-hero p,
+.addresses-header p,
+.profile-empty-state p {
+  margin: 8px 0 0;
+  color: var(--color-gray-600);
+  line-height: 1.8;
+}
+
+.profile-hero-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.profile-hero-actions .btn {
+  min-width: 0;
+}
+
+.profile-logout-btn {
+  border: 1px solid rgba(220, 53, 69, 0.24);
+  color: #b4232f;
+  background: #fff5f5;
+}
+
+.profile-logout-btn:hover {
+  color: var(--color-white);
+  background: #b4232f;
+}
+
+.profile-messages {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.profile-alert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  color: var(--color-gray-800);
+  background: var(--color-white);
+  border: 1px solid rgba(10, 10, 10, 0.08);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.profile-alert.success {
+  color: #166534;
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.profile-alert.error {
+  color: #991b1b;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.profile-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: clamp(18px, 3vw, 28px);
+}
+
+.profile-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+}
+
+.stat-icon {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  font-weight: 600;
-  transition: background 0.3s;
-  white-space: nowrap;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-md);
+  color: var(--color-black);
+  background: var(--color-primary);
 }
 
-.btn-logout:hover {
-  background: #c82333;
+.profile-stat-card strong {
+  display: block;
+  max-width: 100%;
+  margin-top: 4px;
+  color: var(--color-black);
+  font-size: 0.95rem;
+  overflow-wrap: anywhere;
 }
 
-.profile-content {
-  max-width: 1000px;
-  margin: 0 auto;
+.profile-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  gap: clamp(16px, 2.4vw, 24px);
+  margin-bottom: clamp(18px, 3vw, 28px);
 }
 
-.profile-section {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  padding: 2rem;
-  margin-bottom: 2rem;
+.profile-panel {
+  padding: clamp(18px, 3vw, 28px);
 }
 
-.profile-section h2 {
-  margin-bottom: 1.5rem;
-  color: var(--color-gray-800);
-}
-
-.section-header {
+.profile-panel-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 20px;
+  min-width: 0;
 }
 
-.form-row {
+.profile-panel h2 {
+  margin-top: 4px;
+  font-size: clamp(1.18rem, 2vw, 1.55rem);
+  overflow-wrap: anywhere;
+}
+
+.account-info-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
-.form-group {
-  margin-bottom: 1.5rem;
+.info-item {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(10, 10, 10, 0.08);
+  border-radius: var(--radius-md);
+  background: #fafafa;
 }
 
-.form-group label {
+.info-item span {
   display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
+  color: var(--color-gray-500);
+  font-size: 0.78rem;
+  font-weight: 800;
 }
 
-.form-control {
+.info-item strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--color-black);
+  font-size: 0.92rem;
+  overflow-wrap: anywhere;
+}
+
+.profile-form {
+  display: grid;
+  gap: 16px;
+}
+
+.profile-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  min-width: 0;
+}
+
+.profile-form-row label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--color-black);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.profile-form .form-control {
+  max-width: 100%;
   width: 100%;
-  padding: 0.75rem;
-  border: 2px solid var(--color-gray-200);
-  border-radius: 8px;
-  font-size: 1rem;
+  min-height: 44px;
+  padding: 12px 14px;
+  border: 1.5px solid var(--color-gray-300);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  color: var(--color-black);
+  font-family: var(--font-main);
+  font-size: 0.92rem;
 }
 
-.current-avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  margin-top: 0.5rem;
-  object-fit: cover;
+.profile-form textarea.form-control {
+  min-height: 132px;
+  resize: vertical;
+  line-height: 1.8;
+}
+
+.profile-form .form-control:focus {
+  border-color: var(--color-black);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(10, 10, 10, 0.08);
+}
+
+.avatar-input-row {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.avatar-input-row input[type="file"] {
+  min-width: 0;
+}
+
+.avatar-preview-link {
+  color: var(--color-gray-700);
+  font-size: 0.84rem;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.profile-field-error {
+  display: block;
+  margin-top: 6px;
+  color: var(--color-danger);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.profile-save-btn {
+  justify-self: start;
+}
+
+.addresses-header {
+  align-items: center;
 }
 
 .addresses-grid {
   display: grid;
-  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
 }
 
 .address-card {
-  border: 2px solid var(--color-gray-200);
-  border-radius: 8px;
-  padding: 1.5rem;
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 18px;
+  border: 1.5px solid rgba(10, 10, 10, 0.09);
+  border-radius: var(--radius-md);
+  background: #ffffff;
 }
 
 .address-card.default {
-  border-color: var(--color-primary);
-  background: rgba(74, 144, 226, 0.05);
+  border-color: rgba(254, 216, 45, 0.9);
+  box-shadow: inset 0 0 0 1px rgba(254, 216, 45, 0.25);
+}
+
+.address-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+  min-width: 0;
+}
+
+.address-card h3 {
+  margin: 0;
+  color: var(--color-black);
+  font-size: 1rem;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+.address-card-header span:not(.default-badge) {
+  display: block;
+  margin-top: 4px;
+  color: var(--color-gray-500);
+  font-size: 0.82rem;
+  font-weight: 700;
 }
 
 .default-badge {
-  position: absolute;
-  top: 10px;
-  right: 10px;
+  flex: 0 0 auto;
+  padding: 5px 9px;
+  border-radius: var(--radius-full);
+  color: var(--color-black);
   background: var(--color-primary);
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.address-details {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.address-details div {
+  min-width: 0;
+}
+
+.address-details dt {
+  color: var(--color-gray-500);
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 800;
 }
 
-.address-content h3 {
-  margin: 0 0 0.5rem 0;
+.address-details dd {
+  margin: 3px 0 0;
   color: var(--color-gray-800);
-}
-
-.address-content p {
-  margin: 0.25rem 0;
-  color: var(--color-gray-600);
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
 }
 
 .address-actions {
-  margin-top: 1rem;
   display: flex;
-  gap: 0.5rem;
   flex-wrap: wrap;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 16px;
 }
 
-.btn-sm {
-  padding: 0.375rem 0.75rem;
-  font-size: 0.875rem;
+.address-actions form {
+  margin: 0;
 }
 
-.empty-state {
+.profile-danger-btn {
+  border: 1px solid rgba(220, 53, 69, 0.26);
+  color: #b4232f;
+  background: transparent;
+}
+
+.profile-danger-btn:hover {
+  color: var(--color-white);
+  background: #b4232f;
+}
+
+.profile-empty-state {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: clamp(28px, 5vw, 48px);
   text-align: center;
-  padding: 3rem;
-  color: var(--color-gray-500);
+  border: 1.5px dashed var(--color-gray-300);
+  border-radius: var(--radius-md);
+  background: #fafafa;
 }
 
-.empty-state p {
-  margin-bottom: 1rem;
-  font-size: 1.1rem;
+.profile-empty-state i {
+  color: var(--color-gray-400);
+  font-size: 2rem;
 }
 
-@media (max-width: 768px) {
-  .profile-header-content {
+.profile-empty-state h3 {
+  margin: 0;
+  color: var(--color-black);
+  font-weight: 900;
+}
+
+@media (max-width: 1100px) {
+  .profile-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profile-layout,
+  .addresses-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .profile-page {
+    padding-top: 18px;
+  }
+
+  .profile-hero {
+    grid-template-columns: 1fr;
+    text-align: center;
+    justify-items: center;
+  }
+
+  .profile-hero-actions,
+  .addresses-header,
+  .profile-panel-header {
+    width: 100%;
     flex-direction: column;
-    gap: 1.5rem;
-    text-align: center;
+    align-items: stretch;
   }
 
-  .profile-header-text {
-    text-align: center;
-  }
-
-  .btn-logout {
+  .profile-hero-actions .btn,
+  .addresses-header .btn,
+  .profile-save-btn {
     width: 100%;
     justify-content: center;
   }
 
-  .form-row {
+  .profile-stats,
+  .account-info-grid,
+  .profile-form-grid {
     grid-template-columns: 1fr;
   }
 
-  .section-header {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
+  .address-actions {
+    display: grid;
+    grid-template-columns: 1fr;
   }
 
-  .address-actions {
+  .address-actions .btn,
+  .address-actions form,
+  .address-actions button {
+    width: 100%;
     justify-content: center;
+  }
+}
+
+@media (max-width: 420px) {
+  .profile-page {
+    padding-bottom: 56px;
+  }
+
+  .profile-hero,
+  .profile-panel,
+  .profile-stat-card,
+  .address-card {
+    border-radius: var(--radius-md);
+  }
+
+  .profile-hero,
+  .profile-panel {
+    padding: 16px;
+  }
+
+  .profile-stat-card {
+    padding: 13px;
+  }
+
+  .stat-icon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .address-card-header {
+    flex-direction: column;
+  }
+
+  .default-badge {
+    align-self: flex-start;
   }
 }
 </style>

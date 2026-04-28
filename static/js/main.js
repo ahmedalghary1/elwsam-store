@@ -535,9 +535,16 @@ const HomeProductTabs = {
     const limit = root.dataset.limit || '10';
     if (!buttons.length || !grid || !apiUrl) return;
 
-    const activeButton = root.querySelector('[data-product-tab].active') || buttons[0];
-    this.updateIndicator(tabList, activeButton);
-    window.addEventListener('resize', () => this.updateIndicator(tabList, root.querySelector('[data-product-tab].active')));
+    const syncIndicator = () => {
+      window.requestAnimationFrame(() => {
+        this.updateIndicator(tabList, root.querySelector('[data-product-tab].active') || buttons[0]);
+      });
+    };
+
+    syncIndicator();
+    window.addEventListener('resize', syncIndicator);
+    window.addEventListener('load', syncIndicator, { once: true });
+    if (document.fonts?.ready) document.fonts.ready.then(syncIndicator).catch(() => {});
 
     buttons.forEach((button, index) => {
       button.addEventListener('click', () => {
@@ -612,8 +619,13 @@ const HomeProductTabs = {
 
   updateIndicator(tabList, activeButton) {
     if (!tabList || !activeButton) return;
-    tabList.style.setProperty('--active-tab-x', `${activeButton.offsetLeft}px`);
-    tabList.style.setProperty('--active-tab-width', `${activeButton.offsetWidth}px`);
+    const tabRect = tabList.getBoundingClientRect();
+    const buttonRect = activeButton.getBoundingClientRect();
+    const x = buttonRect.left - tabRect.left;
+    const width = buttonRect.width;
+    tabList.style.setProperty('--active-tab-x', `${x.toFixed(2)}px`);
+    tabList.style.setProperty('--active-tab-width', `${width.toFixed(2)}px`);
+    tabList.style.setProperty('--active-tab-opacity', width > 0 ? '1' : '0');
   },
 
   renderProduct(product) {

@@ -1,11 +1,18 @@
+import logging
+
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
 from django.views.generic import ListView
 from django.contrib import messages
+from django.db import transaction
 from .models import User, UserProfile, Address, UserOTP
 from .forms import UserRegisterForm, UserLoginForm, UserProfileForm, AddressForm
 from .utils import create_otp, verify_otp, mark_otp_as_used
+
+logger = logging.getLogger(__name__)
 
 # =========================
 #  Register View
@@ -20,21 +27,28 @@ class RegisterView(View):
     def post(self, request):
         form = UserRegisterForm(request.POST)
         if form.is_valid():
-            user = form.save(commit=False)
-            user.is_active = False  # تعطيل الحساب حتى يتم التحقق من البريد
-            user.save()
-            
-            # إنشاء Profile تلقائياً
-            UserProfile.objects.create(user=user)
-            
-            # إرسال OTP للتحقق من البريد
-            create_otp(user.email, purpose='email_verification', user=user)
-            
-            # حفظ البريد في الجلسة للتحقق
-            request.session['pending_verification_email'] = user.email
-            
-            messages.success(request, "تم إنشاء الحساب بنجاح! تم إرسال كود التحقق إلى بريدك الإلكتروني.")
-            return redirect('accounts:verify_email')
+            try:
+                with transaction.atomic():
+                    user = form.save(commit=False)
+                    user.is_active = False  # تعطيل الحساب حتى يتم التحقق من البريد
+                    user.save()
+
+                    # إنشاء Profile تلقائياً
+                    UserProfile.objects.get_or_create(user=user)
+
+                    # إرسال OTP للتحقق من البريد
+                    create_otp(user.email, purpose='email_verification', user=user)
+
+                # حفظ البريد في الجلسة للتحقق
+                request.session['pending_verification_email'] = user.email
+
+                messages.success(request, "تم إنشاء الحساب بنجاح! تم إرسال كود التحقق إلى بريدك الإلكتروني.")
+                return redirect('accounts:verify_email')
+            except Exception:
+                logger.exception("Failed to create account for email=%s", form.cleaned_data.get('email'))
+                messages.error(request, "حدث خطأ أثناء إنشاء الحساب. يرجى المحاولة مرة أخرى.")
+        else:
+            messages.error(request, "يرجى تصحيح الأخطاء الموضحة ثم المحاولة مرة أخرى.")
         return render(request, self.template_name, {'form': form})
 
 
@@ -80,15 +94,22 @@ class LoginView(View):
 
     def post(self, request):
         form = UserLoginForm(request.POST)
-        if form.is_valid():
-            user = form.cleaned_data['user']
-            login(request, user)
-            messages.success(request, f"مرحبًا {user.username}")
-            next_url = request.POST.get('next') or request.GET.get('next') or 'index'
-            if request.POST.get('has_cart_data') == 'true':
-                next_url = f"{next_url}{'&' if '?' in next_url else '?'}login=success"
-            return redirect(next_url)
-        # إذا كانت البيانات غير صالحة، أعد الصفحة مع الأخطاء
+        try:
+            if form.is_valid():
+                user = form.cleaned_data['user']
+                login(request, user)
+                messages.success(request, f"مرحبًا {user.username}")
+                next_url = request.POST.get('next') or request.GET.get('next') or 'index'
+                if request.POST.get('has_cart_data') == 'true':
+                    next_url = f"{next_url}{'&' if '?' in next_url else '?'}login=success"
+                return redirect(next_url)
+        except Exception:
+            logger.exception("Failed login attempt for identifier=%s", request.POST.get('identifier', ''))
+            messages.error(request, "حدث خطأ أثناء تسجيل الدخول. يرجى المحاولة مرة أخرى.")
+            return render(request, self.template_name, {'form': form})
+
+        if not form.non_field_errors():
+            messages.error(request, "يرجى إدخال بيانات تسجيل الدخول بشكل صحيح.")
         return render(request, self.template_name, {'form': form})
 # =========================
 #  Logout View
@@ -103,35 +124,42 @@ class LogoutView(View):
 # =========================
 #  Profile View
 # =========================
-class ProfileView(View):
+class ProfileView(LoginRequiredMixin, View):
     template_name = "accounts/profile.html"
+    login_url = "accounts:login"
+
+    def get_context(self, request, profile_form=None):
+        profile, _ = UserProfile.objects.get_or_create(user=request.user)
+        addresses = request.user.addresses.all()
+        default_address = addresses.filter(is_default=True).first()
+        return {
+            'profile': profile,
+            'profile_form': profile_form or UserProfileForm(instance=profile, user=request.user),
+            'addresses': addresses,
+            'default_address': default_address,
+            'addresses_count': addresses.count(),
+        }
 
     def get(self, request):
-        profile_form = UserProfileForm(instance=request.user.profile)
-        addresses = request.user.addresses.all()
-        return render(request, self.template_name, {
-            'profile_form': profile_form,
-            'addresses': addresses
-        })
+        return render(request, self.template_name, self.get_context(request))
 
     def post(self, request):
-        profile_form = UserProfileForm(request.POST, request.FILES, instance=request.user.profile)
+        profile, _ = UserProfile.objects.get_or_create(user=request.user)
+        profile_form = UserProfileForm(request.POST, request.FILES, instance=profile, user=request.user)
         if profile_form.is_valid():
             profile_form.save()
             messages.success(request, "تم تحديث الملف الشخصي بنجاح")
             return redirect('accounts:profile')
-        addresses = request.user.addresses.all()
-        return render(request, self.template_name, {
-            'profile_form': profile_form,
-            'addresses': addresses
-        })
+        messages.error(request, "يرجى تصحيح بيانات الملف الشخصي ثم المحاولة مرة أخرى.")
+        return render(request, self.template_name, self.get_context(request, profile_form))
 
 
 # =========================
 #  Address CRUD Views
 # =========================
-class AddressCreateView(View):
+class AddressCreateView(LoginRequiredMixin, View):
     template_name = "accounts/address_form.html"
+    login_url = "accounts:login"
 
     def get(self, request):
         form = AddressForm()
@@ -151,8 +179,9 @@ class AddressCreateView(View):
         return render(request, self.template_name, {'form': form})
 
 
-class AddressUpdateView(View):
+class AddressUpdateView(LoginRequiredMixin, View):
     template_name = "accounts/address_form.html"
+    login_url = "accounts:login"
 
     def get(self, request, pk):
         address = get_object_or_404(Address, pk=pk, user=request.user)
@@ -171,7 +200,9 @@ class AddressUpdateView(View):
         return render(request, self.template_name, {'form': form})
 
 
-class AddressDeleteView(View):
+class AddressDeleteView(LoginRequiredMixin, View):
+    login_url = "accounts:login"
+
     def post(self, request, pk):
         address = get_object_or_404(Address, pk=pk, user=request.user)
         address.delete()
@@ -182,6 +213,7 @@ class AddressDeleteView(View):
 # =========================
 #  Set Default Address
 # =========================
+@login_required(login_url="accounts:login")
 def set_default_address(request, pk):
     address = get_object_or_404(Address, pk=pk, user=request.user)
     Address.objects.filter(user=request.user, is_default=True).update(is_default=False)
