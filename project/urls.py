@@ -28,6 +28,7 @@ SITEMAPS = {
 }
 
 
+
 urlpatterns = [
     # Admin Panel
     path('_nested_admin/', include('nested_admin.urls')),
