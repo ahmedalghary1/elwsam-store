@@ -2,47 +2,269 @@
 
 import django.db.models.deletion
 from django.db import migrations, models
+from django.db.utils import DatabaseError
+
+
+PRODUCT_SPEC_TABLE = "products_productspecification"
+PRODUCT_TABLE = "products_product"
+PRODUCT_SPEC_PRODUCT_INDEX = "products_productspecification_product_id_idx"
+PRODUCT_SPEC_PRODUCT_FK = "products_productspecification_product_id_fk"
+
+
+def _table_exists(schema_editor, table_name):
+    connection = schema_editor.connection
+    with connection.cursor() as cursor:
+        return table_name in connection.introspection.table_names(cursor)
+
+
+def _column_names(schema_editor, table_name):
+    connection = schema_editor.connection
+    with connection.cursor() as cursor:
+        description = connection.introspection.get_table_description(cursor, table_name)
+    return {column.name for column in description}
+
+
+def _constraint_names(schema_editor, table_name):
+    connection = schema_editor.connection
+    with connection.cursor() as cursor:
+        return set(connection.introspection.get_constraints(cursor, table_name))
+
+
+def _row_count(schema_editor, table_name):
+    with schema_editor.connection.cursor() as cursor:
+        cursor.execute(f"SELECT COUNT(*) FROM {schema_editor.quote_name(table_name)}")
+        return cursor.fetchone()[0]
+
+
+def _execute_optional(schema_editor, sql):
+    try:
+        schema_editor.execute(sql)
+    except DatabaseError:
+        # Optional indexes/constraints may already exist on partially migrated databases.
+        pass
+
+
+def _create_product_specification_table(schema_editor):
+    qn = schema_editor.quote_name
+    vendor = schema_editor.connection.vendor
+
+    if vendor == "sqlite":
+        schema_editor.execute(
+            f"""
+            CREATE TABLE {qn(PRODUCT_SPEC_TABLE)} (
+                {qn("id")} integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+                {qn("key")} varchar(100) NOT NULL,
+                {qn("value")} varchar(255) NOT NULL,
+                {qn("order")} integer unsigned NOT NULL CHECK ({qn("order")} >= 0),
+                {qn("product_id")} bigint NOT NULL
+                    REFERENCES {qn(PRODUCT_TABLE)} ({qn("id")})
+                    DEFERRABLE INITIALLY DEFERRED
+            )
+            """
+        )
+    else:
+        schema_editor.execute(
+            f"""
+            CREATE TABLE {qn(PRODUCT_SPEC_TABLE)} (
+                {qn("id")} bigint AUTO_INCREMENT NOT NULL PRIMARY KEY,
+                {qn("key")} varchar(100) NOT NULL,
+                {qn("value")} varchar(255) NOT NULL,
+                {qn("order")} integer UNSIGNED NOT NULL,
+                {qn("product_id")} bigint NOT NULL,
+                CONSTRAINT {qn("products_productspecification_order_check")}
+                    CHECK ({qn("order")} >= 0)
+            )
+            """
+        )
+
+
+def _ensure_product_specification_schema(apps, schema_editor):
+    qn = schema_editor.quote_name
+
+    if not _table_exists(schema_editor, PRODUCT_SPEC_TABLE):
+        _create_product_specification_table(schema_editor)
+
+    columns = _column_names(schema_editor, PRODUCT_SPEC_TABLE)
+
+    if "key" not in columns:
+        schema_editor.execute(
+            f"ALTER TABLE {qn(PRODUCT_SPEC_TABLE)} "
+            f"ADD COLUMN {qn('key')} varchar(100) NOT NULL DEFAULT ''"
+        )
+    if "value" not in columns:
+        schema_editor.execute(
+            f"ALTER TABLE {qn(PRODUCT_SPEC_TABLE)} "
+            f"ADD COLUMN {qn('value')} varchar(255) NOT NULL DEFAULT ''"
+        )
+    if "order" not in columns:
+        if schema_editor.connection.vendor == "sqlite":
+            order_sql = f"{qn('order')} integer unsigned NOT NULL DEFAULT 0 CHECK ({qn('order')} >= 0)"
+        else:
+            order_sql = f"{qn('order')} integer UNSIGNED NOT NULL DEFAULT 0"
+        schema_editor.execute(f"ALTER TABLE {qn(PRODUCT_SPEC_TABLE)} ADD COLUMN {order_sql}")
+    if "product_id" not in columns:
+        if _row_count(schema_editor, PRODUCT_SPEC_TABLE):
+            raise RuntimeError(
+                "The products_productspecification table already has rows but no product_id "
+                "column. Add product links manually before rerunning this migration."
+            )
+        if schema_editor.connection.vendor == "sqlite":
+            product_id_sql = f"{qn('product_id')} bigint NULL"
+        else:
+            product_id_sql = f"{qn('product_id')} bigint NOT NULL"
+        schema_editor.execute(
+            f"ALTER TABLE {qn(PRODUCT_SPEC_TABLE)} ADD COLUMN {product_id_sql}"
+        )
+
+    constraints = _constraint_names(schema_editor, PRODUCT_SPEC_TABLE)
+    if PRODUCT_SPEC_PRODUCT_INDEX not in constraints:
+        _execute_optional(
+            schema_editor,
+            f"CREATE INDEX {qn(PRODUCT_SPEC_PRODUCT_INDEX)} "
+            f"ON {qn(PRODUCT_SPEC_TABLE)} ({qn('product_id')})",
+        )
+    if schema_editor.connection.vendor != "sqlite" and PRODUCT_SPEC_PRODUCT_FK not in constraints:
+        _execute_optional(
+            schema_editor,
+            f"ALTER TABLE {qn(PRODUCT_SPEC_TABLE)} "
+            f"ADD CONSTRAINT {qn(PRODUCT_SPEC_PRODUCT_FK)} "
+            f"FOREIGN KEY ({qn('product_id')}) REFERENCES {qn(PRODUCT_TABLE)} ({qn('id')})",
+        )
+
+
+def _drop_product_specification_table(apps, schema_editor):
+    if _table_exists(schema_editor, PRODUCT_SPEC_TABLE):
+        schema_editor.execute(
+            f"DROP TABLE {schema_editor.quote_name(PRODUCT_SPEC_TABLE)}"
+        )
+
+
+def _safe_rename_index(schema_editor, table_name, old_name, new_name):
+    constraints = _constraint_names(schema_editor, table_name)
+    if new_name in constraints or old_name not in constraints:
+        return
+
+    qn = schema_editor.quote_name
+    vendor = schema_editor.connection.vendor
+    if vendor == "mysql":
+        schema_editor.execute(
+            f"ALTER TABLE {qn(table_name)} RENAME INDEX {qn(old_name)} TO {qn(new_name)}"
+        )
+    elif vendor != "sqlite":
+        schema_editor.execute(
+            f"ALTER INDEX {qn(old_name)} RENAME TO {qn(new_name)}"
+        )
+
+
+def _rename_auto_indexes(apps, schema_editor):
+    _safe_rename_index(
+        schema_editor,
+        "products_homeproductcollectionitem",
+        "products_ho_collect_7bc669_idx",
+        "products_ho_collect_bf8f80_idx",
+    )
+    _safe_rename_index(
+        schema_editor,
+        "products_producttype",
+        "products_pr_product_5bf3c1_idx",
+        "products_pr_product_0d4697_idx",
+    )
+    _safe_rename_index(
+        schema_editor,
+        "products_producttypecolor",
+        "products_pr_product_a92f6a_idx",
+        "products_pr_product_3dbd44_idx",
+    )
+
+
+def _restore_auto_indexes(apps, schema_editor):
+    _safe_rename_index(
+        schema_editor,
+        "products_homeproductcollectionitem",
+        "products_ho_collect_bf8f80_idx",
+        "products_ho_collect_7bc669_idx",
+    )
+    _safe_rename_index(
+        schema_editor,
+        "products_producttype",
+        "products_pr_product_0d4697_idx",
+        "products_pr_product_5bf3c1_idx",
+    )
+    _safe_rename_index(
+        schema_editor,
+        "products_producttypecolor",
+        "products_pr_product_3dbd44_idx",
+        "products_pr_product_a92f6a_idx",
+    )
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('products', '0014_normalize_home_collection_types'),
+        ("products", "0014_normalize_home_collection_types"),
     ]
 
     operations = [
-        migrations.CreateModel(
-            name='ProductSpecification',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('key', models.CharField(max_length=100)),
-                ('value', models.CharField(max_length=255)),
-                ('order', models.PositiveIntegerField(default=0)),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunPython(
+                    _ensure_product_specification_schema,
+                    _drop_product_specification_table,
+                ),
             ],
-            options={
-                'verbose_name': 'مواصفة',
-                'verbose_name_plural': 'مواصفات المنتجات',
-                'ordering': ['order'],
-            },
+            state_operations=[
+                migrations.CreateModel(
+                    name="ProductSpecification",
+                    fields=[
+                        (
+                            "id",
+                            models.BigAutoField(
+                                auto_created=True,
+                                primary_key=True,
+                                serialize=False,
+                                verbose_name="ID",
+                            ),
+                        ),
+                        ("key", models.CharField(max_length=100)),
+                        ("value", models.CharField(max_length=255)),
+                        ("order", models.PositiveIntegerField(default=0)),
+                        (
+                            "product",
+                            models.ForeignKey(
+                                on_delete=django.db.models.deletion.CASCADE,
+                                related_name="specs",
+                                to="products.product",
+                            ),
+                        ),
+                    ],
+                    options={
+                        "verbose_name": "Ù…ÙˆØ§ØµÙØ©",
+                        "verbose_name_plural": "Ù…ÙˆØ§ØµÙØ§Øª Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª",
+                        "ordering": ["order"],
+                    },
+                ),
+            ],
         ),
-        migrations.RenameIndex(
-            model_name='homeproductcollectionitem',
-            new_name='products_ho_collect_bf8f80_idx',
-            old_name='products_ho_collect_7bc669_idx',
-        ),
-        migrations.RenameIndex(
-            model_name='producttype',
-            new_name='products_pr_product_0d4697_idx',
-            old_name='products_pr_product_5bf3c1_idx',
-        ),
-        migrations.RenameIndex(
-            model_name='producttypecolor',
-            new_name='products_pr_product_3dbd44_idx',
-            old_name='products_pr_product_a92f6a_idx',
-        ),
-        migrations.AddField(
-            model_name='productspecification',
-            name='product',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='specs', to='products.product'),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunPython(_rename_auto_indexes, _restore_auto_indexes),
+            ],
+            state_operations=[
+                migrations.RenameIndex(
+                    model_name="homeproductcollectionitem",
+                    new_name="products_ho_collect_bf8f80_idx",
+                    old_name="products_ho_collect_7bc669_idx",
+                ),
+                migrations.RenameIndex(
+                    model_name="producttype",
+                    new_name="products_pr_product_0d4697_idx",
+                    old_name="products_pr_product_5bf3c1_idx",
+                ),
+                migrations.RenameIndex(
+                    model_name="producttypecolor",
+                    new_name="products_pr_product_3dbd44_idx",
+                    old_name="products_pr_product_a92f6a_idx",
+                ),
+            ],
         ),
     ]
