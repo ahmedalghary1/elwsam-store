@@ -1,0 +1,75 @@
+{% extends "staff_dashboard/base.html" %}
+
+{% block page_title %}إدارة العملاء والمستخدمين{% endblock page_title %}
+
+{% block content %}
+  <form class="dash-filters" method="get">
+    <input class="dash-input" type="search" name="q" value="{{ filters.q }}" placeholder="البريد، الاسم، الهاتف">
+    <select class="dash-input dash-select" name="role">
+      <option value="all" {% if filters.role == "all" %}selected{% endif %}>كل المستخدمين</option>
+      <option value="customers" {% if filters.role == "customers" %}selected{% endif %}>عملاء</option>
+      <option value="staff" {% if filters.role == "staff" %}selected{% endif %}>موظفون</option>
+      <option value="superusers" {% if filters.role == "superusers" %}selected{% endif %}>مشرفون عامون</option>
+    </select>
+    <select class="dash-input dash-select" name="status">
+      <option value="all" {% if filters.status == "all" %}selected{% endif %}>كل الحالات</option>
+      <option value="active" {% if filters.status == "active" %}selected{% endif %}>مفعل</option>
+      <option value="inactive" {% if filters.status == "inactive" %}selected{% endif %}>موقوف</option>
+    </select>
+    <button class="dash-btn" type="submit"><i class="fas fa-magnifying-glass"></i> بحث</button>
+  </form>
+
+  <section class="dash-card">
+    <div class="card-head">
+      <div><h2>المستخدمون</h2><p>{{ total_count }} نتيجة</p></div>
+    </div>
+    <div class="dash-table-wrap">
+      <table class="dash-table">
+        <thead>
+          <tr>
+            <th>المستخدم</th>
+            <th>الهاتف</th>
+            <th>النوع</th>
+            <th>الطلبات</th>
+            <th>الحالة</th>
+            <th>إجراءات</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for customer in customers %}
+            <tr>
+              <td>
+                <strong>{{ customer.get_full_name|default:customer.username }}</strong>
+                <small>{{ customer.email }}</small>
+              </td>
+              <td>{{ customer.phone|default:"-" }}</td>
+              <td>
+                {% if customer.is_superuser %}
+                  <span class="dash-badge primary">مشرف عام</span>
+                {% elif customer.is_staff %}
+                  <span class="dash-badge warning">موظف</span>
+                {% else %}
+                  <span class="dash-badge info">عميل</span>
+                {% endif %}
+              </td>
+              <td>{{ customer.order_count }}</td>
+              <td>
+                {% if customer.is_active %}
+                  <span class="dash-badge success">مفعل</span>
+                {% else %}
+                  <span class="dash-badge danger">موقوف</span>
+                {% endif %}
+              </td>
+              <td class="table-actions">
+                <a href="{% url 'staff_dashboard:customer_edit' customer.pk %}" class="dash-icon-btn" title="تعديل"><i class="fas fa-pen"></i></a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="6" class="empty-cell">لا يوجد مستخدمون مطابقون.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% include "staff_dashboard/includes/pagination.html" %}
+  </section>
+{% endblock content %}

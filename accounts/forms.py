@@ -10,9 +10,34 @@ from .models import UserProfile, Address
 User = get_user_model()
 
 
+PHONE_DIGIT_TRANSLATION = str.maketrans({
+    "٠": "0",
+    "١": "1",
+    "٢": "2",
+    "٣": "3",
+    "٤": "4",
+    "٥": "5",
+    "٦": "6",
+    "٧": "7",
+    "٨": "8",
+    "٩": "9",
+    "۰": "0",
+    "۱": "1",
+    "۲": "2",
+    "۳": "3",
+    "۴": "4",
+    "۵": "5",
+    "۶": "6",
+    "۷": "7",
+    "۸": "8",
+    "۹": "9",
+    "＋": "+",
+})
+
+
 def normalize_phone(value):
-    value = (value or "").strip()
-    value = re.sub(r"[\s\-()]", "", value)
+    value = (value or "").strip().translate(PHONE_DIGIT_TRANSLATION)
+    value = re.sub(r"[\s\-().]", "", value)
     if value.startswith("00"):
         value = f"+{value[2:]}"
     digits = phone_digits(value)
@@ -22,11 +47,14 @@ def normalize_phone(value):
         return f"+{digits}"
     if digits.startswith("0") and len(digits) == 11:
         return f"+20{digits[1:]}"
+    if digits.startswith("1") and len(digits) == 10:
+        return f"+20{digits}"
     return value
 
 
 def phone_digits(value):
-    return re.sub(r"\D", "", value or "")
+    value = (value or "").translate(PHONE_DIGIT_TRANSLATION)
+    return re.sub(r"\D", "", value)
 
 
 def phone_lookup_keys(value):
@@ -37,9 +65,26 @@ def phone_lookup_keys(value):
     keys = {digits}
     if digits.startswith("20") and len(digits) == 12:
         keys.add(f"0{digits[2:]}")
+        keys.add(digits[2:])
     elif digits.startswith("0") and len(digits) == 11:
         keys.add(f"20{digits[1:]}")
+        keys.add(digits[1:])
+    elif digits.startswith("1") and len(digits) == 10:
+        keys.add(f"20{digits}")
+        keys.add(f"0{digits}")
     return keys
+
+
+def phone_lookup_values(value):
+    values = set()
+    normalized_phone = normalize_phone(value)
+    if normalized_phone:
+        values.add(normalized_phone)
+
+    for key in phone_lookup_keys(value):
+        values.add(key)
+        values.add(f"+{key}")
+    return values
 
 
 def phone_exists(value, exclude_user=None):
@@ -216,7 +261,7 @@ class UserLoginForm(forms.Form):
 
         users = list(User.objects.filter(email__iexact=identifier)[:2])
         if not users and digits:
-            users = list(User.objects.filter(phone=normalized_phone)[:2])
+            users = list(User.objects.filter(phone__in=phone_lookup_values(identifier))[:2])
         if not users and digits:
             target_keys = phone_lookup_keys(identifier)
             users = [

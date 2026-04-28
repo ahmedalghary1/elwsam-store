@@ -54,6 +54,9 @@
         </div>
         <div class="navbar-actions">
           <!-- <a href="{% url 'orders:wishlist' %}" class="nav-icon-btn" aria-label="المفضلة"><i class="far fa-heart"></i><span class="nav-badge wishlist-count" style="display:{% if wishlist_count > 0 %}flex{% else %}none{% endif %}">{{ wishlist_count }}</span></a> -->
+          {% if user.is_authenticated and user.is_superuser %}
+          <a href="{% url 'staff_dashboard:dashboard' %}" class="nav-icon-btn" aria-label="لوحة التحكم"><i class="fas fa-gauge-high"></i></a>
+          {% endif %}
           <a href="{% url 'orders:cart' %}" class="nav-icon-btn" aria-label="السلة"><i class="fas fa-shopping-cart"></i><span class="nav-badge cart-count" style="display:{% if cart_count > 0 %}flex{% else %}none{% endif %}">{{ cart_count }}</span></a>
           <a href="{% if user.is_authenticated %}{% url 'accounts:profile' %}{% else %}{% url 'accounts:login' %}{% endif %}" 
              class="nav-icon-btn profile-btn" 
@@ -98,6 +101,9 @@
       <a href="{% url 'orders:cart' %}"><span class="link-icon"><i class="fas fa-shopping-cart"></i></span>سلة التسوق</a>
       <div class="mobile-menu-divider"></div>
       {% if user.is_authenticated %}
+        {% if user.is_superuser %}
+        <a href="{% url 'staff_dashboard:dashboard' %}"><span class="link-icon"><i class="fas fa-gauge-high"></i></span>لوحة التحكم</a>
+        {% endif %}
         <a href="{% url 'accounts:profile' %}" class="profile-link-mobile" data-authenticated="{{ user.is_authenticated|yesno:'true,false' }}"><span class="link-icon"><i class="fas fa-user"></i></span>البروفايل</a>
         <a href="{% url 'orders:order_list' %}"><span class="link-icon"><i class="fas fa-box"></i></span>طلباتي</a>
         <a href="{% url 'accounts:logout' %}"><span class="link-icon"><i class="fas fa-sign-out-alt"></i></span>تسجيل الخروج</a>

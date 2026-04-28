@@ -624,7 +624,7 @@
                 id="id_identifier"
                 placeholder="example@email.com أو 01000000000"
                 autocomplete="username"
-                inputmode="email"
+                inputmode="text"
                 value="{{ form.identifier.value|default:'' }}"
                 required
               />
@@ -715,9 +715,13 @@
 
         // Validate email or phone
         const identifierValue = identifier.value.trim();
+        const normalizedIdentifierValue = identifierValue
+          .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
+          .replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+          .replace(/＋/g, '+');
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        const phoneRegex = /^\+?[\d\s\-()]{10,20}$/;
-        if (!identifierValue || (!emailRegex.test(identifierValue) && !phoneRegex.test(identifierValue))) {
+        const phoneRegex = /^\+?[0-9\s\-().]{10,22}$/;
+        if (!identifierValue || (!emailRegex.test(identifierValue) && !phoneRegex.test(normalizedIdentifierValue))) {
           identifier.classList.add('error');
           document.getElementById('identifierError').classList.add('show');
           valid = false;

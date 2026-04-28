@@ -1,0 +1,77 @@
+{% extends "staff_dashboard/base.html" %}
+
+{% block page_title %}طلب #{{ order.pk }}{% endblock page_title %}
+{% block page_actions %}
+  <a class="dash-btn" href="{% url 'staff_dashboard:orders' %}"><i class="fas fa-arrow-right"></i> رجوع</a>
+  {% if advanced_url %}<a class="dash-btn" href="{{ advanced_url }}"><i class="fas fa-screwdriver-wrench"></i> تعديل متقدم</a>{% endif %}
+{% endblock page_actions %}
+
+{% block content %}
+  <section class="dash-two-columns order-layout">
+    <article class="dash-card">
+      <div class="card-head">
+        <div>
+          <h2>بيانات الطلب</h2>
+          <p><span class="dash-badge {{ status_tone }}">{{ status_label }}</span></p>
+        </div>
+        <strong class="order-total">{{ order.total_price }} ج.م</strong>
+      </div>
+
+      <dl class="detail-list">
+        <div><dt>العميل</dt><dd>{{ order.shipping_name|default:"ضيف" }}</dd></div>
+        <div><dt>البريد</dt><dd>{{ order.user.email|default:order.guest_email|default:"-" }}</dd></div>
+        <div><dt>الهاتف</dt><dd>{{ order.shipping_phone }}</dd></div>
+        <div><dt>المدينة</dt><dd>{{ order.shipping_city|default:"-" }}</dd></div>
+        <div><dt>الدفع</dt><dd>{{ order.payment_method }}</dd></div>
+        <div><dt>التاريخ</dt><dd>{{ order.created_at|date:"Y-m-d H:i" }}</dd></div>
+      </dl>
+
+      <div class="dash-table-wrap compact">
+        <table class="dash-table">
+          <thead>
+            <tr>
+              <th>المنتج</th>
+              <th>الاختيار</th>
+              <th>الكمية</th>
+              <th>السعر</th>
+              <th>الإجمالي</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in items %}
+              <tr>
+                <td>{{ item.product.name }}</td>
+                <td>{{ item.get_variant_display|default:"-" }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.price }} ج.م</td>
+                <td><strong>{{ item.get_total_price }} ج.م</strong></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+    <article class="dash-card">
+      <div class="card-head">
+        <div><h2>تحديث الطلب</h2><p>تغيير الحالة وبيانات الشحن</p></div>
+      </div>
+      <form method="post" class="dash-form">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+          <div class="form-errors">{{ form.non_field_errors }}</div>
+        {% endif %}
+        {% for field in form.visible_fields %}
+          <div class="dash-field{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<div class="field-error">{{ field.errors|join:", " }}</div>{% endif %}
+          </div>
+        {% endfor %}
+        <div class="form-actions">
+          <button class="dash-btn dash-btn-primary" type="submit"><i class="fas fa-floppy-disk"></i> حفظ التغييرات</button>
+        </div>
+      </form>
+    </article>
+  </section>
+{% endblock content %}

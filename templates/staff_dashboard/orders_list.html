@@ -1,0 +1,56 @@
+{% extends "staff_dashboard/base.html" %}
+
+{% block page_title %}إدارة الطلبات{% endblock page_title %}
+
+{% block content %}
+  <form class="dash-filters" method="get">
+    <input class="dash-input" type="search" name="q" value="{{ filters.q }}" placeholder="رقم الطلب، العميل، الهاتف، المدينة">
+    <select class="dash-input dash-select" name="status">
+      <option value="all" {% if filters.status == "all" %}selected{% endif %}>كل الحالات</option>
+      {% for status in statuses %}
+        <option value="{{ status.value }}" {% if filters.status == status.value %}selected{% endif %}>{{ status.label }}</option>
+      {% endfor %}
+    </select>
+    <button class="dash-btn" type="submit"><i class="fas fa-magnifying-glass"></i> بحث</button>
+  </form>
+
+  <section class="dash-card">
+    <div class="card-head">
+      <div><h2>الطلبات</h2><p>{{ total_count }} نتيجة</p></div>
+    </div>
+    <div class="dash-table-wrap">
+      <table class="dash-table">
+        <thead>
+          <tr>
+            <th>رقم الطلب</th>
+            <th>العميل</th>
+            <th>الهاتف</th>
+            <th>المدينة</th>
+            <th>الحالة</th>
+            <th>الإجمالي</th>
+            <th>التاريخ</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+            <tr>
+              <td><a href="{% url 'staff_dashboard:order_detail' order.pk %}"><strong>#{{ order.pk }}</strong></a></td>
+              <td>
+                <strong>{{ order.shipping_name|default:"ضيف" }}</strong>
+                <small>{{ order.user.email|default:order.guest_email|default:"-" }}</small>
+              </td>
+              <td>{{ order.shipping_phone }}</td>
+              <td>{{ order.shipping_city|default:"-" }}</td>
+              <td><span class="dash-badge status-{{ order.status }}">{{ order.get_status_display }}</span></td>
+              <td><strong>{{ order.total_price }} ج.م</strong></td>
+              <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="7" class="empty-cell">لا توجد طلبات مطابقة.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% include "staff_dashboard/includes/pagination.html" %}
+  </section>
+{% endblock content %}

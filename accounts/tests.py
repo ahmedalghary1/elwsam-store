@@ -67,6 +67,41 @@ class AuthViewsTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn("_auth_user_id", self.client.session)
 
+    def test_login_with_local_phone_without_leading_zero_succeeds(self):
+        response = self.client.post(
+            reverse("accounts:login"),
+            {"identifier": "1001112223", "password": self.password},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("_auth_user_id", self.client.session)
+
+    def test_login_with_arabic_digits_phone_succeeds(self):
+        response = self.client.post(
+            reverse("accounts:login"),
+            {"identifier": "\u0660\u0661\u0660\u0660\u0661\u0661\u0661\u0662\u0662\u0662\u0663", "password": self.password},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("_auth_user_id", self.client.session)
+
+    def test_login_matches_legacy_un_normalized_phone_succeeds(self):
+        legacy_user = User.objects.create_user(
+            username="legacyphone",
+            email="legacyphone@example.com",
+            password=self.password,
+            phone="0100 555 6666",
+            is_active=True,
+        )
+
+        response = self.client.post(
+            reverse("accounts:login"),
+            {"identifier": "+201005556666", "password": self.password},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(int(self.client.session["_auth_user_id"]), legacy_user.pk)
+
     def test_inactive_user_cannot_login(self):
         self.user.is_active = False
         self.user.save(update_fields=["is_active"])

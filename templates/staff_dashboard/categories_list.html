@@ -1,0 +1,72 @@
+{% extends "staff_dashboard/base.html" %}
+
+{% block page_title %}إدارة التصنيفات{% endblock page_title %}
+{% block page_actions %}
+  <a class="dash-btn dash-btn-primary" href="{% url 'staff_dashboard:category_add' %}"><i class="fas fa-plus"></i> إضافة تصنيف</a>
+{% endblock page_actions %}
+
+{% block content %}
+  <form class="dash-filters" method="get">
+    <input class="dash-input" type="search" name="q" value="{{ filters.q }}" placeholder="ابحث باسم التصنيف">
+    <select class="dash-input dash-select" name="status">
+      <option value="all" {% if filters.status == "all" %}selected{% endif %}>كل الحالات</option>
+      <option value="active" {% if filters.status == "active" %}selected{% endif %}>ظاهر</option>
+      <option value="inactive" {% if filters.status == "inactive" %}selected{% endif %}>مخفي</option>
+    </select>
+    <button class="dash-btn" type="submit"><i class="fas fa-magnifying-glass"></i> بحث</button>
+  </form>
+
+  <section class="dash-card">
+    <div class="card-head">
+      <div><h2>التصنيفات</h2><p>{{ total_count }} نتيجة</p></div>
+    </div>
+    <div class="dash-table-wrap">
+      <table class="dash-table">
+        <thead>
+          <tr>
+            <th>التصنيف</th>
+            <th>المنتجات</th>
+            <th>الترتيب</th>
+            <th>الحالة</th>
+            <th>إجراءات</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for category in categories %}
+            <tr>
+              <td>
+                <div class="product-cell">
+                  {% if category.image %}
+                    <img src="{{ category.image.url }}" alt="{{ category.name }}">
+                  {% else %}
+                    <span class="thumb-placeholder">{{ category.icon }}</span>
+                  {% endif %}
+                  <div>
+                    <strong>{{ category.name }}</strong>
+                    <small>{{ category.slug }}</small>
+                  </div>
+                </div>
+              </td>
+              <td>{{ category.products_count }}</td>
+              <td>{{ category.order }}</td>
+              <td>
+                {% if category.is_active %}
+                  <span class="dash-badge success">ظاهر</span>
+                {% else %}
+                  <span class="dash-badge muted">مخفي</span>
+                {% endif %}
+              </td>
+              <td class="table-actions">
+                <a href="{% url 'staff_dashboard:category_edit' category.pk %}" class="dash-icon-btn" title="تعديل"><i class="fas fa-pen"></i></a>
+                <a href="{% url 'staff_dashboard:category_delete' category.pk %}" class="dash-icon-btn danger" title="حذف"><i class="fas fa-trash"></i></a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5" class="empty-cell">لا توجد تصنيفات مطابقة.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% include "staff_dashboard/includes/pagination.html" %}
+  </section>
+{% endblock content %}

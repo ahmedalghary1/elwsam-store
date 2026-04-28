@@ -32,6 +32,7 @@ urlpatterns = [
     # Admin Panel
     path('_nested_admin/', include('nested_admin.urls')),
     path('admin/', admin.site.urls),
+    path('control-panel/', include('staff_dashboard.urls')),
     
     # Core Routes
     path('', core_views.index, name='index'),

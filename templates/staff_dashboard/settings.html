@@ -1,0 +1,64 @@
+{% extends "staff_dashboard/base.html" %}
+
+{% block page_title %}الإعدادات العامة{% endblock page_title %}
+
+{% block content %}
+  <section class="dash-two-columns">
+    <article class="dash-card">
+      <div class="card-head">
+        <div>
+          <h2>إعدادات الموقع الحالية</h2>
+          <p>قيم تشغيلية مقروءة من إعدادات Django</p>
+        </div>
+      </div>
+      <dl class="detail-list">
+        {% for label, value in site_settings %}
+          <div>
+            <dt>{{ label }}</dt>
+            <dd>{{ value|default:"-" }}</dd>
+          </div>
+        {% endfor %}
+      </dl>
+    </article>
+
+    <article class="dash-card">
+      <div class="card-head">
+        <div>
+          <h2>روابط الإدارة</h2>
+          <p>اختصارات آمنة للمشرف العام</p>
+        </div>
+      </div>
+      <div class="settings-links">
+        {% for link in management_links %}
+          <a href="{{ link.url }}">
+            <i class="fas {{ link.icon }}"></i>
+            <span>{{ link.label }}</span>
+          </a>
+        {% endfor %}
+      </div>
+    </article>
+  </section>
+
+  <section class="dash-card">
+    <div class="card-head">
+      <div>
+        <h2>ملاحظات الإدارة الحالية</h2>
+        <p>تم الحفاظ على Django Admin كمسار متقدم للعمليات المركبة</p>
+      </div>
+    </div>
+    <div class="notes-grid">
+      <div>
+        <strong>المنتجات المتغيرة</strong>
+        <span>الألوان والمقاسات والصور التفصيلية ما زالت مرتبطة بعلاقات متعددة، لذلك يظهر رابط التعديل المتقدم داخل صفحة المنتج.</span>
+      </div>
+      <div>
+        <strong>حذف المنتجات</strong>
+        <span>إذا كان المنتج مرتبطًا بطلبات سابقة يتم إخفاؤه بدل حذفه للحفاظ على تاريخ الطلبات.</span>
+      </div>
+      <div>
+        <strong>التصنيفات</strong>
+        <span>لا يمكن حذف تصنيف يحتوي على منتجات حتى لا تُحذف منتجاته بالخطأ.</span>
+      </div>
+    </div>
+  </section>
+{% endblock content %}

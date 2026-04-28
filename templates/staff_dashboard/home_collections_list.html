@@ -1,0 +1,69 @@
+{% extends "staff_dashboard/base.html" %}
+
+{% block page_title %}إدارة أقسام الصفحة الرئيسية{% endblock page_title %}
+{% block page_actions %}
+  <a class="dash-btn dash-btn-primary" href="{% url 'staff_dashboard:home_collection_add' %}"><i class="fas fa-plus"></i> إضافة عنصر</a>
+{% endblock page_actions %}
+
+{% block content %}
+  <form class="dash-filters" method="get">
+    <input class="dash-input" type="search" name="q" value="{{ filters.q }}" placeholder="ابحث باسم المنتج">
+    <select class="dash-input dash-select" name="type">
+      <option value="all" {% if filters.type == "all" %}selected{% endif %}>كل الأقسام</option>
+      {% for value, label in collection_choices %}
+        <option value="{{ value }}" {% if filters.type == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <select class="dash-input dash-select" name="status">
+      <option value="all" {% if filters.status == "all" %}selected{% endif %}>كل الحالات</option>
+      <option value="active" {% if filters.status == "active" %}selected{% endif %}>نشط</option>
+      <option value="inactive" {% if filters.status == "inactive" %}selected{% endif %}>موقوف</option>
+    </select>
+    <button class="dash-btn" type="submit"><i class="fas fa-magnifying-glass"></i> بحث</button>
+  </form>
+
+  <section class="dash-card">
+    <div class="card-head">
+      <div><h2>عناصر الصفحة الرئيسية</h2><p>{{ total_count }} نتيجة</p></div>
+    </div>
+    <div class="dash-table-wrap">
+      <table class="dash-table">
+        <thead>
+          <tr>
+            <th>القسم</th>
+            <th>المنتج</th>
+            <th>الترتيب</th>
+            <th>الحالة</th>
+            <th>إجراءات</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in items %}
+            <tr>
+              <td>{{ item.get_collection_type_display }}</td>
+              <td>
+                <strong>{{ item.product.name }}</strong>
+                <small>{{ item.product.category.name }}</small>
+              </td>
+              <td>{{ item.order }}</td>
+              <td>
+                {% if item.is_active %}
+                  <span class="dash-badge success">نشط</span>
+                {% else %}
+                  <span class="dash-badge muted">موقوف</span>
+                {% endif %}
+              </td>
+              <td class="table-actions">
+                <a href="{% url 'staff_dashboard:home_collection_edit' item.pk %}" class="dash-icon-btn" title="تعديل"><i class="fas fa-pen"></i></a>
+                <a href="{% url 'staff_dashboard:home_collection_delete' item.pk %}" class="dash-icon-btn danger" title="حذف"><i class="fas fa-trash"></i></a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5" class="empty-cell">لا توجد عناصر مطابقة.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% include "staff_dashboard/includes/pagination.html" %}
+  </section>
+{% endblock content %}

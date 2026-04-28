@@ -1,0 +1,46 @@
+{% extends "staff_dashboard/base.html" %}
+
+{% block page_title %}{{ page_title }}{% endblock page_title %}
+{% block page_actions %}
+  <a class="dash-btn" href="{{ cancel_url }}"><i class="fas fa-arrow-right"></i> رجوع</a>
+  {% if advanced_url %}
+    <a class="dash-btn" href="{{ advanced_url }}"><i class="fas fa-screwdriver-wrench"></i> {{ advanced_label }}</a>
+  {% endif %}
+{% endblock page_actions %}
+
+{% block content %}
+  <section class="dash-card form-card">
+    <div class="card-head">
+      <div>
+        <h2>{{ page_title }}</h2>
+        {% if page_subtitle %}<p>{{ page_subtitle }}</p>{% endif %}
+      </div>
+      {% if delete_url %}
+        <a class="dash-btn dash-btn-danger" href="{{ delete_url }}"><i class="fas fa-trash"></i> حذف</a>
+      {% endif %}
+    </div>
+
+    <form method="post" {% if multipart %}enctype="multipart/form-data"{% endif %} class="dash-form">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+        <div class="form-errors">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="form-grid">
+        {% for field in form.visible_fields %}
+          <div class="dash-field field-{{ field.name }}{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+            {% if field.errors %}<div class="field-error">{{ field.errors|join:", " }}</div>{% endif %}
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="form-actions">
+        <button class="dash-btn dash-btn-primary" type="submit"><i class="fas fa-floppy-disk"></i> حفظ</button>
+        <a class="dash-btn" href="{{ cancel_url }}">إلغاء</a>
+      </div>
+    </form>
+  </section>
+{% endblock content %}

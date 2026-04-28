@@ -1,0 +1,17 @@
+{% extends "staff_dashboard/base.html" %}
+
+{% block page_title %}تأكيد الحذف{% endblock page_title %}
+
+{% block content %}
+  <section class="dash-card confirm-card">
+    <div class="confirm-icon"><i class="fas fa-triangle-exclamation"></i></div>
+    <h2>حذف {{ object_type }}</h2>
+    <p>هل تريد حذف <strong>{{ object_name }}</strong>؟</p>
+    {% if warning %}<div class="dash-alert warning"><i class="fas fa-circle-exclamation"></i><span>{{ warning }}</span></div>{% endif %}
+    <form method="post" class="form-actions centered">
+      {% csrf_token %}
+      <button class="dash-btn dash-btn-danger" type="submit"><i class="fas fa-trash"></i> تأكيد الحذف</button>
+      <a class="dash-btn" href="{{ cancel_url }}">إلغاء</a>
+    </form>
+  </section>
+{% endblock content %}

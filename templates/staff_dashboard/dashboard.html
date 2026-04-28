@@ -1,0 +1,110 @@
+{% extends "staff_dashboard/base.html" %}
+
+{% block page_title %}لوحة التحكم{% endblock page_title %}
+{% block page_actions %}
+  <a class="dash-btn dash-btn-primary" href="{% url 'staff_dashboard:product_add' %}"><i class="fas fa-plus"></i> منتج جديد</a>
+{% endblock page_actions %}
+
+{% block content %}
+  <section class="dash-grid stats-grid">
+    {% for stat in stats %}
+      <article class="dash-card stat-card tone-{{ stat.tone }}">
+        <span class="stat-icon"><i class="fas {{ stat.icon }}"></i></span>
+        <div>
+          <p>{{ stat.label }}</p>
+          <strong>{{ stat.value }}</strong>
+        </div>
+      </article>
+    {% endfor %}
+  </section>
+
+  <section class="dash-grid status-grid">
+    {% for status in status_cards %}
+      <a class="dash-card status-card tone-{{ status.tone }}" href="{% url 'staff_dashboard:orders' %}?status={{ status.value }}">
+        <span>{{ status.label }}</span>
+        <strong>{{ status.count }}</strong>
+      </a>
+    {% endfor %}
+  </section>
+
+  <section class="dash-two-columns">
+    <article class="dash-card">
+      <div class="card-head">
+        <div>
+          <h2>أحدث الطلبات</h2>
+          <p>آخر عمليات الشراء داخل المتجر</p>
+        </div>
+        <a href="{% url 'staff_dashboard:orders' %}">كل الطلبات</a>
+      </div>
+      <div class="dash-table-wrap compact">
+        <table class="dash-table">
+          <thead>
+            <tr>
+              <th>الطلب</th>
+              <th>العميل</th>
+              <th>الحالة</th>
+              <th>الإجمالي</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for order in latest_orders %}
+              <tr>
+                <td><a href="{% url 'staff_dashboard:order_detail' order.pk %}">#{{ order.pk }}</a></td>
+                <td>{{ order.shipping_name|default:order.guest_email|default:order.user.email|default:"ضيف" }}</td>
+                <td><span class="dash-badge status-{{ order.status }}">{{ order.get_status_display }}</span></td>
+                <td><strong>{{ order.total_price }} ج.م</strong></td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="4" class="empty-cell">لا توجد طلبات بعد.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+    <article class="dash-card">
+      <div class="card-head">
+        <div>
+          <h2>مخزون يحتاج متابعة</h2>
+          <p>منتجات أو متغيرات قاربت على النفاد</p>
+        </div>
+        <a href="{% url 'staff_dashboard:products' %}">كل المنتجات</a>
+      </div>
+      <div class="stock-list">
+        {% for product in simple_low_stock %}
+          <a href="{% url 'staff_dashboard:product_edit' product.pk %}">
+            <span>{{ product.name }}</span>
+            <strong>{{ product.stock }}</strong>
+          </a>
+        {% endfor %}
+        {% for variant in variant_low_stock %}
+          <a href="{{ django_admin_url }}products/productvariant/{{ variant.pk }}/change/">
+            <span>{{ variant.product.name }}{% if variant.color %} - {{ variant.color.name }}{% endif %}{% if variant.size %} - {{ variant.size.name }}{% endif %}</span>
+            <strong>{{ variant.stock }}</strong>
+          </a>
+        {% endfor %}
+        {% if not simple_low_stock and not variant_low_stock %}
+          <div class="empty-panel">المخزون مستقر حاليًا.</div>
+        {% endif %}
+      </div>
+    </article>
+  </section>
+
+  <section class="dash-card">
+    <div class="card-head">
+      <div>
+        <h2>أقسام الصفحة الرئيسية</h2>
+        <p>عدد المنتجات المختارة يدويًا في كل تبويب</p>
+      </div>
+      <a href="{% url 'staff_dashboard:home_collections' %}">إدارة الأقسام</a>
+    </div>
+    <div class="collection-grid">
+      {% for item in collection_cards %}
+        <a href="{% url 'staff_dashboard:home_collections' %}?type={{ item.value }}">
+          <span>{{ item.label }}</span>
+          <strong>{{ item.count }}</strong>
+        </a>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock content %}
