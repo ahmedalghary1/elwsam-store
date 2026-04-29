@@ -81,7 +81,7 @@ def get_product_collection_queryset(collection_type):
 
 def serialize_product_card(product):
     """Serialize the fields needed to render a product card on the frontend."""
-    image_url = get_thumbnail_url(product.image, "400x400:cover") if product.image else ""
+    image_url = get_thumbnail_url(product.image, "400x400:contain") if product.image else ""
     old_price = product.old_price if product.old_price and product.old_price > product.price else None
 
     return {

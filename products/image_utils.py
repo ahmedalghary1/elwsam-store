@@ -9,6 +9,10 @@ except ImportError:  # pragma: no cover - production fallback if Pillow is absen
     ImageOps = None
 
 
+THUMBNAIL_VERSION = "v2"
+THUMBNAIL_BACKGROUND = (248, 248, 248)
+
+
 def get_thumbnail_url(image_field, spec="400x400:cover"):
     """Return a cached WebP thumbnail URL for ImageFieldFile values."""
     if not image_field:
@@ -31,7 +35,7 @@ def get_thumbnail_url(image_field, spec="400x400:cover"):
 
     width, height = size_spec
     stem = source_name.with_suffix("").as_posix()
-    thumb_rel = Path("_thumbs") / f"{stem}-{width}x{height}-{mode}.webp"
+    thumb_rel = Path("_thumbs") / f"{stem}-{width}x{height}-{mode}-{THUMBNAIL_VERSION}.webp"
     thumb_path = Path(settings.MEDIA_ROOT) / thumb_rel
     thumb_url = f"{settings.MEDIA_URL.rstrip('/')}/{thumb_rel.as_posix()}"
 
@@ -39,7 +43,7 @@ def get_thumbnail_url(image_field, spec="400x400:cover"):
         if not thumb_path.exists() or thumb_path.stat().st_mtime < source_path.stat().st_mtime:
             thumb_path.parent.mkdir(parents=True, exist_ok=True)
             _create_thumbnail(source_path, thumb_path, (width, height), mode)
-    except OSError:
+    except Exception:
         return source_url
 
     return thumb_url
@@ -62,15 +66,31 @@ def _create_thumbnail(source_path, thumb_path, size, mode):
         image = ImageOps.exif_transpose(image)
 
         if mode == "cover":
-            image = image.convert("RGB")
+            image = _flatten_on_background(image)
             image = ImageOps.fit(image, size, method=resample, centering=(0.5, 0.5))
         else:
             image = image.convert("RGBA")
             image.thumbnail(size, resample)
-            canvas = Image.new("RGBA", size, (255, 255, 255, 0))
+            canvas = Image.new("RGB", size, THUMBNAIL_BACKGROUND)
             left = (size[0] - image.width) // 2
             top = (size[1] - image.height) // 2
-            canvas.alpha_composite(image, (left, top))
+            canvas.paste(image, (left, top), image)
             image = canvas
 
-        image.save(thumb_path, "WEBP", quality=82, method=6)
+        thumb_path.parent.mkdir(parents=True, exist_ok=True)
+        tmp_path = thumb_path.with_name(f"{thumb_path.name}.tmp")
+        try:
+            image.save(tmp_path, "WEBP", quality=84, method=6)
+            tmp_path.replace(thumb_path)
+        finally:
+            if tmp_path.exists():
+                tmp_path.unlink()
+
+
+def _flatten_on_background(image):
+    if image.mode in ("RGBA", "LA") or (image.mode == "P" and "transparency" in image.info):
+        rgba = image.convert("RGBA")
+        canvas = Image.new("RGB", rgba.size, THUMBNAIL_BACKGROUND)
+        canvas.paste(rgba, (0, 0), rgba)
+        return canvas
+    return image.convert("RGB")

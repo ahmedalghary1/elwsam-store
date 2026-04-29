@@ -149,7 +149,7 @@ STATICFILES_DIRS = [
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_URL = '/shop_media/'
 MEDIA_ROOT = '/home/elwsamst/media'
-ASSET_VERSION = os.environ.get('ASSET_VERSION', '20260428-lcp-tbt')
+ASSET_VERSION = os.environ.get('ASSET_VERSION', '20260429-product-images')
 
 
 AUTH_USER_MODEL = 'accounts.User'

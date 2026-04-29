@@ -30,7 +30,7 @@ def seo_context(request):
         meta_robots = "noindex,follow"
 
     return {
-        "asset_version": getattr(settings, "ASSET_VERSION", "20260428-lcp-tbt"),
+        "asset_version": getattr(settings, "ASSET_VERSION", "20260429-product-images"),
         "meta_robots": meta_robots,
         "seo_site_name": "متجر الوسام",
     }
