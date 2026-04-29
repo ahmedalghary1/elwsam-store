@@ -575,12 +575,7 @@ const HomeProductTabs = {
     const limit = root.dataset.limit || '10';
     if (!buttons.length || !grid || !apiUrl) return;
 
-    const syncIndicator = () => this.scheduleIndicatorUpdate(tabList, root.querySelector('[data-product-tab].active') || buttons[0]);
-
-    syncIndicator();
-    window.addEventListener('resize', syncIndicator);
-    window.addEventListener('load', syncIndicator, { once: true });
-    if (document.fonts?.ready) document.fonts.ready.then(syncIndicator).catch(() => {});
+    this.ensureInitialTab(root, buttons, { grid, heading, description });
 
     buttons.forEach((button, index) => {
       button.addEventListener('click', () => {
@@ -610,7 +605,6 @@ const HomeProductTabs = {
     const type = activeButton.dataset.productTab;
     const requestId = (this.requestId || 0) + 1;
     this.requestId = requestId;
-    const indicatorMetrics = this.measureIndicator(activeButton.closest('.product-tabs'), activeButton);
 
     root.querySelectorAll('[data-product-tab]').forEach(button => {
       const isActive = button === activeButton;
@@ -619,7 +613,7 @@ const HomeProductTabs = {
       button.setAttribute('tabindex', isActive ? '0' : '-1');
     });
     if (grid && activeButton.id) grid.setAttribute('aria-labelledby', activeButton.id);
-    this.applyIndicator(indicatorMetrics);
+    root.dataset.activeProductTab = type;
 
     root.classList.add('is-switching');
     if (heading) heading.textContent = activeButton.dataset.heading || activeButton.textContent.trim();
@@ -654,34 +648,21 @@ const HomeProductTabs = {
     }
   },
 
-  updateIndicator(tabList, activeButton) {
-    this.applyIndicator(this.measureIndicator(tabList, activeButton));
-  },
+  ensureInitialTab(root, buttons, refs) {
+    const initialButton = Array.from(buttons).find(button => button.dataset.productTab === 'offers') || buttons[0];
+    if (!initialButton) return;
 
-  scheduleIndicatorUpdate(tabList, activeButton) {
-    if (this.indicatorFrame) window.cancelAnimationFrame(this.indicatorFrame);
-    this.indicatorFrame = window.requestAnimationFrame(() => {
-      this.indicatorFrame = null;
-      this.updateIndicator(tabList, activeButton);
+    buttons.forEach(button => {
+      const isActive = button === initialButton;
+      button.classList.toggle('active', isActive);
+      button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      button.setAttribute('tabindex', isActive ? '0' : '-1');
     });
-  },
 
-  measureIndicator(tabList, activeButton) {
-    if (!tabList || !activeButton) return;
-    const tabRect = tabList.getBoundingClientRect();
-    const buttonRect = activeButton.getBoundingClientRect();
-    const x = buttonRect.left - tabRect.left;
-    const width = buttonRect.width;
-    return { tabList, x, width };
-  },
-
-  applyIndicator(metrics) {
-    if (!metrics) return;
-    window.requestAnimationFrame(() => {
-      metrics.tabList.style.setProperty('--active-tab-x', `${metrics.x.toFixed(2)}px`);
-      metrics.tabList.style.setProperty('--active-tab-width', `${metrics.width.toFixed(2)}px`);
-      metrics.tabList.style.setProperty('--active-tab-opacity', metrics.width > 0 ? '1' : '0');
-    });
+    if (refs.grid && initialButton.id) refs.grid.setAttribute('aria-labelledby', initialButton.id);
+    if (refs.heading) refs.heading.textContent = initialButton.dataset.heading || initialButton.textContent.trim();
+    if (refs.description) refs.description.textContent = initialButton.dataset.description || '';
+    root.dataset.activeProductTab = initialButton.dataset.productTab || 'offers';
   },
 
   renderProduct(product) {
