@@ -6341,6 +6341,26 @@ h4 { font-size: 1rem; font-weight: 600; }
   transition: none !important;
 }
 
+.home-page .hero-brand-word,
+.home-page .hero-title-line {
+  display: block;
+}
+
+.home-page .hero-brand-word {
+  color: var(--color-primary);
+  font-size: clamp(2.45rem, 5.1vw, 5rem);
+  line-height: 0.95;
+  text-shadow: 0 16px 42px rgba(254, 216, 45, 0.2);
+}
+
+.home-page .hero-title-line {
+  max-width: 12.5em;
+  margin-top: 10px;
+  color: var(--color-white);
+  font-size: clamp(1.35rem, 2.45vw, 2.45rem);
+  line-height: 1.28;
+}
+
 .home-page .hero-title .highlight {
   display: inline-block;
   color: var(--color-primary);
@@ -6447,6 +6467,13 @@ h4 { font-size: 1rem; font-weight: 600; }
   border-radius: 18px;
   background: var(--color-black) !important;
   overflow: hidden;
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.home-page .hero-slider.is-dragging {
+  cursor: grabbing;
 }
 
 .home-page .hero-slider .slide {
@@ -7022,26 +7049,91 @@ h4 { font-size: 1rem; font-weight: 600; }
   }
 
   .home-page .hero-inner {
-    padding: 30px var(--container-padding) 26px;
-    gap: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 18px var(--container-padding) 24px;
+    gap: 16px;
+  }
+
+  .home-page .hero-content {
+    display: contents;
+  }
+
+  .home-page .hero-badge {
+    order: 2;
+    align-self: center;
+    max-width: 100%;
+    margin-bottom: 0;
+    padding: 6px 11px;
+    font-size: 0.72rem;
+    line-height: 1.45;
+    white-space: normal;
   }
 
   .home-page .hero-title {
-    font-size: clamp(1.82rem, 9.5vw, 2.65rem);
+    order: 3;
+    width: 100%;
+    margin-bottom: 0;
+    font-size: clamp(1.42rem, 6.2vw, 1.92rem) !important;
+    line-height: 1.32;
+    text-align: center;
+    overflow-wrap: break-word;
+    text-wrap: balance;
+  }
+
+  .home-page .hero-title .highlight {
+    display: block;
+    max-width: 12em;
+    margin-inline: auto;
+  }
+
+  .home-page .hero-brand-word {
+    font-size: clamp(2.15rem, 10vw, 2.9rem);
+    line-height: 0.98;
+  }
+
+  .home-page .hero-title-line {
+    max-width: 100%;
+    margin: 8px auto 0;
+    color: var(--color-white);
+    font-size: clamp(0.82rem, 3.7vw, 1.06rem);
+    line-height: 1.45;
+    font-weight: 900;
+    overflow-wrap: normal;
+    text-wrap: nowrap;
+    white-space: nowrap;
   }
 
   .home-page .hero-subtitle {
-    margin-bottom: 22px;
-    font-size: 0.9rem;
+    order: 4;
+    width: 100%;
+    max-width: 31em;
+    margin-inline: auto;
+    margin-bottom: 0;
+    font-size: 0.86rem;
+    line-height: 1.85;
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: break-word;
+    text-wrap: pretty;
   }
 
   .home-page .hero-actions {
+    order: 6;
     display: grid;
     grid-template-columns: 1fr;
+    width: 100%;
+    gap: 10px;
   }
 
   .home-page .hero-actions .btn {
     width: 100%;
+    min-height: 48px;
+    padding: 12px 18px;
+    font-size: 0.94rem;
+    line-height: 1.35;
+    white-space: normal;
   }
 
   .home-page .hero-highlights {
@@ -7059,6 +7151,7 @@ h4 { font-size: 1rem; font-weight: 600; }
   }
 
   .home-page .hero-media-frame {
+    max-width: 100%;
     padding: 2px;
     border-radius: var(--radius-md);
   }
@@ -7074,13 +7167,13 @@ h4 { font-size: 1rem; font-weight: 600; }
     border-radius: 10px;
   }
 
-  .home-page .hero-slider .slider-dots {
-    bottom: 9px;
-    padding: 5px 7px;
+  .home-page .hero-image-side {
+    order: 5;
+    width: 100%;
   }
 
-  .home-page .hero-slider .dot.active::before {
-    width: 18px;
+  .home-page .hero-slider .slider-dots {
+    display: none;
   }
 
   .home-page .hero-image-caption {
@@ -7230,6 +7323,37 @@ h4 { font-size: 1rem; font-weight: 600; }
 }
 
 @media (max-width: 420px) {
+  .home-page .hero-inner {
+    padding-top: 14px;
+    gap: 14px;
+  }
+
+  .home-page .hero-badge {
+    padding: 5px 10px;
+    font-size: 0.68rem;
+  }
+
+  .home-page .hero-title {
+    font-size: clamp(1.28rem, 6vw, 1.55rem) !important;
+    line-height: 1.36;
+  }
+
+  .home-page .hero-brand-word {
+    font-size: clamp(2rem, 10.5vw, 2.55rem);
+  }
+
+  .home-page .hero-title-line {
+    max-width: 100%;
+    font-size: clamp(0.74rem, 3.6vw, 0.94rem);
+    line-height: 1.45;
+  }
+
+  .home-page .hero-subtitle {
+    max-width: 25em;
+    font-size: 0.82rem;
+    line-height: 1.8;
+  }
+
   .home-page .banner-strip-inner {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

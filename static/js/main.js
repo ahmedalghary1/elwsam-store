@@ -507,6 +507,55 @@ const HeroSlider = {
     slider.addEventListener('mouseleave', () => this.startAuto());
     slider.addEventListener('focusin', () => this.stopAuto());
     slider.addEventListener('focusout', () => this.startAuto());
+    this.setupSwipe(slider);
+  },
+  setupSwipe(slider) {
+    if (!slider || this.total <= 1) return;
+
+    let startX = 0;
+    let startY = 0;
+    let pointerId = null;
+    let isDragging = false;
+    const minSwipeDistance = 45;
+
+    const resetDrag = () => {
+      pointerId = null;
+      isDragging = false;
+      slider.classList.remove('is-dragging');
+    };
+
+    slider.addEventListener('dragstart', (event) => event.preventDefault());
+
+    slider.addEventListener('pointerdown', (event) => {
+      if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return;
+      startX = event.clientX;
+      startY = event.clientY;
+      pointerId = event.pointerId;
+      isDragging = true;
+      slider.classList.add('is-dragging');
+      this.stopAuto();
+      slider.setPointerCapture?.(pointerId);
+    });
+
+    slider.addEventListener('pointerup', (event) => {
+      if (!isDragging || event.pointerId !== pointerId) return;
+      const deltaX = event.clientX - startX;
+      const deltaY = event.clientY - startY;
+      slider.releasePointerCapture?.(pointerId);
+
+      if (Math.abs(deltaX) >= minSwipeDistance && Math.abs(deltaX) > Math.abs(deltaY) * 1.15) {
+        if (deltaX < 0) this.next();
+        else this.prev();
+      }
+
+      resetDrag();
+      this.resetAuto();
+    });
+
+    slider.addEventListener('pointercancel', () => {
+      resetDrag();
+      this.resetAuto();
+    });
   },
   goTo(n) {
     const slider = document.getElementById('heroSlider');
