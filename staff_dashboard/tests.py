@@ -7,6 +7,7 @@ from orders.models import Order, OrderItem
 from products.models import (
     Category,
     Color,
+    HeroSlide,
     Product,
     ProductColor,
     ProductType,
@@ -182,6 +183,40 @@ class StaffDashboardProductTests(TestCase):
         self.assertTrue(ProductTypeImage.objects.filter(product_type=product_type, color__name="Gold").exists())
 
 
+class StaffDashboardHeroSlideTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.superuser = User.objects.create_superuser(
+            email="admin@example.com",
+            username="admin",
+            password="pass12345",
+        )
+        self.client.login(email="admin@example.com", password="pass12345")
+
+    def test_superuser_can_create_hero_slide_from_custom_dashboard(self):
+        image = SimpleUploadedFile(
+            "hero.gif",
+            b"GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;",
+            content_type="image/gif",
+        )
+
+        response = self.client.post(
+            reverse("staff_dashboard:hero_slide_add"),
+            {
+                "title": "Homepage banner",
+                "image": image,
+                "link_url": "/products/",
+                "alt_text": "Homepage banner alt",
+                "is_active": "on",
+                "order": "1",
+            },
+        )
+
+        slide = HeroSlide.objects.get(title="Homepage banner")
+        self.assertRedirects(response, reverse("staff_dashboard:hero_slide_edit", args=[slide.pk]))
+        self.assertEqual(slide.link_url, "/products/")
+
+
 class StaffDashboardSmokeTests(TestCase):
     def setUp(self):
         User = get_user_model()
@@ -229,9 +264,11 @@ class StaffDashboardSmokeTests(TestCase):
             reverse("staff_dashboard:order_detail", args=[self.order.pk]),
             reverse("staff_dashboard:customers"),
             reverse("staff_dashboard:home_collections"),
+            reverse("staff_dashboard:hero_slides"),
             reverse("staff_dashboard:settings"),
             reverse("staff_dashboard:colors"),
             reverse("staff_dashboard:product_add"),
+            reverse("staff_dashboard:hero_slide_add"),
             reverse("staff_dashboard:product_edit", args=[self.product.pk]),
             reverse("staff_dashboard:product_type_add", args=[self.product.pk]),
         ]

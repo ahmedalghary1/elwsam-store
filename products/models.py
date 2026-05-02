@@ -557,6 +557,44 @@ class HomeProductCollectionItem(models.Model):
 
 
 # =========================
+# HeroSlide (سلايدر الصفحة الرئيسية)
+# =========================
+class HeroSlide(models.Model):
+    title = models.CharField(max_length=180, blank=True, verbose_name="عنوان الشريحة")
+    image = models.ImageField(upload_to="home/slides/", verbose_name="صورة السلايدر")
+    link_url = models.CharField(
+        max_length=500,
+        blank=True,
+        verbose_name="رابط الشريحة",
+        help_text="يمكن استخدام رابط داخلي مثل /products/ أو رابط كامل يبدأ بـ https://",
+    )
+    alt_text = models.CharField(max_length=220, blank=True, verbose_name="النص البديل للصورة")
+    is_active = models.BooleanField(default=True, verbose_name="نشط")
+    order = models.PositiveIntegerField(default=0, verbose_name="ترتيب العرض")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["order", "-created_at"]
+        indexes = [
+            models.Index(fields=["is_active", "order"]),
+        ]
+        verbose_name = "شريحة السلايدر"
+        verbose_name_plural = "شرائح السلايدر"
+
+    def __str__(self):
+        return self.title or f"شريحة رقم {self.pk or ''}".strip()
+
+    @property
+    def image_url(self):
+        return self.image.url if self.image else ""
+
+    @property
+    def effective_alt_text(self):
+        return self.alt_text or self.title or "عرض من متجر الوسام"
+
+
+# =========================
 # Pattern (ترتيب الأنماط)
 # =========================
 class Pattern(models.Model):

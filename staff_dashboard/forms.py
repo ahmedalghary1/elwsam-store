@@ -6,6 +6,7 @@ from orders.models import Order
 from products.models import (
     Category,
     Color,
+    HeroSlide,
     HomeProductCollectionItem,
     Product,
     ProductColor,
@@ -489,6 +490,34 @@ class HomeCollectionItemForm(forms.ModelForm):
             if exists:
                 raise ValidationError("هذا المنتج موجود بالفعل داخل نفس قسم الصفحة الرئيسية.")
         return cleaned_data
+
+
+class HeroSlideForm(forms.ModelForm):
+    class Meta:
+        model = HeroSlide
+        fields = ["title", "image", "link_url", "alt_text", "is_active", "order"]
+        labels = {
+            "title": "عنوان داخلي للشريحة",
+            "image": "صورة السلايدر",
+            "link_url": "رابط عند الضغط على الصورة",
+            "alt_text": "النص البديل للصورة",
+            "is_active": "نشطة",
+            "order": "ترتيب العرض",
+        }
+        widgets = {
+            "link_url": forms.TextInput(attrs={"dir": "ltr", "placeholder": "/products/ أو https://example.com"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["title"].required = False
+        self.fields["link_url"].required = False
+        self.fields["alt_text"].required = False
+        self.fields["image"].help_text = "يفضل صورة بنسبة 16:9 مثل 2048×1152 حتى تظهر بنفس جودة السلايدر الحالي."
+        _apply_dashboard_widgets(self)
+
+    def clean_link_url(self):
+        return (self.cleaned_data.get("link_url") or "").strip()
 
 
 class CustomerForm(forms.ModelForm):

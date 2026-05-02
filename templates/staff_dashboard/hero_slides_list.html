@@ -1,0 +1,81 @@
+{% extends "staff_dashboard/base.html" %}
+
+{% block page_title %}إدارة سلايدر الصفحة الرئيسية{% endblock page_title %}
+{% block page_actions %}
+  <a class="dash-btn dash-btn-primary" href="{% url 'staff_dashboard:hero_slide_add' %}"><i class="fas fa-plus"></i> إضافة شريحة</a>
+{% endblock page_actions %}
+
+{% block content %}
+  <form class="dash-filters" method="get">
+    <input class="dash-input" type="search" name="q" value="{{ filters.q }}" placeholder="ابحث بعنوان الشريحة أو الرابط">
+    <select class="dash-input dash-select" name="status">
+      <option value="all" {% if filters.status == "all" %}selected{% endif %}>كل الحالات</option>
+      <option value="active" {% if filters.status == "active" %}selected{% endif %}>نشط</option>
+      <option value="inactive" {% if filters.status == "inactive" %}selected{% endif %}>موقوف</option>
+    </select>
+    <button class="dash-btn" type="submit"><i class="fas fa-magnifying-glass"></i> بحث</button>
+  </form>
+
+  <section class="dash-card">
+    <div class="card-head">
+      <div>
+        <h2>شرائح السلايدر</h2>
+        <p>{{ total_count }} نتيجة</p>
+      </div>
+    </div>
+    <div class="dash-table-wrap">
+      <table class="dash-table">
+        <thead>
+          <tr>
+            <th>الشريحة</th>
+            <th>الرابط</th>
+            <th>الترتيب</th>
+            <th>الحالة</th>
+            <th>إجراءات</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for slide in slides %}
+            <tr>
+              <td>
+                <div class="product-cell">
+                  {% if slide.image %}
+                    <img src="{{ slide.image.url }}" alt="{{ slide.effective_alt_text }}">
+                  {% else %}
+                    <span class="thumb-placeholder"><i class="fas fa-image"></i></span>
+                  {% endif %}
+                  <div>
+                    <strong>{{ slide.title|default:"شريحة بدون عنوان" }}</strong>
+                    <small>{{ slide.effective_alt_text }}</small>
+                  </div>
+                </div>
+              </td>
+              <td>
+                {% if slide.link_url %}
+                  <a href="{{ slide.link_url }}" target="_blank" rel="noopener">{{ slide.link_url }}</a>
+                {% else %}
+                  <span class="dash-badge muted">بدون رابط</span>
+                {% endif %}
+              </td>
+              <td>{{ slide.order }}</td>
+              <td>
+                {% if slide.is_active %}
+                  <span class="dash-badge success">نشط</span>
+                {% else %}
+                  <span class="dash-badge muted">موقوف</span>
+                {% endif %}
+              </td>
+              <td class="table-actions">
+                <a href="{% url 'staff_dashboard:hero_slide_edit' slide.pk %}" class="dash-icon-btn" title="تعديل"><i class="fas fa-pen"></i></a>
+                <a href="{% url 'staff_dashboard:hero_slide_delete' slide.pk %}" class="dash-icon-btn danger" title="حذف"><i class="fas fa-trash"></i></a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5" class="empty-cell">لا توجد شرائح مضافة بعد. سيستخدم الموقع الصورتين الافتراضيتين حتى تضيف شرائح من هنا.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% include "staff_dashboard/includes/pagination.html" %}
+  </section>
+{% endblock content %}

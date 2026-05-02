@@ -42,6 +42,9 @@
         <a href="{% url 'staff_dashboard:home_collections' %}" class="{% if active_nav == 'home_collections' %}active{% endif %}">
           <i class="fas fa-house-chimney-window"></i><span>الصفحة الرئيسية</span>
         </a>
+        <a href="{% url 'staff_dashboard:hero_slides' %}" class="{% if active_nav == 'hero_slides' %}active{% endif %}">
+          <i class="fas fa-images"></i><span>سلايدر الرئيسية</span>
+        </a>
         <a href="{% url 'staff_dashboard:settings' %}" class="{% if active_nav == 'settings' %}active{% endif %}">
           <i class="fas fa-sliders"></i><span>الإعدادات</span>
         </a>

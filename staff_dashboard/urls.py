@@ -36,5 +36,9 @@ urlpatterns = [
     path("home-sections/add/", views.home_collection_form, name="home_collection_add"),
     path("home-sections/<int:pk>/edit/", views.home_collection_form, name="home_collection_edit"),
     path("home-sections/<int:pk>/delete/", views.home_collection_delete, name="home_collection_delete"),
+    path("hero-slides/", views.hero_slides_list, name="hero_slides"),
+    path("hero-slides/add/", views.hero_slide_form, name="hero_slide_add"),
+    path("hero-slides/<int:pk>/edit/", views.hero_slide_form, name="hero_slide_edit"),
+    path("hero-slides/<int:pk>/delete/", views.hero_slide_delete, name="hero_slide_delete"),
     path("settings/", views.settings_overview, name="settings"),
 ]

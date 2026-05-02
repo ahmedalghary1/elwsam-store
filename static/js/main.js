@@ -516,6 +516,7 @@ const HeroSlider = {
     let startY = 0;
     let pointerId = null;
     let isDragging = false;
+    let didSwipe = false;
     const minSwipeDistance = 45;
 
     const resetDrag = () => {
@@ -525,6 +526,12 @@ const HeroSlider = {
     };
 
     slider.addEventListener('dragstart', (event) => event.preventDefault());
+    slider.addEventListener('click', (event) => {
+      if (!didSwipe) return;
+      event.preventDefault();
+      event.stopPropagation();
+      didSwipe = false;
+    }, true);
 
     slider.addEventListener('pointerdown', (event) => {
       if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return;
@@ -544,6 +551,8 @@ const HeroSlider = {
       slider.releasePointerCapture?.(pointerId);
 
       if (Math.abs(deltaX) >= minSwipeDistance && Math.abs(deltaX) > Math.abs(deltaY) * 1.15) {
+        didSwipe = true;
+        window.setTimeout(() => { didSwipe = false; }, 250);
         if (deltaX < 0) this.next();
         else this.prev();
       }

@@ -3,7 +3,7 @@
 {% block title %}متجر الوسام | مشترك كهرباء وبرايز وكشاف ليد ومستلزمات كهرباء{% endblock title %}
 {% block meta_description %}تسوق من متجر الوسام منتجات كهرباء منزلية وتجارية مثل مشترك كهرباء، برايز، كشاف ليد، دوايات وإضاءة بأسعار مناسبة وروابط مباشرة للمنتجات والأقسام.{% endblock meta_description %}
 {% block preload_assets %}
-  <link rel="preload" as="image" href="{% static 'image/slide.webp' %}" type="image/webp" fetchpriority="high">
+  <link rel="preload" as="image" href="{{ hero_slides.0.image_url }}" fetchpriority="high">
 {% endblock preload_assets %}
 
 {% block content %}
@@ -37,21 +37,24 @@
           <div class="hero-media-frame">
             <div class="hero-slider-wrap">
               <div class="hero-slider" id="heroSlider">
-                <div class="slide active">
-                  <picture>
-                    <img src="{% static 'image/slide.webp' %}" alt="مشترك كهرباء من متجر الوسام" width="2048" height="1152" loading="eager" decoding="async" fetchpriority="high">
-                  </picture>
-                </div>
-
-                <div class="slide">
-                  <picture>
-                    <img src="{% static 'image/slide2.webp' %}" alt="كشاف ليد وإضاءة للمساحات الكبيرة" width="2048" height="1152" loading="lazy" decoding="async" fetchpriority="low">
-                  </picture>
-                </div>
+                {% for slide in hero_slides %}
+                  <div class="slide{% if forloop.first %} active{% endif %}">
+                    {% if slide.link_url %}
+                      <a class="slide-link" href="{{ slide.link_url }}" aria-label="{{ slide.effective_alt_text|default:slide.alt_text }}">
+                    {% endif %}
+                    <picture>
+                      <img src="{{ slide.image_url }}" alt="{{ slide.effective_alt_text|default:slide.alt_text }}" width="2048" height="1152" loading="{% if forloop.first %}eager{% else %}lazy{% endif %}" decoding="async" fetchpriority="{% if forloop.first %}high{% else %}low{% endif %}">
+                    </picture>
+                    {% if slide.link_url %}
+                      </a>
+                    {% endif %}
+                  </div>
+                {% endfor %}
 
         <div class="slider-dots" role="tablist" aria-label="التنقل بين شرائح العرض">
-          <button type="button" class="dot active" aria-label="الشريحة 1" aria-current="true"></button>
-          <button type="button" class="dot" aria-label="الشريحة 2"></button>
+          {% for slide in hero_slides %}
+            <button type="button" class="dot{% if forloop.first %} active{% endif %}" aria-label="الشريحة {{ forloop.counter }}"{% if forloop.first %} aria-current="true"{% endif %}></button>
+          {% endfor %}
         </div>
               </div>
             </div>

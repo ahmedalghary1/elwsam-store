@@ -1,8 +1,9 @@
 from django.shortcuts import render
+from django.templatetags.static import static
 from django.urls import NoReverseMatch, reverse
 from django.views.decorators.cache import never_cache
 
-from products.models import Category
+from products.models import Category, HeroSlide
 from products.services import get_product_collection_queryset
 from .seo import (
     SITE_NAME,
@@ -13,12 +14,32 @@ from .seo import (
 )
 
 
+def _default_hero_slides():
+    return [
+        {
+            "image_url": static("image/slide.webp"),
+            "link_url": "",
+            "alt_text": "مشترك كهرباء من متجر الوسام",
+            "effective_alt_text": "مشترك كهرباء من متجر الوسام",
+        },
+        {
+            "image_url": static("image/slide2.webp"),
+            "link_url": "",
+            "alt_text": "كشاف ليد وإضاءة للمساحات الكبيرة",
+            "effective_alt_text": "كشاف ليد وإضاءة للمساحات الكبيرة",
+        },
+    ]
+
+
 @never_cache
 def index(request):
     """
     الصفحة الرئيسية - عرض الأقسام وتبويبات المنتجات
     """
     categories = Category.objects.filter(is_active=True).order_by('order')
+    hero_slides = list(HeroSlide.objects.filter(is_active=True).order_by("order", "-created_at"))
+    if not hero_slides:
+        hero_slides = _default_hero_slides()
     product_tabs = [
         {
             'type': 'offers',
@@ -49,6 +70,7 @@ def index(request):
     
     context = {
         'categories': categories,
+        'hero_slides': hero_slides,
         'product_tabs': product_tabs,
         'initial_product_tab': initial_product_tab,
         'initial_tab_products': initial_tab_products,

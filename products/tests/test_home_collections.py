@@ -1,9 +1,11 @@
 from decimal import Decimal
 
+from django.conf import settings
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from products.models import Category, HomeProductCollectionItem, Product
+from products.models import Category, HeroSlide, HomeProductCollectionItem, Product
 from products.services import get_product_collection_queryset
 
 
@@ -100,6 +102,27 @@ class HomeProductCollectionTests(TestCase):
         self.assertContains(response, self.second_product.name)
         self.assertContains(response, 'data-api-url="/api/products/"')
         self.assertIn("no-store", response.headers["Cache-Control"])
+
+    def test_home_template_renders_dashboard_hero_slides_with_links(self):
+        image = SimpleUploadedFile(
+            "hero.gif",
+            b"GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;",
+            content_type="image/gif",
+        )
+        HeroSlide.objects.create(
+            title="Dashboard hero",
+            image=image,
+            link_url="/products/",
+            alt_text="Dashboard hero alt",
+            order=0,
+        )
+
+        response = self.client.get(reverse("index"))
+
+        self.assertContains(response, 'href="/products/"')
+        self.assertContains(response, "Dashboard hero alt")
+        self.assertContains(response, f"{settings.MEDIA_URL}home/slides/")
+        self.assertNotContains(response, "image/slide.webp")
 
     def test_product_collection_api_returns_curated_latest_without_public_cache(self):
         HomeProductCollectionItem.objects.create(

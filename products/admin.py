@@ -13,7 +13,7 @@ from .models import (
     Category, Product, Pattern, Color, ProductColor, Size, Type, ProductSize,
     ProductType, ProductTypeColor, ProductTypeImage, ProductImage, ProductVariant,
     ProductSpecification, PatternSize, PatternColor, PatternImage,
-    HomeProductCollectionItem
+    HomeProductCollectionItem, HeroSlide
 )
 
 import csv
@@ -940,6 +940,33 @@ class HomeProductCollectionItemAdmin(SortableAdminMixin, admin.ModelAdmin):
 # ================================================
 # Color Admin  (required for autocomplete)
 # ================================================
+
+@admin.register(HeroSlide)
+class HeroSlideAdmin(SortableAdminMixin, admin.ModelAdmin):
+    sortable_field_name = "order"
+    list_display = ["slide_preview", "title", "link_url", "is_active", "order", "updated_at"]
+    list_display_links = ["slide_preview", "title"]
+    list_editable = ["is_active"]
+    list_filter = ["is_active"]
+    search_fields = ["title", "alt_text", "link_url"]
+    ordering = ["order", "-created_at"]
+    list_per_page = 30
+
+    fieldsets = (
+        ("بيانات الشريحة", {
+            "fields": ("title", "image", "link_url", "alt_text", "is_active", "order"),
+        }),
+    )
+
+    def slide_preview(self, obj):
+        if obj.image:
+            return format_html(
+                '<img src="{}" style="width:72px;height:40px;object-fit:cover;border-radius:6px;border:1px solid #eee;" />',
+                obj.image.url,
+            )
+        return mark_safe('<span style="font-size:1.4rem;">—</span>')
+    slide_preview.short_description = "الصورة"
+
 
 @admin.register(Color)
 class ColorAdmin(admin.ModelAdmin):

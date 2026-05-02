@@ -14,6 +14,7 @@ from orders.models import Cart, Order, OrderItem
 from products.models import (
     Category,
     Color,
+    HeroSlide,
     HomeProductCollectionItem,
     PatternColor,
     PatternImage,
@@ -30,6 +31,7 @@ from .forms import (
     CategoryForm,
     ColorForm,
     CustomerForm,
+    HeroSlideForm,
     HomeCollectionItemForm,
     OrderStatusForm,
     ProductColorForm,
@@ -884,6 +886,88 @@ def home_collection_delete(request, pk):
             "object_type": "عنصر الصفحة الرئيسية",
             "cancel_url": reverse("staff_dashboard:home_collections"),
             "warning": "سيتم حذف ظهور المنتج من هذا القسم فقط، ولن يتم حذف المنتج نفسه.",
+        },
+    )
+
+
+@superuser_required
+def hero_slides_list(request):
+    queryset = HeroSlide.objects.order_by("order", "-created_at")
+    query = request.GET.get("q", "").strip()
+    status = request.GET.get("status", "all")
+
+    if query:
+        queryset = queryset.filter(
+            Q(title__icontains=query)
+            | Q(alt_text__icontains=query)
+            | Q(link_url__icontains=query)
+        )
+    if status == "active":
+        queryset = queryset.filter(is_active=True)
+    elif status == "inactive":
+        queryset = queryset.filter(is_active=False)
+
+    page_obj = _paginate(request, queryset, per_page=20)
+    return _render(
+        request,
+        "staff_dashboard/hero_slides_list.html",
+        {
+            "active_nav": "hero_slides",
+            "page_obj": page_obj,
+            "slides": page_obj.object_list,
+            "filters": {"q": query, "status": status},
+            "total_count": queryset.count(),
+        },
+    )
+
+
+@superuser_required
+def hero_slide_form(request, pk=None):
+    slide = get_object_or_404(HeroSlide, pk=pk) if pk else None
+    if request.method == "POST":
+        form = HeroSlideForm(request.POST, request.FILES, instance=slide)
+        if form.is_valid():
+            saved_slide = form.save()
+            messages.success(request, "تم حفظ شريحة السلايدر بنجاح.")
+            return redirect("staff_dashboard:hero_slide_edit", pk=saved_slide.pk)
+        messages.error(request, "يرجى مراجعة بيانات الشريحة.")
+    else:
+        form = HeroSlideForm(instance=slide)
+
+    return _render(
+        request,
+        "staff_dashboard/form.html",
+        {
+            "active_nav": "hero_slides",
+            "form": form,
+            "page_title": "تعديل شريحة السلايدر" if slide else "إضافة شريحة للسلايدر",
+            "page_subtitle": "ارفع صورة السلايدر وحدد الرابط الذي يفتح عند الضغط عليها. تظهر الشرائح النشطة فقط حسب ترتيب العرض.",
+            "cancel_url": reverse("staff_dashboard:hero_slides"),
+            "delete_url": reverse("staff_dashboard:hero_slide_delete", args=[slide.pk]) if slide else "",
+            "advanced_url": _admin_change_url(slide) if slide else "",
+            "advanced_label": "تعديل متقدم",
+            "multipart": True,
+        },
+    )
+
+
+@superuser_required
+def hero_slide_delete(request, pk):
+    slide = get_object_or_404(HeroSlide, pk=pk)
+    if request.method == "POST":
+        slide.delete()
+        messages.success(request, "تم حذف شريحة السلايدر.")
+        return redirect("staff_dashboard:hero_slides")
+
+    return _render(
+        request,
+        "staff_dashboard/confirm_delete.html",
+        {
+            "active_nav": "hero_slides",
+            "object_name": str(slide),
+            "object_type": "شريحة السلايدر",
+            "cancel_url": reverse("staff_dashboard:hero_slides"),
+            "warning": "سيتم حذف الشريحة من سلايدر الصفحة الرئيسية فقط.",
         },
     )
 
