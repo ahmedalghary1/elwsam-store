@@ -455,6 +455,27 @@ const HeroSlider = {
   total: 0,
   interval: null,
   delay: 4000,
+  renderDots(slider) {
+    let dotsWrap = slider.querySelector('.slider-dots');
+    if (!dotsWrap) {
+      dotsWrap = document.createElement('div');
+      dotsWrap.className = 'slider-dots';
+      slider.appendChild(dotsWrap);
+    }
+
+    dotsWrap.setAttribute('role', 'tablist');
+    dotsWrap.setAttribute('aria-label', '\u0627\u0644\u062a\u0646\u0642\u0644 \u0628\u064a\u0646 \u0627\u0644\u0634\u0631\u0627\u0626\u062d');
+    while (dotsWrap.firstChild) dotsWrap.removeChild(dotsWrap.firstChild);
+
+    for (let i = 0; i < this.total; i++) {
+      const button = document.createElement('button');
+      button.className = 'dot' + (i === this.current ? ' active' : '');
+      button.type = 'button';
+      button.setAttribute('aria-label', `\u0627\u0644\u0634\u0631\u064a\u062d\u0629 ${i + 1}`);
+      if (i === this.current) button.setAttribute('aria-current', 'true');
+      dotsWrap.appendChild(button);
+    }
+  },
   init() {
     const slider = document.getElementById('heroSlider');
     if (!slider) return;
@@ -466,37 +487,8 @@ const HeroSlider = {
     this.current = activeIndex >= 0 ? activeIndex : 0;
     this.loadSlideImage(slides[this.current]);
     
-    if (!slider.querySelector('.slider-dots')) {
-      const dotsWrap = document.createElement('div');
-      dotsWrap.className = 'slider-dots';
-      dotsWrap.setAttribute('role', 'tablist');
-      dotsWrap.setAttribute('aria-label', 'التنقل بين الشرائح');
-      for (let i = 0; i < this.total; i++) {
-        const b = document.createElement('button');
-        b.className = 'dot' + (i === this.current ? ' active' : '');
-        b.type = 'button';
-        b.setAttribute('aria-label', `الشريحة ${i + 1}`);
-        if (i === this.current) b.setAttribute('aria-current', 'true');
-        dotsWrap.appendChild(b);
-      }
-      slider.appendChild(dotsWrap);
-    }
-
-    const dotsWrap = slider.querySelector('.slider-dots');
-    if (dotsWrap) {
-      dotsWrap.setAttribute('role', 'tablist');
-      dotsWrap.setAttribute('aria-label', 'التنقل بين الشرائح');
-    }
-    const dots = slider.querySelectorAll('.dot');
-    dots.forEach((dot, i) => {
-      dot.type = 'button';
-      dot.setAttribute('aria-label', `الشريحة ${i + 1}`);
-      if (i === this.current) {
-        dot.setAttribute('aria-current', 'true');
-      } else {
-        dot.removeAttribute('aria-current');
-      }
-    });
+    this.renderDots(slider);
+    const dots = slider.querySelectorAll('.slider-dots .dot');
     slider.querySelector('.slider-prev')?.addEventListener('click', () => { this.prev(); this.resetAuto(); });
     slider.querySelector('.slider-next')?.addEventListener('click', () => { this.next(); this.resetAuto(); });
     dots.forEach((dot, i) => dot.addEventListener('click', () => { this.goTo(i); this.resetAuto(); }));
@@ -570,7 +562,7 @@ const HeroSlider = {
     const slider = document.getElementById('heroSlider');
     if (!slider) return;
     const slides = slider.querySelectorAll('.slide');
-    const dots = slider.querySelectorAll('.dot');
+    const dots = slider.querySelectorAll('.slider-dots .dot');
     const nextIndex = (n + this.total) % this.total;
     this.loadSlideImage(slides[nextIndex]);
     slides[this.current]?.classList.remove('active');

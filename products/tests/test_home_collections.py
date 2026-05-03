@@ -1,3 +1,4 @@
+import re
 from decimal import Decimal
 
 from django.conf import settings
@@ -123,6 +124,20 @@ class HomeProductCollectionTests(TestCase):
         self.assertContains(response, "Dashboard hero alt")
         self.assertContains(response, f"{settings.MEDIA_URL}home/slides/")
         self.assertNotContains(response, "image/slide.webp")
+
+    def test_home_template_renders_one_dot_for_each_dashboard_hero_slide(self):
+        for index in range(3):
+            HeroSlide.objects.create(
+                title=f"Dashboard hero {index}",
+                image=f"home/slides/hero-{index}.gif",
+                order=index,
+            )
+
+        response = self.client.get(reverse("index"))
+        html = response.content.decode()
+
+        self.assertEqual(len(re.findall(r'<div class="slide(?:\s|")', html)), 3)
+        self.assertEqual(len(re.findall(r'<button type="button" class="dot(?:\s|")', html)), 3)
 
     def test_product_collection_api_returns_curated_latest_without_public_cache(self):
         HomeProductCollectionItem.objects.create(

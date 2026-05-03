@@ -149,7 +149,7 @@ STATICFILES_DIRS = [
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_URL = '/shop_media/'
 MEDIA_ROOT = '/home/elwsamst/media'
-ASSET_VERSION = os.environ.get('ASSET_VERSION', '20260502-dashboard-hero-slides')
+ASSET_VERSION = os.environ.get('ASSET_VERSION', '20260503-hero-slide-dots')
 
 
 AUTH_USER_MODEL = 'accounts.User'

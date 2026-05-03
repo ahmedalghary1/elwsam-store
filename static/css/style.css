@@ -6509,7 +6509,7 @@ h4 { font-size: 1rem; font-weight: 600; }
   left: 50%;
   bottom: 16px;
   z-index: 20;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   gap: var(--dots-gap);
@@ -6519,6 +6519,12 @@ h4 { font-size: 1rem; font-weight: 600; }
   background: rgba(10, 10, 10, 0.54);
   transform: translateX(-50%);
   backdrop-filter: blur(10px);
+}
+
+@media (min-width: 1024px) {
+  .home-page .hero-slider .slider-dots {
+    display: flex;
+  }
 }
 
 .home-page .hero-slider .dot {
