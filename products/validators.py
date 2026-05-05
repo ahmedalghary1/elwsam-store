@@ -62,7 +62,7 @@ class VariantValidator:
                 has_type_colors = type_colors.exists()
                 if has_type_colors and not color_id:
                     errors['color'] = 'يجب اختيار اللون'
-                elif color_id and not type_colors.filter(color_id=color_id).exists():
+                elif has_type_colors and color_id and not type_colors.filter(color_id=color_id).exists():
                     errors['color'] = 'اللون المحدد غير متوفر لهذا النوع'
         
         # Check if product has patterns and pattern is required
@@ -98,23 +98,28 @@ class VariantValidator:
             try:
                 pattern_obj = Pattern.objects.get(id=pattern_id, product=product)
                 has_pattern_colors = PatternColor.objects.filter(pattern=pattern_obj).exists()
+                has_product_colors = ProductColor.objects.filter(product=product).exists()
                 has_variant_colors = VariantValidator._variant_color_queryset(
                     product,
                     pattern_id=pattern_obj.id
                 ).exists()
-                if (has_pattern_colors or has_variant_colors) and not color_id:
+                if (has_pattern_colors or has_variant_colors or has_product_colors) and not color_id:
                     errors['color'] = 'يجب اختيار اللون'
                 if color_id:
                     color_in_pattern = has_pattern_colors and PatternColor.objects.filter(
                         pattern=pattern_obj, color_id=color_id
+                    ).exists()
+                    color_in_product = ProductColor.objects.filter(
+                        product=product,
+                        color_id=color_id
                     ).exists()
                     color_in_variants = VariantValidator._selection_has_variant_color(
                         product,
                         color_id,
                         pattern_id=pattern_obj.id
                     )
-                    if not color_in_pattern and not color_in_variants:
-                        errors['color'] = 'اللون المحدد غير متوفر لهذا النمط'
+                    if not color_in_pattern and not color_in_product and not color_in_variants:
+                        errors['color'] = 'اللون المحدد غير متوفر لهذا المنتج'
             except Pattern.DoesNotExist:
                 pass
         else:
@@ -135,8 +140,7 @@ class VariantValidator:
                     errors['color'] = 'اللون المحدد غير متوفر لهذا المنتج'
 
         # Check if product has product-level sizes (not pattern-based)
-        has_colors = ProductColor.objects.filter(product=product).exists()
-        if not product.check_if_has_patterns() and not has_colors:
+        if not product.check_if_has_patterns():
             has_product_sizes = ProductSize.objects.filter(product=product).exists()
             if has_product_sizes and not size_id:
                 errors['size'] = 'يجب اختيار المقاس'
@@ -248,12 +252,15 @@ class VariantValidator:
         
         # Try to find matching variant
         try:
-            variant = ProductVariant.objects.get(
+            variant = ProductVariant.objects.filter(
                 product=product,
                 pattern_id=pattern_id,
                 color_id=color_id,
                 size_id=size_id
-            )
+            ).order_by('-id').first()
+
+            if not variant:
+                raise ProductVariant.DoesNotExist
             
             # Check stock
             if variant.stock <= 0:

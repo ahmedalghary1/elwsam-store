@@ -3,7 +3,7 @@ from urllib.parse import unquote
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views import View
 from django.views.generic import ListView, DetailView
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.core.paginator import Paginator
 from django.db.models import Q, Exists, OuterRef
 from django.core.cache import cache
@@ -104,7 +104,7 @@ def category_products(request, id, slug):
     """
     category = get_object_or_404(Category, id=id, is_active=True)
     requested_slug = _normalize_slug(slug)
-    if requested_slug != category.slug:
+    if "%" in slug or requested_slug != category.slug:
         return redirect(category.get_absolute_url(), permanent=True)
     
     # الحصول على جميع المنتجات النشطة للقسم
@@ -332,7 +332,7 @@ class ProductDetailView(View):
     def get(self, request, id, slug):
         product = get_object_or_404(Product, id=id, is_active=True)
         requested_slug = _normalize_slug(slug)
-        if requested_slug != product.slug:
+        if "%" in slug or requested_slug != product.slug:
             return redirect(product.get_absolute_url(), permanent=True)
         
         # كل الصور الخاصة بالمنتج (مرتبة حسب الرتبة)
@@ -580,21 +580,19 @@ def get_product_config(request, product_id):
         product_types_data = [serialize_product_type(product_type) for product_type in product_types]
         has_type_colors = any(product_type['colors'] for product_type in product_types_data)
         
-        # Get colors: for non-pattern products use ProductColor;
-        # for pattern-based products colors are embedded per-pattern above
+        # Get product-level colors for all configuration types.
         colors_data = []
-        if not has_patterns:
-            product_colors = ProductColor.objects.filter(
-                product=product
-            ).select_related('color').order_by('order')
-            colors_data = [
-                {
-                    'id': pc.color.id,
-                    'name': pc.color.name,
-                    'code': pc.color.code or '#ccc'
-                }
-                for pc in product_colors
-            ]
+        product_colors = ProductColor.objects.filter(
+            product=product
+        ).select_related('color').order_by('order')
+        colors_data = [
+            {
+                'id': pc.color.id,
+                'name': pc.color.name,
+                'code': pc.color.code or '#ccc'
+            }
+            for pc in product_colors
+        ]
         
         config = {
             'success': True,
@@ -869,6 +867,30 @@ def get_variant_info(request, product_id):
         )
         
         if not validation['valid']:
+            if validation.get('errors', {}).get('stock'):
+                stale_variant = ProductVariant.objects.filter(
+                    product=product,
+                    pattern_id=pattern_id,
+                    color_id=color_id,
+                    size_id=size_id
+                ).first()
+                dynamic_price = product.get_price(
+                    pattern_id=pattern_id,
+                    size_id=size_id,
+                    color_id=color_id,
+                    type_id=type_id
+                )
+                if stale_variant and stale_variant.price != dynamic_price:
+                    return JsonResponse({
+                        'success': True,
+                        'variant': {
+                            'id': stale_variant.id,
+                            'price': str(dynamic_price),
+                            'stock': stale_variant.stock,
+                            'available': stale_variant.is_available()
+                        },
+                        'validation': {'valid': True, 'message': '', 'field': None, 'errors': {}}
+                    })
             return JsonResponse({
                 'success': False,
                 'message': validation['message'],
@@ -906,6 +928,8 @@ def get_variant_info(request, product_id):
             'validation': {'valid': True, 'message': '', 'field': None, 'errors': {}}
         })
             
+    except Http404:
+        raise
     except Exception as e:
         return JsonResponse({
             'success': False,

@@ -1,6 +1,25 @@
-from django.db.models.signals import post_save
+from django.core.cache import cache
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
-from .models import Product, ProductVariant
+from .models import (
+    Pattern,
+    PatternColor,
+    PatternImage,
+    PatternSize,
+    Product,
+    ProductColor,
+    ProductImage,
+    ProductSize,
+    ProductType,
+    ProductTypeColor,
+    ProductTypeImage,
+    ProductVariant,
+)
+
+
+def _delete_product_config_cache(product_id):
+    if product_id:
+        cache.delete(f'product_config_{product_id}')
 
 @receiver(post_save, sender=Product)
 def create_or_update_simple_product_variant(sender, instance, created, **kwargs):
@@ -30,3 +49,49 @@ def create_or_update_simple_product_variant(sender, instance, created, **kwargs)
             if default_variant.price != instance.price:
                 default_variant.price = instance.price
                 default_variant.save()
+
+    _delete_product_config_cache(instance.pk)
+
+
+@receiver(post_delete, sender=Product)
+def delete_product_config_cache(sender, instance, **kwargs):
+    _delete_product_config_cache(instance.pk)
+
+
+def _related_product_id(instance):
+    if hasattr(instance, 'product_id'):
+        return instance.product_id
+    if hasattr(instance, 'pattern_id'):
+        return instance.pattern.product_id
+    if hasattr(instance, 'product_type_id'):
+        return instance.product_type.product_id
+    return None
+
+
+def _invalidate_related_product_config(sender, instance, **kwargs):
+    _delete_product_config_cache(_related_product_id(instance))
+
+
+for related_model in (
+    Pattern,
+    PatternColor,
+    PatternImage,
+    PatternSize,
+    ProductColor,
+    ProductImage,
+    ProductSize,
+    ProductType,
+    ProductTypeColor,
+    ProductTypeImage,
+    ProductVariant,
+):
+    post_save.connect(
+        _invalidate_related_product_config,
+        sender=related_model,
+        dispatch_uid=f'invalidate_product_config_on_{related_model.__name__}_save',
+    )
+    post_delete.connect(
+        _invalidate_related_product_config,
+        sender=related_model,
+        dispatch_uid=f'invalidate_product_config_on_{related_model.__name__}_delete',
+    )

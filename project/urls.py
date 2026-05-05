@@ -53,6 +53,7 @@ urlpatterns = [
     path('orders/', include('orders.urls')),
     
     # API Routes
+    path('api/v1/', include('api.urls')),
     path('api/products/', product_collection_api, name='product_collection_api'),
     path('api/product-config/<int:product_id>/', get_product_config, name='get_product_config'),
     path('api/variant-options/<int:product_id>/', get_variant_options, name='get_variant_options'),
