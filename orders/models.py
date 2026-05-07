@@ -207,6 +207,22 @@ class Order(models.Model):
     def is_guest_order(self):
         return self.user is None
 
+    @property
+    def customer_display_name(self):
+        if self.shipping_name:
+            return self.shipping_name
+        if self.guest_email:
+            return self.guest_email
+        if self.user_id and self.user.email:
+            return self.user.email
+        return "ضيف"
+
+    @property
+    def customer_email(self):
+        if self.user_id and self.user.email:
+            return self.user.email
+        return self.guest_email or ""
+
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")

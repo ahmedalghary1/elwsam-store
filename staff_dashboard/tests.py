@@ -253,6 +253,14 @@ class StaffDashboardSmokeTests(TestCase):
             quantity=1,
             price="99.00",
         )
+        self.guest_order = Order.objects.create(
+            total_price="49.00",
+            shipping_address="Guest address",
+            shipping_phone="01111111111",
+            shipping_name="Guest Customer",
+            shipping_city="Cairo",
+            guest_email="guest@example.com",
+        )
         self.client.login(email="admin@example.com", password="pass12345")
 
     def test_main_dashboard_pages_render_for_superuser(self):
@@ -262,6 +270,7 @@ class StaffDashboardSmokeTests(TestCase):
             reverse("staff_dashboard:categories"),
             reverse("staff_dashboard:orders"),
             reverse("staff_dashboard:order_detail", args=[self.order.pk]),
+            reverse("staff_dashboard:order_detail", args=[self.guest_order.pk]),
             reverse("staff_dashboard:customers"),
             reverse("staff_dashboard:home_collections"),
             reverse("staff_dashboard:hero_slides"),

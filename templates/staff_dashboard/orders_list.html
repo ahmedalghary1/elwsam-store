@@ -36,8 +36,8 @@
             <tr>
               <td><a href="{% url 'staff_dashboard:order_detail' order.pk %}"><strong>#{{ order.pk }}</strong></a></td>
               <td>
-                <strong>{{ order.shipping_name|default:"ضيف" }}</strong>
-                <small>{{ order.user.email|default:order.guest_email|default:"-" }}</small>
+                <strong>{{ order.customer_display_name }}</strong>
+                <small>{{ order.customer_email|default:"-" }}</small>
               </td>
               <td>{{ order.shipping_phone }}</td>
               <td>{{ order.shipping_city|default:"-" }}</td>

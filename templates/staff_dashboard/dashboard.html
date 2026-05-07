@@ -50,7 +50,7 @@
             {% for order in latest_orders %}
               <tr>
                 <td><a href="{% url 'staff_dashboard:order_detail' order.pk %}">#{{ order.pk }}</a></td>
-                <td>{{ order.shipping_name|default:order.guest_email|default:order.user.email|default:"ضيف" }}</td>
+                <td>{{ order.customer_display_name }}</td>
                 <td><span class="dash-badge status-{{ order.status }}">{{ order.get_status_display }}</span></td>
                 <td><strong>{{ order.total_price }} ج.م</strong></td>
               </tr>

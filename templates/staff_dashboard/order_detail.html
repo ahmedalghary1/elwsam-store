@@ -18,8 +18,8 @@
       </div>
 
       <dl class="detail-list">
-        <div><dt>العميل</dt><dd>{{ order.shipping_name|default:"ضيف" }}</dd></div>
-        <div><dt>البريد</dt><dd>{{ order.user.email|default:order.guest_email|default:"-" }}</dd></div>
+        <div><dt>العميل</dt><dd>{{ order.customer_display_name }}</dd></div>
+        <div><dt>البريد</dt><dd>{{ order.customer_email|default:"-" }}</dd></div>
         <div><dt>الهاتف</dt><dd>{{ order.shipping_phone }}</dd></div>
         <div><dt>المدينة</dt><dd>{{ order.shipping_city|default:"-" }}</dd></div>
         <div><dt>الدفع</dt><dd>{{ order.payment_method }}</dd></div>
