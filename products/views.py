@@ -38,7 +38,26 @@ def _decode_slug(raw_slug):
         if next_value == decoded:
             break
         decoded = next_value
-    return decoded
+    return _repair_mojibake(decoded)
+
+
+def _repair_mojibake(value):
+    """Repair UTF-8 Arabic slugs decoded by a server layer as latin-1/cp1252."""
+    if not value:
+        return value
+
+    for encoding in ("latin-1", "cp1252"):
+        try:
+            repaired = value.encode(encoding).decode("utf-8")
+        except UnicodeError:
+            continue
+        if repaired != value and _contains_arabic(repaired):
+            return repaired
+    return value
+
+
+def _contains_arabic(value):
+    return any("\u0600" <= char <= "\u06ff" for char in value)
 
 
 def _normalize_slug(raw_slug):
@@ -104,7 +123,7 @@ def category_products(request, id, slug):
     """
     category = get_object_or_404(Category, id=id, is_active=True)
     requested_slug = _normalize_slug(slug)
-    if "%" in slug or requested_slug != category.slug:
+    if requested_slug != category.slug:
         return redirect(category.get_absolute_url(), permanent=True)
     
     # الحصول على جميع المنتجات النشطة للقسم
@@ -332,7 +351,7 @@ class ProductDetailView(View):
     def get(self, request, id, slug):
         product = get_object_or_404(Product, id=id, is_active=True)
         requested_slug = _normalize_slug(slug)
-        if "%" in slug or requested_slug != product.slug:
+        if requested_slug != product.slug:
             return redirect(product.get_absolute_url(), permanent=True)
         
         # كل الصور الخاصة بالمنتج (مرتبة حسب الرتبة)

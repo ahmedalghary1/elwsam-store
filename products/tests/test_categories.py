@@ -5,6 +5,10 @@ from urllib.parse import quote
 from products.models import Category, Product
 
 
+def as_latin1_mojibake(value):
+    return value.encode("utf-8").decode("latin-1")
+
+
 class CategoryVisibilityTests(TestCase):
     def setUp(self):
         self.active_category = Category.objects.create(
@@ -44,7 +48,7 @@ class CategoryVisibilityTests(TestCase):
         self.assertEqual(response.status_code, 301)
         self.assertEqual(response.headers["Location"], self.active_category.get_absolute_url())
 
-    def test_category_page_redirects_when_slug_is_double_encoded(self):
+    def test_category_page_accepts_percent_encoded_arabic_slug_without_loop(self):
         arabic_category = Category.objects.create(
             name="قسم المشترك",
             is_active=True,
@@ -53,8 +57,20 @@ class CategoryVisibilityTests(TestCase):
 
         response = self.client.get(f"/categories/{arabic_category.id}/{double_encoded_slug}/")
 
-        self.assertEqual(response.status_code, 301)
-        self.assertEqual(response.headers["Location"], arabic_category.get_absolute_url())
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("Location", response.headers)
+
+    def test_category_page_accepts_server_mojibake_arabic_slug(self):
+        arabic_category = Category.objects.create(
+            name="\u0642\u0633\u0645 \u0627\u0644\u0645\u0634\u062a\u0631\u0643",
+            is_active=True,
+        )
+        mojibake_slug = as_latin1_mojibake(arabic_category.slug)
+
+        response = self.client.get(f"/categories/{arabic_category.id}/{mojibake_slug}/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("Location", response.headers)
 
 
 class ProductCanonicalSlugTests(TestCase):
@@ -78,6 +94,36 @@ class ProductCanonicalSlugTests(TestCase):
 
         self.assertEqual(response.status_code, 301)
         self.assertEqual(response.headers["Location"], self.product.get_absolute_url())
+
+    def test_product_page_accepts_percent_encoded_arabic_slug_without_loop(self):
+        product = Product.objects.create(
+            name="\u0645\u0646\u062a\u062c \u0642\u064a\u0627\u0633 \u0639\u0631\u0628\u064a",
+            category=self.category,
+            description="Product for encoded slug test",
+            price=100,
+            is_active=True,
+        )
+        double_encoded_slug = quote(quote(product.slug, safe=""), safe="")
+
+        response = self.client.get(f"/products/{product.id}/{double_encoded_slug}/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("Location", response.headers)
+
+    def test_product_page_accepts_server_mojibake_arabic_slug(self):
+        product = Product.objects.create(
+            name="\u0645\u0646\u062a\u062c \u0639\u0631\u0628\u064a \u0644\u0644\u062a\u0631\u0645\u064a\u0632",
+            category=self.category,
+            description="Product for mojibake slug test",
+            price=100,
+            is_active=True,
+        )
+        mojibake_slug = as_latin1_mojibake(product.slug)
+
+        response = self.client.get(f"/products/{product.id}/{mojibake_slug}/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("Location", response.headers)
 
 
 class ProductListViewTests(TestCase):
