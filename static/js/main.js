@@ -316,7 +316,13 @@ const ProductDetail = {
   qty: 1,
   init() {
     if (!document.querySelector('.product-detail-page')) return;
-    this.initGallery(); this.initImageZoom(); this.initTabs(); this.initVariants(); this.initQtySelector(); this.initAddToCart();
+    this.initGallery(); this.initMobileImageViewer(); this.initImageZoom(); this.initTabs(); this.initVariants(); this.initQtySelector(); this.initAddToCart();
+  },
+  getPhoneMediaQuery() {
+    return window.matchMedia('(max-width: 767px), (hover: none) and (pointer: coarse)');
+  },
+  isPhoneMedia() {
+    return this.getPhoneMediaQuery().matches;
   },
   initGallery() {
     const thumbs = document.querySelectorAll('.gallery-thumb');
@@ -340,10 +346,86 @@ const ProductDetail = {
       });
     });
   },
+  initMobileImageViewer() {
+    const galleryMain = document.querySelector('.gallery-main');
+    const mainImg = document.querySelector('#main-product-image');
+    if (!galleryMain || !mainImg) return;
+
+    let viewer = document.getElementById('productMobileViewer');
+    if (!viewer) {
+      const dialogLabel = '\u0645\u0639\u0627\u064A\u0646\u0629 \u0635\u0648\u0631\u0629 \u0627\u0644\u0645\u0646\u062A\u062C';
+      const closeLabel = '\u0625\u063A\u0644\u0627\u0642 \u0645\u0639\u0627\u064A\u0646\u0629 \u0627\u0644\u0635\u0648\u0631\u0629';
+      viewer = document.createElement('div');
+      viewer.id = 'productMobileViewer';
+      viewer.className = 'product-mobile-viewer';
+      viewer.setAttribute('role', 'dialog');
+      viewer.setAttribute('aria-modal', 'true');
+      viewer.setAttribute('aria-hidden', 'true');
+      viewer.setAttribute('aria-label', dialogLabel);
+      viewer.innerHTML = `
+        <button type="button" class="product-mobile-viewer-close" data-mobile-viewer-close aria-label="${closeLabel}">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <img class="product-mobile-viewer-image" alt="">
+      `;
+      document.body.appendChild(viewer);
+    }
+
+    const viewerImg = viewer.querySelector('.product-mobile-viewer-image');
+    const closeBtn = viewer.querySelector('[data-mobile-viewer-close]');
+    const dialogLabel = viewer.getAttribute('aria-label') || '';
+    let lastFocused = null;
+
+    const closePreview = () => {
+      viewer.classList.remove('open');
+      viewer.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('mobile-image-viewer-open');
+      document.removeEventListener('keydown', onKeyDown);
+      if (viewerImg) {
+        viewerImg.removeAttribute('src');
+        viewerImg.alt = '';
+      }
+      lastFocused?.focus?.({ preventScroll: true });
+    };
+
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') closePreview();
+    };
+
+    const openPreview = (event) => {
+      if (!this.isPhoneMedia() || !mainImg.src || event.target.closest('button')) return;
+      event.preventDefault();
+      const src = mainImg.currentSrc || mainImg.src;
+      if (viewerImg) {
+        viewerImg.src = src;
+        viewerImg.alt = mainImg.alt || dialogLabel;
+      }
+      lastFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      viewer.classList.add('open');
+      viewer.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('mobile-image-viewer-open');
+      closeBtn?.focus?.({ preventScroll: true });
+      document.addEventListener('keydown', onKeyDown);
+    };
+
+    galleryMain.setAttribute('aria-label', '\u0627\u0641\u062A\u062D \u0645\u0639\u0627\u064A\u0646\u0629 \u0635\u0648\u0631\u0629 \u0627\u0644\u0645\u0646\u062A\u062C');
+    galleryMain.addEventListener('click', openPreview);
+    viewer.addEventListener('click', (event) => {
+      if (event.target === viewer || event.target.closest('[data-mobile-viewer-close]')) {
+        closePreview();
+      }
+    });
+  },
   initImageZoom() {
     const galleryMain = document.querySelector('.gallery-main');
     const mainImg = document.querySelector('#main-product-image');
     if (!galleryMain || !mainImg) return;
+
+    const phoneMediaQuery = this.getPhoneMediaQuery();
+    if (phoneMediaQuery.matches) {
+      galleryMain.addEventListener('dragstart', (event) => event.preventDefault());
+      return;
+    }
 
     let zoomSurface = document.getElementById('productPressZoom');
     if (!zoomSurface) {
@@ -380,6 +462,10 @@ const ProductDetail = {
     };
 
     const openZoom = (event) => {
+      if (this.isPhoneMedia()) {
+        closeZoom();
+        return;
+      }
       if (event.button !== undefined && event.button !== 0) return;
       if (!mainImg.src) return;
       event.preventDefault();
@@ -398,6 +484,9 @@ const ProductDetail = {
     galleryMain.setAttribute('aria-label', 'اضغط باستمرار على صورة المنتج للتكبير');
     galleryMain.addEventListener('pointerdown', openZoom);
     galleryMain.addEventListener('dragstart', (event) => event.preventDefault());
+    phoneMediaQuery.addEventListener?.('change', (event) => {
+      if (event.matches) closeZoom();
+    });
   },
   initTabs() {
     const tabs = Array.from(document.querySelectorAll('.tab-btn'));
