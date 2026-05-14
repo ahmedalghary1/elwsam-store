@@ -197,6 +197,7 @@
     <!-- ============================
          OFFERS SECTION
          ============================ -->
+    {% if exclusive_offers %}
     <section class="offers-section page-section" aria-labelledby="offers-heading">
       <div class="container">
         <div class="section-header">
@@ -208,37 +209,27 @@
         </div>
 
         <div class="offers-grid">
-          <div class="offer-card offer-dark">
-            <span class="offer-emoji" aria-hidden="true"><img src="{% static 'image/3-336.webp' %}" alt="" width="336" height="256" loading="lazy" decoding="async"></span>
+          {% for offer in exclusive_offers %}
+          <div class="offer-card {{ offer.card_class }}">
+            <span class="offer-emoji" aria-hidden="true">
+              {% if offer.image_url %}
+                <img src="{{ offer.image_url }}" alt="{{ offer.effective_alt_text }}" width="336" height="256" loading="lazy" decoding="async">
+              {% else %}
+                <span class="offer-image-placeholder"><i class="fas fa-tags"></i></span>
+              {% endif %}
+            </span>
             <div class="offer-content">
-              <div class="offer-tag">المشتركات</div>
-              <div class="offer-title">أحدث المشتركات<br />بأسعار حصرية</div>
-              <div class="offer-discount">حتى 60%</div>
-              <a href="{% url 'product_list' %}" class="btn btn-primary btn-sm">تسوق الآن</a>
+              <div class="offer-tag">{{ offer.tag }}</div>
+              <div class="offer-title">{{ offer.title|linebreaksbr }}</div>
+              {% if offer.discount_text %}<div class="offer-discount">{{ offer.discount_text }}</div>{% endif %}
+              <a href="{{ offer.effective_link_url }}" class="btn {{ offer.button_class }} btn-sm">{{ offer.button_label }}</a>
             </div>
           </div>
-
-          <div class="offer-card offer-yellow">
-            <span class="offer-emoji" aria-hidden="true"><img src="{% static 'image/21-2-336.webp' %}" alt="" width="336" height="256" loading="lazy" decoding="async"></span>
-            <div class="offer-content">
-              <div class="offer-tag">الكشاف والإضاءة</div>
-              <div class="offer-title">أحدث التصاميم<br />لإضاءة مثالية</div>
-              <a href="{% url 'product_list' %}" class="btn btn-black btn-sm">اكتشف الآن</a>
-            </div>
-          </div>
-
-          <div class="offer-card offer-light">
-            <span class="offer-emoji" aria-hidden="true"><img src="{% static 'image/15-336.webp' %}" alt="" width="336" height="256" loading="lazy" decoding="async"></span>
-            <div class="offer-content">
-              <div class="offer-tag">دواية ديكور</div>
-              <div class="offer-title">ديكورات<br />دوايات مميزة</div>
-              <div class="offer-discount">من 100 ج.م</div>
-              <a href="{% url 'product_list' %}" class="btn btn-black btn-sm">تصفح الآن</a>
-            </div>
-          </div>
+          {% endfor %}
         </div>
       </div>
     </section>
+    {% endif %}
 
   </main>
 {% endblock content %}

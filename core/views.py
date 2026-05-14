@@ -3,7 +3,7 @@ from django.templatetags.static import static
 from django.urls import NoReverseMatch, reverse
 from django.views.decorators.cache import never_cache
 
-from products.models import Category, HeroSlide
+from products.models import Category, HeroSlide, HomeExclusiveOffer
 from products.services import get_product_collection_queryset
 from .seo import (
     SITE_NAME,
@@ -38,6 +38,7 @@ def index(request):
     """
     categories = Category.objects.order_by('order')
     hero_slides = list(HeroSlide.objects.filter(is_active=True).order_by("order", "-created_at"))
+    exclusive_offers = HomeExclusiveOffer.objects.filter(is_active=True).order_by("order", "-created_at")
     if not hero_slides:
         hero_slides = _default_hero_slides()
     product_tabs = [
@@ -71,6 +72,7 @@ def index(request):
     context = {
         'categories': categories,
         'hero_slides': hero_slides,
+        'exclusive_offers': exclusive_offers,
         'product_tabs': product_tabs,
         'initial_product_tab': initial_product_tab,
         'initial_tab_products': initial_tab_products,

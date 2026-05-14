@@ -3,6 +3,7 @@ import re
 
 from django.conf import settings
 from django.db import models
+from django.templatetags.static import static
 from django.utils.html import strip_tags
 from django.utils.text import Truncator, slugify
 from accounts.models import User
@@ -592,6 +593,72 @@ class HeroSlide(models.Model):
     @property
     def effective_alt_text(self):
         return self.alt_text or self.title or "عرض من متجر الوسام"
+
+
+class HomeExclusiveOffer(models.Model):
+    TONE_DARK = "dark"
+    TONE_YELLOW = "yellow"
+    TONE_LIGHT = "light"
+    TONE_CHOICES = (
+        (TONE_DARK, "داكن"),
+        (TONE_YELLOW, "أصفر"),
+        (TONE_LIGHT, "فاتح"),
+    )
+
+    tag = models.CharField(max_length=80, verbose_name="وسم العرض")
+    title = models.TextField(verbose_name="عنوان العرض")
+    discount_text = models.CharField(max_length=80, blank=True, verbose_name="نص الخصم أو السعر")
+    button_label = models.CharField(max_length=80, default="تسوق الآن", verbose_name="نص الزر")
+    link_url = models.CharField(
+        max_length=500,
+        blank=True,
+        default="/products/",
+        verbose_name="رابط العرض",
+        help_text="يمكن استخدام رابط داخلي مثل /products/ أو رابط كامل يبدأ بـ https://",
+    )
+    image = models.ImageField(upload_to="home/offers/", blank=True, null=True, verbose_name="صورة العرض")
+    alt_text = models.CharField(max_length=220, blank=True, verbose_name="النص البديل للصورة")
+    tone = models.CharField(max_length=16, choices=TONE_CHOICES, default=TONE_DARK, verbose_name="نمط البطاقة")
+    is_active = models.BooleanField(default=True, verbose_name="نشط")
+    order = models.PositiveIntegerField(default=0, verbose_name="ترتيب العرض")
+    fallback_static_image = models.CharField(max_length=255, blank=True, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["order", "-created_at"]
+        indexes = [
+            models.Index(fields=["is_active", "order"]),
+        ]
+        verbose_name = "عرض حصري في الصفحة الرئيسية"
+        verbose_name_plural = "العروض الحصرية في الصفحة الرئيسية"
+
+    def __str__(self):
+        return self.title
+
+    @property
+    def card_class(self):
+        return f"offer-{self.tone}"
+
+    @property
+    def button_class(self):
+        return "btn-primary" if self.tone == self.TONE_DARK else "btn-black"
+
+    @property
+    def effective_link_url(self):
+        return self.link_url or "/products/"
+
+    @property
+    def image_url(self):
+        if self.image:
+            return self.image.url
+        if self.fallback_static_image:
+            return static(self.fallback_static_image)
+        return ""
+
+    @property
+    def effective_alt_text(self):
+        return self.alt_text or self.title or "عرض حصري من متجر الوسام"
 
 
 # =========================

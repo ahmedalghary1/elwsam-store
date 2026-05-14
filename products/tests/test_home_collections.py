@@ -6,7 +6,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from products.models import Category, HeroSlide, HomeProductCollectionItem, Product
+from products.models import Category, HeroSlide, HomeExclusiveOffer, HomeProductCollectionItem, Product
 from products.services import get_product_collection_queryset
 
 
@@ -138,6 +138,26 @@ class HomeProductCollectionTests(TestCase):
 
         self.assertEqual(len(re.findall(r'<div class="slide(?:\s|")', html)), 3)
         self.assertEqual(len(re.findall(r'<button type="button" class="dot(?:\s|")', html)), 3)
+
+    def test_home_template_renders_dashboard_exclusive_offers(self):
+        HomeExclusiveOffer.objects.create(
+            tag="قسم تجريبي",
+            title="عرض خاص\nلفترة محدودة",
+            discount_text="خصم 30%",
+            button_label="شاهد العرض",
+            link_url="/products/",
+            image="home/offers/offer.gif",
+            tone=HomeExclusiveOffer.TONE_LIGHT,
+        )
+
+        response = self.client.get(reverse("index"))
+
+        self.assertContains(response, "عروض حصرية مختارة")
+        self.assertContains(response, "قسم تجريبي")
+        self.assertContains(response, "عرض خاص<br>لفترة محدودة")
+        self.assertContains(response, "خصم 30%")
+        self.assertContains(response, 'href="/products/"')
+        self.assertContains(response, "offer-light")
 
     def test_product_collection_api_returns_curated_latest_without_public_cache(self):
         HomeProductCollectionItem.objects.create(

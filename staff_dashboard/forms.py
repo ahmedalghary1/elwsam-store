@@ -7,6 +7,7 @@ from products.models import (
     Category,
     Color,
     HeroSlide,
+    HomeExclusiveOffer,
     HomeProductCollectionItem,
     Product,
     ProductColor,
@@ -518,6 +519,52 @@ class HeroSlideForm(forms.ModelForm):
 
     def clean_link_url(self):
         return (self.cleaned_data.get("link_url") or "").strip()
+
+
+class HomeExclusiveOfferForm(forms.ModelForm):
+    class Meta:
+        model = HomeExclusiveOffer
+        fields = [
+            "tag",
+            "title",
+            "discount_text",
+            "button_label",
+            "link_url",
+            "image",
+            "alt_text",
+            "tone",
+            "is_active",
+            "order",
+        ]
+        labels = {
+            "tag": "وسم العرض",
+            "title": "عنوان العرض",
+            "discount_text": "نص الخصم أو السعر",
+            "button_label": "نص الزر",
+            "link_url": "رابط العرض",
+            "image": "صورة العرض",
+            "alt_text": "النص البديل للصورة",
+            "tone": "نمط البطاقة",
+            "is_active": "نشط",
+            "order": "ترتيب العرض",
+        }
+        widgets = {
+            "link_url": forms.TextInput(attrs={"dir": "ltr", "placeholder": "/products/ أو https://example.com"}),
+            "title": forms.Textarea(attrs={"rows": 2, "placeholder": "مثال:\nأحدث المشتركات\nبأسعار حصرية"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["discount_text"].required = False
+        self.fields["link_url"].required = False
+        self.fields["image"].required = False
+        self.fields["alt_text"].required = False
+        self.fields["image"].help_text = "يفضل صورة PNG أو WebP بخلفية شفافة أو صورة منتج واضحة."
+        self.fields["title"].help_text = "يمكنك فصل العنوان على سطرين من خلال كتابة كل جزء في سطر داخل Django Admin، أو استخدام عنوان قصير هنا."
+        _apply_dashboard_widgets(self)
+
+    def clean_link_url(self):
+        return (self.cleaned_data.get("link_url") or "").strip() or "/products/"
 
 
 class CustomerForm(forms.ModelForm):

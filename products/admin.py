@@ -13,7 +13,7 @@ from .models import (
     Category, Product, Pattern, Color, ProductColor, Size, Type, ProductSize,
     ProductType, ProductTypeColor, ProductTypeImage, ProductImage, ProductVariant,
     ProductSpecification, PatternSize, PatternColor, PatternImage,
-    HomeProductCollectionItem, HeroSlide
+    HomeProductCollectionItem, HeroSlide, HomeExclusiveOffer
 )
 
 import csv
@@ -966,6 +966,44 @@ class HeroSlideAdmin(SortableAdminMixin, admin.ModelAdmin):
             )
         return mark_safe('<span style="font-size:1.4rem;">—</span>')
     slide_preview.short_description = "الصورة"
+
+
+@admin.register(HomeExclusiveOffer)
+class HomeExclusiveOfferAdmin(SortableAdminMixin, admin.ModelAdmin):
+    sortable_field_name = "order"
+    list_display = ["offer_preview", "title", "tag", "tone", "link_url", "is_active", "order", "updated_at"]
+    list_display_links = ["offer_preview", "title"]
+    list_editable = ["is_active"]
+    list_filter = ["tone", "is_active"]
+    search_fields = ["title", "tag", "discount_text", "link_url", "alt_text"]
+    ordering = ["order", "-created_at"]
+    list_per_page = 30
+
+    fieldsets = (
+        ("بيانات العرض", {
+            "fields": (
+                "tag",
+                "title",
+                "discount_text",
+                "button_label",
+                "link_url",
+                "image",
+                "alt_text",
+                "tone",
+                "is_active",
+                "order",
+            ),
+        }),
+    )
+
+    def offer_preview(self, obj):
+        if obj.image_url:
+            return format_html(
+                '<img src="{}" style="width:72px;height:54px;object-fit:contain;border-radius:6px;border:1px solid #eee;" />',
+                obj.image_url,
+            )
+        return mark_safe('<span style="font-size:1.4rem;">🏷️</span>')
+    offer_preview.short_description = "الصورة"
 
 
 @admin.register(Color)

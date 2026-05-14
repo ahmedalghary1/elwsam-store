@@ -15,6 +15,7 @@ from products.models import (
     Category,
     Color,
     HeroSlide,
+    HomeExclusiveOffer,
     HomeProductCollectionItem,
     PatternColor,
     PatternImage,
@@ -32,6 +33,7 @@ from .forms import (
     ColorForm,
     CustomerForm,
     HeroSlideForm,
+    HomeExclusiveOfferForm,
     HomeCollectionItemForm,
     OrderStatusForm,
     ProductColorForm,
@@ -968,6 +970,93 @@ def hero_slide_delete(request, pk):
             "object_type": "شريحة السلايدر",
             "cancel_url": reverse("staff_dashboard:hero_slides"),
             "warning": "سيتم حذف الشريحة من سلايدر الصفحة الرئيسية فقط.",
+        },
+    )
+
+
+@superuser_required
+def home_offers_list(request):
+    queryset = HomeExclusiveOffer.objects.order_by("order", "-created_at")
+    query = request.GET.get("q", "").strip()
+    tone = request.GET.get("tone", "all")
+    status = request.GET.get("status", "all")
+
+    if query:
+        queryset = queryset.filter(
+            Q(title__icontains=query)
+            | Q(tag__icontains=query)
+            | Q(discount_text__icontains=query)
+            | Q(link_url__icontains=query)
+        )
+    if tone != "all":
+        queryset = queryset.filter(tone=tone)
+    if status == "active":
+        queryset = queryset.filter(is_active=True)
+    elif status == "inactive":
+        queryset = queryset.filter(is_active=False)
+
+    page_obj = _paginate(request, queryset, per_page=20)
+    return _render(
+        request,
+        "staff_dashboard/home_offers_list.html",
+        {
+            "active_nav": "home_offers",
+            "page_obj": page_obj,
+            "offers": page_obj.object_list,
+            "filters": {"q": query, "tone": tone, "status": status},
+            "tone_choices": HomeExclusiveOffer.TONE_CHOICES,
+            "total_count": queryset.count(),
+        },
+    )
+
+
+@superuser_required
+def home_offer_form(request, pk=None):
+    offer = get_object_or_404(HomeExclusiveOffer, pk=pk) if pk else None
+    if request.method == "POST":
+        form = HomeExclusiveOfferForm(request.POST, request.FILES, instance=offer)
+        if form.is_valid():
+            saved_offer = form.save()
+            messages.success(request, "تم حفظ العرض الحصري بنجاح.")
+            return redirect("staff_dashboard:home_offer_edit", pk=saved_offer.pk)
+        messages.error(request, "يرجى مراجعة بيانات العرض.")
+    else:
+        form = HomeExclusiveOfferForm(instance=offer)
+
+    return _render(
+        request,
+        "staff_dashboard/form.html",
+        {
+            "active_nav": "home_offers",
+            "form": form,
+            "page_title": "تعديل عرض حصري" if offer else "إضافة عرض حصري",
+            "page_subtitle": "تحكم في بطاقات قسم عروض حصرية مختارة في الصفحة الرئيسية.",
+            "cancel_url": reverse("staff_dashboard:home_offers"),
+            "delete_url": reverse("staff_dashboard:home_offer_delete", args=[offer.pk]) if offer else "",
+            "advanced_url": _admin_change_url(offer) if offer else "",
+            "advanced_label": "تعديل متقدم",
+            "multipart": True,
+        },
+    )
+
+
+@superuser_required
+def home_offer_delete(request, pk):
+    offer = get_object_or_404(HomeExclusiveOffer, pk=pk)
+    if request.method == "POST":
+        offer.delete()
+        messages.success(request, "تم حذف العرض الحصري.")
+        return redirect("staff_dashboard:home_offers")
+
+    return _render(
+        request,
+        "staff_dashboard/confirm_delete.html",
+        {
+            "active_nav": "home_offers",
+            "object_name": str(offer),
+            "object_type": "عرض حصري",
+            "cancel_url": reverse("staff_dashboard:home_offers"),
+            "warning": "سيتم حذف بطاقة العرض من الصفحة الرئيسية فقط.",
         },
     )
 

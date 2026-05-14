@@ -8,6 +8,7 @@ from products.models import (
     Category,
     Color,
     HeroSlide,
+    HomeExclusiveOffer,
     Product,
     ProductColor,
     ProductType,
@@ -217,6 +218,45 @@ class StaffDashboardHeroSlideTests(TestCase):
         self.assertEqual(slide.link_url, "/products/")
 
 
+class StaffDashboardHomeOfferTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.superuser = User.objects.create_superuser(
+            email="admin@example.com",
+            username="admin",
+            password="pass12345",
+        )
+        self.client.login(email="admin@example.com", password="pass12345")
+
+    def test_superuser_can_create_home_offer_from_custom_dashboard(self):
+        image = SimpleUploadedFile(
+            "offer.gif",
+            b"GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;",
+            content_type="image/gif",
+        )
+
+        response = self.client.post(
+            reverse("staff_dashboard:home_offer_add"),
+            {
+                "tag": "اختبار العرض",
+                "title": "عنوان العرض\nسطر ثان",
+                "discount_text": "حتى 25%",
+                "button_label": "تسوق الآن",
+                "link_url": "/products/",
+                "image": image,
+                "alt_text": "صورة العرض",
+                "tone": HomeExclusiveOffer.TONE_YELLOW,
+                "is_active": "on",
+                "order": "1",
+            },
+        )
+
+        offer = HomeExclusiveOffer.objects.get(tag="اختبار العرض")
+        self.assertRedirects(response, reverse("staff_dashboard:home_offer_edit", args=[offer.pk]))
+        self.assertEqual(offer.link_url, "/products/")
+        self.assertEqual(offer.tone, HomeExclusiveOffer.TONE_YELLOW)
+
+
 class StaffDashboardSmokeTests(TestCase):
     def setUp(self):
         User = get_user_model()
@@ -274,10 +314,12 @@ class StaffDashboardSmokeTests(TestCase):
             reverse("staff_dashboard:customers"),
             reverse("staff_dashboard:home_collections"),
             reverse("staff_dashboard:hero_slides"),
+            reverse("staff_dashboard:home_offers"),
             reverse("staff_dashboard:settings"),
             reverse("staff_dashboard:colors"),
             reverse("staff_dashboard:product_add"),
             reverse("staff_dashboard:hero_slide_add"),
+            reverse("staff_dashboard:home_offer_add"),
             reverse("staff_dashboard:product_edit", args=[self.product.pk]),
             reverse("staff_dashboard:product_type_add", args=[self.product.pk]),
         ]

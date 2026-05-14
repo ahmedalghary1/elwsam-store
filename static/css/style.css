@@ -1697,6 +1697,17 @@ h4 { font-size: 1rem; font-weight: 600; }
   font-size: 4rem;
 }
 
+.offer-image-placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 120px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.16);
+  color: inherit;
+}
+
 .offer-card .offer-tag {
   font-size: 0.75rem;
   font-weight: 700;
@@ -6969,6 +6980,11 @@ h4 { font-size: 1rem; font-weight: 600; }
   height: clamp(126px, 16vw, 210px);
   object-fit: contain;
   filter: drop-shadow(0 18px 22px rgba(0, 0, 0, 0.16));
+}
+
+.home-page .offer-card .offer-image-placeholder {
+  width: clamp(96px, 12vw, 150px);
+  height: clamp(96px, 12vw, 150px);
 }
 
 .home-page .offer-content {
