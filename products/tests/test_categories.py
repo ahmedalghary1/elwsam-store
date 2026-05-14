@@ -143,6 +143,20 @@ class ProductCanonicalSlugTests(TestCase):
         self.assertContains(response, 'id="product-description-tab"', count=1)
         self.assertNotContains(response, 'id="product-description-main"')
 
+    def test_product_description_preserves_line_breaks(self):
+        product = Product.objects.create(
+            name="منتج وصف متعدد",
+            category=self.category,
+            description="السطر الأول\nالسطر الثاني\nالسطر الثالث",
+            price=100,
+            is_active=True,
+        )
+
+        response = self.client.get(product.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "السطر الأول<br>السطر الثاني<br>السطر الثالث")
+
 
 class ProductListViewTests(TestCase):
     def setUp(self):

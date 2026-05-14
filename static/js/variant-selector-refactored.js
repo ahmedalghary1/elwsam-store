@@ -32,7 +32,7 @@ class VariantSelector {
         this.defaultImageUrl = document.getElementById('main-product-image')?.src;
         this.descriptionElement = document.getElementById('product-description-main');
         this.tabDescriptionElement = document.getElementById('product-description-tab');
-        this.defaultDescription = this.tabDescriptionElement?.textContent?.trim() || this.descriptionElement?.textContent?.trim() || '';
+        this.defaultDescription = this.readDescriptionText(this.tabDescriptionElement) || this.readDescriptionText(this.descriptionElement);
         
         // State
         this.selectedOptions = {
@@ -560,11 +560,39 @@ class VariantSelector {
 
     updateDescriptions(description) {
         if (this.descriptionElement) {
-            this.descriptionElement.textContent = description;
+            this.renderDescription(this.descriptionElement, description);
         }
         if (this.tabDescriptionElement) {
-            this.tabDescriptionElement.textContent = description;
+            this.renderDescription(this.tabDescriptionElement, description);
         }
+    }
+
+    readDescriptionText(element) {
+        if (!element) return '';
+
+        const readNode = node => {
+            if (node.nodeType === Node.TEXT_NODE) {
+                return node.textContent;
+            }
+            if (node.nodeName === 'BR') {
+                return '\n';
+            }
+            return Array.from(node.childNodes).map(readNode).join('');
+        };
+
+        return readNode(element).trim();
+    }
+
+    renderDescription(element, description) {
+        element.replaceChildren();
+        const lines = String(description || '').split(/\r\n|\r|\n/);
+
+        lines.forEach((line, index) => {
+            if (index > 0) {
+                element.appendChild(document.createElement('br'));
+            }
+            element.appendChild(document.createTextNode(line));
+        });
     }
 
     getDisplayBasePrice() {
