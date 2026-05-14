@@ -119,7 +119,11 @@
 
         <div class="categories-grid">
           {% for category in categories %}
+          {% if category.is_active %}
           <a href="{% url 'category_products' id=category.id slug=category.slug %}" class="category-card" aria-label="{{ category.name }}">
+          {% else %}
+          <div class="category-card category-card--soon" aria-label="{{ category.name }} - قريبا" aria-disabled="true">
+          {% endif %}
             <div class="cat-icon">
               {% if category.image %}
                 <img src="{{ category.image|thumbnail_url:'400x400:contain' }}" alt="{{ category.name }}" width="400" height="400" loading="lazy" decoding="async">
@@ -128,9 +132,17 @@
               {% endif %}
             </div>
             <span class="cat-name">{{ category.name }}</span>
-            <span class="cat-count">{{ category.get_product_count }} منتج</span>
-            <span class="cat-arrow" aria-hidden="true"><i class="fas fa-arrow-left"></i></span>
+            {% if category.is_active %}
+              <span class="cat-count">{{ category.get_product_count }} منتج</span>
+              <span class="cat-arrow" aria-hidden="true"><i class="fas fa-arrow-left"></i></span>
+            {% else %}
+              <span class="category-soon-badge">قريبا</span>
+            {% endif %}
+          {% if category.is_active %}
           </a>
+          {% else %}
+          </div>
+          {% endif %}
           {% endfor %}
         </div>
       </div>

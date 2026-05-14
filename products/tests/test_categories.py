@@ -20,12 +20,23 @@ class CategoryVisibilityTests(TestCase):
             is_active=False,
         )
 
-    def test_category_list_hides_inactive_categories(self):
+    def test_category_list_shows_inactive_categories_as_coming_soon(self):
         response = self.client.get(reverse("category_list"))
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.active_category.name)
-        self.assertNotContains(response, self.inactive_category.name)
+        self.assertContains(response, self.inactive_category.name)
+        self.assertContains(response, "قريبا")
+        self.assertNotContains(response, f'href="{self.inactive_category.get_absolute_url()}"')
+
+    def test_home_page_shows_inactive_categories_as_coming_soon(self):
+        response = self.client.get(reverse("index"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.active_category.name)
+        self.assertContains(response, self.inactive_category.name)
+        self.assertContains(response, "قريبا")
+        self.assertNotContains(response, f'href="{self.inactive_category.get_absolute_url()}"')
 
     def test_inactive_category_page_returns_404(self):
         response = self.client.get(
@@ -124,6 +135,13 @@ class ProductCanonicalSlugTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertNotIn("Location", response.headers)
+
+    def test_product_page_renders_single_description_container(self):
+        response = self.client.get(self.product.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="product-description-tab"', count=1)
+        self.assertNotContains(response, 'id="product-description-main"')
 
 
 class ProductListViewTests(TestCase):

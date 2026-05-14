@@ -76,7 +76,7 @@ class CategoryListView(ListView):
     ordering = ['order']
     
     def get_queryset(self):
-        return Category.objects.filter(is_active=True).order_by('order').prefetch_related('product_set')
+        return Category.objects.order_by('order').prefetch_related('product_set')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -89,6 +89,7 @@ class CategoryListView(ListView):
         category_items = [
             (category.name, build_absolute_uri(self.request, category.get_absolute_url()))
             for category in categories
+            if category.is_active
         ]
 
         context.update({

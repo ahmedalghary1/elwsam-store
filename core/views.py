@@ -36,7 +36,7 @@ def index(request):
     """
     الصفحة الرئيسية - عرض الأقسام وتبويبات المنتجات
     """
-    categories = Category.objects.filter(is_active=True).order_by('order')
+    categories = Category.objects.order_by('order')
     hero_slides = list(HeroSlide.objects.filter(is_active=True).order_by("order", "-created_at"))
     if not hero_slides:
         hero_slides = _default_hero_slides()

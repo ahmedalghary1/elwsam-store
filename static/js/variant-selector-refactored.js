@@ -32,7 +32,7 @@ class VariantSelector {
         this.defaultImageUrl = document.getElementById('main-product-image')?.src;
         this.descriptionElement = document.getElementById('product-description-main');
         this.tabDescriptionElement = document.getElementById('product-description-tab');
-        this.defaultDescription = this.descriptionElement?.textContent?.trim() || '';
+        this.defaultDescription = this.tabDescriptionElement?.textContent?.trim() || this.descriptionElement?.textContent?.trim() || '';
         
         // State
         this.selectedOptions = {

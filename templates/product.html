@@ -95,10 +95,6 @@
 
           <div class="product-divider"></div>
 
-          <p id="product-description-main" style="font-size:0.9rem;color:var(--color-gray-600);line-height:1.8;">
-            {{ product.description }}
-          </p>
-
           <div id="variants-container"></div>
 
           <div class="product-divider"></div>
@@ -148,9 +144,7 @@
           <div class="product-description-header">
             <h2 id="product-description-heading">الوصف</h2>
           </div>
-          <div class="product-description-body" id="product-description-tab">
-            {{ product.description|linebreaksbr }}
-          </div>
+          <div class="product-description-body" id="product-description-tab" dir="rtl">{{ product.description }}</div>
         </div>
       </section>
 

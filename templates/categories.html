@@ -51,7 +51,11 @@
     {% if categories %}
       <div class="categories-grid" id="categoriesGrid">
         {% for cat in categories %}
+          {% if cat.is_active %}
           <a href="{% url 'category_products' id=cat.id slug=cat.slug %}" class="category-card" data-cat-name="{{ cat.name|lower }}" data-cat-slug="{{ cat.slug }}">
+          {% else %}
+          <div class="category-card category-card--soon" data-cat-name="{{ cat.name|lower }}" data-cat-slug="{{ cat.slug }}" aria-disabled="true">
+          {% endif %}
             {% if cat.is_hot %}
               <div class="hot-badge">
                 <span class="hot-dot"></span> رائج
@@ -66,9 +70,17 @@
             </div>
             <div class="category-info">
               <h3 class="category-name">{{ cat.name }}</h3>
-              <span class="product-count">{{ cat.get_product_count }} منتج</span>
+              {% if cat.is_active %}
+                <span class="product-count">{{ cat.get_product_count }} منتج</span>
+              {% else %}
+                <span class="category-soon-badge">قريبا</span>
+              {% endif %}
             </div>
+          {% if cat.is_active %}
           </a>
+          {% else %}
+          </div>
+          {% endif %}
         {% endfor %}
       </div>
     {% else %}
