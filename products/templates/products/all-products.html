@@ -162,31 +162,6 @@
       {% endfor %}
     </section>
 
-    {% if is_paginated %}
-      <nav class="pagination all-products-pagination" aria-label="ترقيم صفحات المنتجات">
-        {% if page_obj.has_previous %}
-          <a class="page-btn page-prev" href="?{% if query_params %}{{ query_params }}&{% endif %}page={{ page_obj.previous_page_number }}">
-            <i class="fas fa-chevron-right"></i>
-            السابق
-          </a>
-        {% endif %}
-
-        {% for page_number in pagination_range %}
-          {% if page_number == page_obj.number %}
-            <span class="page-btn active" aria-current="page">{{ page_number }}</span>
-          {% else %}
-            <a class="page-btn" href="?{% if query_params %}{{ query_params }}&{% endif %}page={{ page_number }}">{{ page_number }}</a>
-          {% endif %}
-        {% endfor %}
-
-        {% if page_obj.has_next %}
-          <a class="page-btn page-next" href="?{% if query_params %}{{ query_params }}&{% endif %}page={{ page_obj.next_page_number }}">
-            التالي
-            <i class="fas fa-chevron-left"></i>
-          </a>
-        {% endif %}
-      </nav>
-    {% endif %}
   </div>
 </main>
 
@@ -503,10 +478,6 @@
 
   .all-products-empty .btn {
     margin-top: 16px;
-  }
-
-  .all-products-pagination {
-    margin-top: 36px;
   }
 
   @media (min-width: 640px) {

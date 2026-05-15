@@ -211,8 +211,7 @@ class ProductListView(ListView):
     model = Product
     template_name = "products.html"
     context_object_name = "products"
-    paginate_by = 24
-    
+
     def get_queryset(self):
         queryset = Product.objects.filter(is_active=True, category__is_active=True).select_related('category').order_by('order')
         queryset = queryset.prefetch_related('images', 'variants', 'specs')
@@ -245,20 +244,11 @@ class ProductListView(ListView):
         selected_category_slug = self.request.GET.get('category', '')
         selected_category = categories.filter(slug=selected_category_slug).first() if selected_category_slug else None
         absolute_products_url = build_absolute_uri(self.request, self.request.path)
-        query_params = self.request.GET.copy()
-        query_params.pop('page', None)
         visible_products = list(context.get('products', []))
         product_items = [
             (product.get_seo_h1(), build_absolute_uri(self.request, product.get_absolute_url()))
             for product in visible_products
         ]
-        page_obj = context.get('page_obj')
-        if page_obj:
-            pagination_start = max(page_obj.number - 2, 1)
-            pagination_end = min(page_obj.number + 2, context['paginator'].num_pages)
-            pagination_range = range(pagination_start, pagination_end + 1)
-        else:
-            pagination_range = []
         seo_meta_description = (
             "تصفح جميع منتجات متجر الوسام من المشترك الكهربائي والإضاءة ومستلزمات الكهرباء المنزلية "
             "مع خيارات متعددة وأسعار مناسبة وشحن داخل مصر والدول العربية."
@@ -270,10 +260,8 @@ class ProductListView(ListView):
             'search_query': self.request.GET.get('q', '').strip(),
             'selected_category': selected_category_slug,
             'selected_category_object': selected_category,
-            'query_params': query_params.urlencode(),
-            'pagination_range': pagination_range,
             'total_products_count': Product.objects.filter(is_active=True, category__is_active=True).count(),
-            'filtered_products_count': context['paginator'].count if context.get('paginator') else len(visible_products),
+            'filtered_products_count': len(visible_products),
             'seo_title': "جميع المنتجات | متجر الوسام",
             'seo_h1': "جميع منتجات متجر الوسام",
             'seo_meta_description': seo_meta_description,
