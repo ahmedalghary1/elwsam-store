@@ -151,16 +151,12 @@ def category_products(request, id, slug):
             Q(name__icontains=search_query) | Q(description__icontains=search_query)
         )
 
-    paginator = Paginator(products, 36)
-    page_obj = paginator.get_page(request.GET.get("page"))
-    visible_products = page_obj.object_list
-    query_params = request.GET.copy()
-    query_params.pop("page", None)
+    products_count = products.count()
     
     absolute_category_url = build_absolute_uri(request, category.get_absolute_url())
     category_items = [
         (product.get_seo_h1(), build_absolute_uri(request, product.get_absolute_url()))
-        for product in visible_products[:36]
+        for product in products[:36]
     ]
     seo_meta_description = category.meta_description or category.description or (
         f"تسوق منتجات {category.name} من متجر الوسام مع تفاصيل واضحة وأسعار مناسبة "
@@ -170,14 +166,10 @@ def category_products(request, id, slug):
 
     context = {
         'category': category,
-        'products': visible_products,
-        'page_obj': page_obj,
-        'paginator': paginator,
-        'is_paginated': page_obj.has_other_pages(),
-        'query_params': query_params.urlencode(),
+        'products': products,
         'search_query': search_query,
         'sort_by': sort_by,
-        'products_count': paginator.count,
+        'products_count': products_count,
         'seo_title': category.seo_title or f"{category.name} | تسوق الآن من متجر الوسام",
         'seo_h1': category.name,
         'seo_meta_description': seo_meta_description,

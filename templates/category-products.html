@@ -144,25 +144,6 @@
           {% endfor %}
         </div>
 
-        {% if is_paginated %}
-        <nav class="pagination category-pagination" aria-label="ترقيم صفحات منتجات القسم">
-          {% if page_obj.has_previous %}
-            <a class="page-btn page-prev" href="?{% if query_params %}{{ query_params }}&{% endif %}page={{ page_obj.previous_page_number }}">
-              <i class="fas fa-chevron-right"></i>
-              السابق
-            </a>
-          {% endif %}
-
-          <span class="page-btn active" aria-current="page">{{ page_obj.number }} / {{ paginator.num_pages }}</span>
-
-          {% if page_obj.has_next %}
-            <a class="page-btn page-next" href="?{% if query_params %}{{ query_params }}&{% endif %}page={{ page_obj.next_page_number }}">
-              التالي
-              <i class="fas fa-chevron-left"></i>
-            </a>
-          {% endif %}
-        </nav>
-        {% endif %}
       </div>
     </div>
   </div>
