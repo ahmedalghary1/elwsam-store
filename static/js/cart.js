@@ -641,11 +641,8 @@
         });
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        if (!window.cartManager) {
-            window.cartManager = new CartManager();
-        }
-    });
-
     window.CartManager = CartManager;
+    if (!window.cartManager) {
+        window.cartManager = new CartManager();
+    }
 })();

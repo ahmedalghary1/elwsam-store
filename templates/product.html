@@ -359,59 +359,86 @@
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const buyNowBtn = document.getElementById('buy-now-btn');
-    if (buyNowBtn && window.cartManager) {
-      buyNowBtn.addEventListener('click', async function(e) {
-        e.preventDefault();
-        
-        // تعطيل الزر أثناء المعالجة
-        buyNowBtn.disabled = true;
-        buyNowBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإضافة...';
-        
-        const addToCartBtn = document.getElementById('detail-add-to-cart');
-        const qtyInput = document.getElementById('qty-input');
-        const quantity = qtyInput ? parseInt(qtyInput.value, 10) : 1;
-        const productId = addToCartBtn ? addToCartBtn.dataset.productId : null;
-        const variantId = addToCartBtn ? addToCartBtn.dataset.variantId : null;
-        const productTypeId = addToCartBtn ? addToCartBtn.dataset.productTypeId : null;
-        const productTypeName = addToCartBtn ? addToCartBtn.dataset.productTypeName : '';
-        const productName = addToCartBtn ? addToCartBtn.dataset.productName : '';
-        const productPrice = addToCartBtn ? addToCartBtn.dataset.productPrice : 0;
-        
-        const notify = (message) => {
-          if (window.UI?.showToast) window.UI.showToast(message, '⚠️');
-          else alert(message);
-        };
+    if (!buyNowBtn) return;
 
-        if (!productId) {
-          notify('حدث خطأ في المنتج');
-          buyNowBtn.disabled = false;
-          buyNowBtn.innerHTML = '<i class="fas fa-bolt"></i> اشتر الآن';
-          return;
-        }
-        
-        try {
-          // إضافة المنتج إلى السلة باستخدام CartManager
-          if (window.cartManager.isAuthenticated()) {
-            await window.cartManager.addToCartAjax(productId, variantId, quantity, productTypeId);
-          } else {
-            await window.cartManager.addToCart(productId, variantId, quantity, {
-              name: productName,
-              price: parseFloat(productPrice),
-              image: document.getElementById('main-product-image')?.src || '',
-              product_type_id: productTypeId,
-              product_type_name: productTypeName
-            });
-          }
-          // بعد الإضافة الناجحة، التوجيه إلى صفحة الدفع
-          window.location.href = "{% url 'orders:checkout' %}";
-        } catch (error) {
-          console.error('Add to cart error:', error);
-          notify('حدث خطأ أثناء إضافة المنتج للسلة. حاول مرة أخرى.');
-          buyNowBtn.disabled = false;
-          buyNowBtn.innerHTML = '<i class="fas fa-bolt"></i> اشتر الآن';
-        }
-      });
+    const defaultButtonHtml = buyNowBtn.innerHTML;
+
+    function getCartManager() {
+      if (window.cartManager) return window.cartManager;
+      if (window.CartManager) {
+        window.cartManager = new window.CartManager();
+        return window.cartManager;
+      }
+      return null;
     }
+
+    function notify(message) {
+      if (window.UI?.showToast) window.UI.showToast(message, '!');
+      else alert(message);
+    }
+
+    function restoreButton() {
+      buyNowBtn.disabled = false;
+      buyNowBtn.innerHTML = defaultButtonHtml;
+    }
+
+    buyNowBtn.addEventListener('click', async function(e) {
+      e.preventDefault();
+
+      const cartManager = getCartManager();
+      if (!cartManager) {
+        notify('تعذر تجهيز السلة الآن. أعد تحميل الصفحة وحاول مرة أخرى.');
+        return;
+      }
+
+      // تعطيل الزر أثناء المعالجة
+      buyNowBtn.disabled = true;
+      buyNowBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإضافة...';
+
+      const addToCartBtn = document.getElementById('detail-add-to-cart');
+      const qtyInput = document.getElementById('qty-input');
+      const quantityValue = qtyInput ? parseInt(qtyInput.value, 10) : 1;
+      const quantity = Math.max(1, Math.min(99, Number.isNaN(quantityValue) ? 1 : quantityValue));
+      const productId = addToCartBtn ? addToCartBtn.dataset.productId : null;
+      const variantId = addToCartBtn?.dataset.variantId || null;
+      const productTypeId = addToCartBtn?.dataset.productTypeId || null;
+      const productTypeName = addToCartBtn?.dataset.productTypeName || '';
+      const productName = addToCartBtn?.dataset.productName || '';
+      const productPrice = addToCartBtn?.dataset.productPrice || 0;
+
+      if (!productId) {
+        notify('حدث خطأ في المنتج');
+        restoreButton();
+        return;
+      }
+
+      try {
+        let added;
+        // إضافة المنتج إلى السلة باستخدام CartManager
+        if (cartManager.isAuthenticated()) {
+          added = await cartManager.addToCartAjax(productId, variantId, quantity, productTypeId);
+        } else {
+          added = await cartManager.addToCart(productId, variantId, quantity, {
+            name: productName,
+            price: parseFloat(productPrice),
+            image: document.getElementById('main-product-image')?.src || '',
+            product_type_id: productTypeId,
+            product_type_name: productTypeName
+          });
+        }
+
+        if (!added || added.error) {
+          throw new Error('Failed to add item to cart');
+        }
+
+        // بعد الإضافة الناجحة، التوجيه إلى صفحة الدفع
+        window.location.href = "{% url 'orders:checkout' %}";
+      } catch (error) {
+        console.error('Add to cart error:', error);
+        notify('حدث خطأ أثناء إضافة المنتج للسلة. حاول مرة أخرى.');
+        restoreButton();
+      }
+    });
   });
 </script>
 
