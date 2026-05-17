@@ -2,10 +2,14 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.html import format_html
 from django.utils import timezone
-from .models import AdminPasswordChangeRequest, User, UserProfile, Address, UserOTP
+from .models import User, UserProfile, Address, UserOTP
+
+try:
+    from .models import AdminPasswordChangeRequest
+except ImportError:
+    AdminPasswordChangeRequest = None
 
 
-@admin.register(AdminPasswordChangeRequest)
 class AdminPasswordChangeRequestAdmin(admin.ModelAdmin):
     list_display = ("requester", "status", "approved_by", "created_at", "decided_at")
     list_filter = ("status", "created_at", "decided_at")
@@ -21,6 +25,10 @@ class AdminPasswordChangeRequestAdmin(admin.ModelAdmin):
         "decided_at",
     )
     ordering = ("-created_at",)
+
+
+if AdminPasswordChangeRequest is not None:
+    admin.site.register(AdminPasswordChangeRequest, AdminPasswordChangeRequestAdmin)
 
 
 # ================================================

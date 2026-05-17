@@ -1,6 +1,7 @@
 from functools import wraps
 
 from django.conf import settings
+from django.apps import apps
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.views import redirect_to_login
@@ -12,7 +13,6 @@ from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 
 from orders.models import Cart, Order, OrderItem
-from accounts.models import AdminPasswordChangeRequest
 from products.models import (
     Category,
     Color,
@@ -55,6 +55,10 @@ ORDER_STATUS_META = {
     "delivered": ("تم التسليم", "success"),
     "cancelled": ("ملغي", "danger"),
 }
+
+
+def _admin_password_request_model():
+    return apps.get_model("accounts", "AdminPasswordChangeRequest")
 
 
 def superuser_required(view_func):
@@ -824,6 +828,7 @@ def customers_list(request):
 
 @superuser_required
 def admin_password_change_requests(request):
+    AdminPasswordChangeRequest = _admin_password_request_model()
     status = request.GET.get("status", AdminPasswordChangeRequest.STATUS_PENDING)
     queryset = AdminPasswordChangeRequest.objects.select_related("requester", "approved_by")
     if status != "all":
@@ -846,6 +851,7 @@ def admin_password_change_requests(request):
 
 @superuser_required
 def admin_password_change_request_detail(request, token):
+    AdminPasswordChangeRequest = _admin_password_request_model()
     change_request = get_object_or_404(
         AdminPasswordChangeRequest.objects.select_related("requester", "approved_by"),
         token=token,

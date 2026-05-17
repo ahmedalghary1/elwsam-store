@@ -1,10 +1,11 @@
 import random
 from django.core.mail import send_mail
 from django.conf import settings
+from django.apps import apps
 from django.urls import reverse
 from django.utils import timezone
 from datetime import timedelta
-from .models import AdminPasswordChangeRequest, UserOTP
+from .models import UserOTP
 
 
 def generate_otp_code():
@@ -170,6 +171,7 @@ def send_admin_password_change_approval_email(change_request, approval_url, reci
 
 
 def create_admin_password_change_request(user, password_hash, request=None):
+    AdminPasswordChangeRequest = apps.get_model("accounts", "AdminPasswordChangeRequest")
     AdminPasswordChangeRequest.objects.filter(
         requester=user,
         status=AdminPasswordChangeRequest.STATUS_PENDING,
