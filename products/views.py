@@ -160,7 +160,7 @@ def category_products(request, id, slug):
     ]
     seo_meta_description = category.meta_description or category.description or (
         f"تسوق منتجات {category.name} من متجر الوسام مع تفاصيل واضحة وأسعار مناسبة "
-        "وشحن داخل مصر والدول العربية."
+        "وشحن داخل مصر ."
     )
     seo_intro = category.seo_intro or seo_meta_description
 
