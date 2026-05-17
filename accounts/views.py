@@ -11,7 +11,13 @@ from django.contrib import messages
 from django.db import transaction
 from .models import User, UserProfile, Address, UserOTP
 from .forms import UserPasswordChangeForm, UserRegisterForm, UserLoginForm, UserProfileForm, AddressForm
-from .utils import create_admin_password_change_request, create_otp, verify_otp, mark_otp_as_used
+from .utils import (
+    AdminPasswordChangeRequestUnavailable,
+    create_admin_password_change_request,
+    create_otp,
+    verify_otp,
+    mark_otp_as_used,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -159,11 +165,19 @@ class ProfileView(LoginRequiredMixin, View):
                         messages.error(request, "لا يمكن تغيير كلمة مرور الأدمن بدون وجود أدمن آخر نشط للموافقة.")
                         return render(request, self.template_name, self.get_context(request, password_form=password_form))
 
-                    _change_request, recipients = create_admin_password_change_request(
-                        user=request.user,
-                        password_hash=make_password(new_password),
-                        request=request,
-                    )
+                    try:
+                        _change_request, recipients = create_admin_password_change_request(
+                            user=request.user,
+                            password_hash=make_password(new_password),
+                            request=request,
+                        )
+                    except AdminPasswordChangeRequestUnavailable:
+                        messages.error(
+                            request,
+                            "ميزة موافقة تغيير كلمة مرور الأدمن غير مكتملة على السيرفر. يرجى رفع ملفات accounts وتشغيل migrations ثم المحاولة مرة أخرى.",
+                        )
+                        return render(request, self.template_name, self.get_context(request, password_form=password_form))
+
                     messages.success(
                         request,
                         f"تم إرسال طلب تغيير كلمة المرور إلى {len(recipients)} أدمن للموافقة. لن تتغير كلمة المرور قبل الموافقة.",
@@ -434,11 +448,18 @@ class ResetPasswordView(View):
                     messages.error(request, "لا يمكن تغيير كلمة مرور الأدمن بدون وجود أدمن آخر نشط للموافقة.")
                     return render(request, self.template_name)
 
-                _change_request, recipients = create_admin_password_change_request(
-                    user=user,
-                    password_hash=make_password(password1),
-                    request=request,
-                )
+                try:
+                    _change_request, recipients = create_admin_password_change_request(
+                        user=user,
+                        password_hash=make_password(password1),
+                        request=request,
+                    )
+                except AdminPasswordChangeRequestUnavailable:
+                    messages.error(
+                        request,
+                        "ميزة موافقة تغيير كلمة مرور الأدمن غير مكتملة على السيرفر. يرجى رفع ملفات accounts وتشغيل migrations ثم المحاولة مرة أخرى.",
+                    )
+                    return render(request, self.template_name)
 
                 request.session.pop('password_reset_email', None)
                 request.session.pop('reset_code_verified', None)

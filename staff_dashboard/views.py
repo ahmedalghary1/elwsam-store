@@ -58,7 +58,10 @@ ORDER_STATUS_META = {
 
 
 def _admin_password_request_model():
-    return apps.get_model("accounts", "AdminPasswordChangeRequest")
+    try:
+        return apps.get_model("accounts", "AdminPasswordChangeRequest")
+    except LookupError:
+        return None
 
 
 def superuser_required(view_func):
@@ -829,6 +832,10 @@ def customers_list(request):
 @superuser_required
 def admin_password_change_requests(request):
     AdminPasswordChangeRequest = _admin_password_request_model()
+    if AdminPasswordChangeRequest is None:
+        messages.error(request, "ميزة طلبات تغيير كلمة مرور الأدمن غير مكتملة على السيرفر. ارفع ملفات accounts وشغّل migrations.")
+        return redirect("staff_dashboard:dashboard")
+
     status = request.GET.get("status", AdminPasswordChangeRequest.STATUS_PENDING)
     queryset = AdminPasswordChangeRequest.objects.select_related("requester", "approved_by")
     if status != "all":
@@ -852,6 +859,10 @@ def admin_password_change_requests(request):
 @superuser_required
 def admin_password_change_request_detail(request, token):
     AdminPasswordChangeRequest = _admin_password_request_model()
+    if AdminPasswordChangeRequest is None:
+        messages.error(request, "ميزة طلبات تغيير كلمة مرور الأدمن غير مكتملة على السيرفر. ارفع ملفات accounts وشغّل migrations.")
+        return redirect("staff_dashboard:dashboard")
+
     change_request = get_object_or_404(
         AdminPasswordChangeRequest.objects.select_related("requester", "approved_by"),
         token=token,

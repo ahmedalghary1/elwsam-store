@@ -145,6 +145,10 @@ def mark_otp_as_used(otp):
     otp.save()
 
 
+class AdminPasswordChangeRequestUnavailable(RuntimeError):
+    pass
+
+
 def send_admin_password_change_approval_email(change_request, approval_url, recipients):
     requester = change_request.requester
     requester_name = requester.get_full_name() or requester.username or requester.email
@@ -171,7 +175,13 @@ def send_admin_password_change_approval_email(change_request, approval_url, reci
 
 
 def create_admin_password_change_request(user, password_hash, request=None):
-    AdminPasswordChangeRequest = apps.get_model("accounts", "AdminPasswordChangeRequest")
+    try:
+        AdminPasswordChangeRequest = apps.get_model("accounts", "AdminPasswordChangeRequest")
+    except LookupError as exc:
+        raise AdminPasswordChangeRequestUnavailable(
+            "Admin password approval model is not available. Deploy accounts.models and run migrations."
+        ) from exc
+
     AdminPasswordChangeRequest.objects.filter(
         requester=user,
         status=AdminPasswordChangeRequest.STATUS_PENDING,
