@@ -10,6 +10,7 @@
     </a>
     <div class="product-badges">
       {% if product.old_price and product.old_price > product.price %}<span class="badge-sale">خصم {{ product.get_discount_percent }}%</span>{% endif %}
+      {% if product.is_best_seller %}<span class="badge-best-seller">الأكثر مبيعًا</span>{% endif %}
       {% if product.is_hot %}<span class="badge-hot">رائج</span>{% endif %}
       {% if product.is_new %}<span class="badge-new">جديد</span>{% endif %}
     </div>

@@ -96,6 +96,11 @@ class Product(models.Model):
     # حالة المنتج
     is_new = models.BooleanField(default=True, help_text='هل المنتج جديد؟')
     is_hot = models.BooleanField(default=False, help_text='هل المنتج مشهور/مبيع؟')
+    is_best_seller = models.BooleanField(
+        default=False,
+        verbose_name='الأكثر مبيعًا',
+        help_text='هل يظهر المنتج بشارة الأكثر مبيعًا؟',
+    )
     is_active = models.BooleanField(default=True, help_text='هل المنتج متاح؟')
     
     # المخزون للمنتجات البسيطة (بدون متغيرات)

@@ -127,7 +127,15 @@ def _product_form_sections(form):
             "icon": "fa-toggle-on",
             "fields": _field_items(
                 form,
-                ["is_active", "is_new", "is_hot", "has_colors", "has_patterns", "has_product_level_sizes"],
+                [
+                    "is_active",
+                    "is_new",
+                    "is_hot",
+                    "is_best_seller",
+                    "has_colors",
+                    "has_patterns",
+                    "has_product_level_sizes",
+                ],
             ),
         },
         {

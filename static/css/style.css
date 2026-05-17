@@ -1340,6 +1340,11 @@ h4 { font-size: 1rem; font-weight: 600; }
   color: white;
 }
 
+.badge-best-seller {
+  background: var(--color-danger);
+  color: white;
+}
+
 .badge-hot {
   background: var(--color-primary);
   color: var(--color-black);
@@ -5269,6 +5274,7 @@ h4 { font-size: 1rem; font-weight: 600; }
 }
 .badge-sale { background: var(--color-danger); color: white; }
 .badge-new  { background: var(--color-success); color: white; }
+.badge-best-seller { background: var(--color-danger); color: white; }
 .badge-hot  { background: var(--color-primary); color: var(--color-black); }
 
 .cp-card-wishlist {
@@ -5705,6 +5711,7 @@ h4 { font-size: 1rem; font-weight: 600; }
 
 .badge-new,
 .badge-sale,
+.badge-best-seller,
 .badge-hot {
   font-size: 0.7rem;
   font-weight: 800;
@@ -5713,6 +5720,7 @@ h4 { font-size: 1rem; font-weight: 600; }
   text-align: center;
   backdrop-filter: blur(2px);
   line-height: 1;
+  white-space: nowrap;
 }
 
 .badge-new {
@@ -5721,6 +5729,11 @@ h4 { font-size: 1rem; font-weight: 600; }
 }
 
 .badge-sale {
+  background: var(--color-danger);
+  color: white;
+}
+
+.badge-best-seller {
   background: var(--color-danger);
   color: white;
 }
@@ -6819,6 +6832,7 @@ h4 { font-size: 1rem; font-weight: 600; }
 
 .home-page .home-product-card .badge-new,
 .home-page .home-product-card .badge-sale,
+.home-page .home-product-card .badge-best-seller,
 .home-page .home-product-card .badge-hot {
   padding: 5px 9px;
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);

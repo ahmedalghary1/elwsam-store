@@ -187,9 +187,12 @@
                   <div class="product-img-placeholder"><i class="fas fa-image"></i></div>
                 {% endif %}
               </a>
-              {% if rel.is_hot %}<span class="product-badge badge-hot">رائج</span>{% endif %}
-              {% if rel.is_new %}<span class="product-badge badge-new">جديد</span>{% endif %}
-              {% if rel.old_price %}<span class="product-badge badge-sale">خصم {{ rel.get_discount_percent }}%</span>{% endif %}
+              <div class="product-badges">
+                {% if rel.is_hot %}<span class="badge-hot">رائج</span>{% endif %}
+                {% if rel.is_new %}<span class="badge-new">جديد</span>{% endif %}
+                {% if rel.is_best_seller %}<span class="badge-best-seller">الأكثر مبيعًا</span>{% endif %}
+                {% if rel.old_price %}<span class="badge-sale">خصم {{ rel.get_discount_percent }}%</span>{% endif %}
+              </div>
             </div>
             <div class="product-info">
               <div class="product-category-tag">{{ rel.category.name }}</div>

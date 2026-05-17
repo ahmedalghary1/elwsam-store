@@ -533,11 +533,12 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
     sortable_field_name = "order"
     list_display = [
         'thumb', 'name', 'category', 'price_display',
-        'discount_badge', 'stock_badge', 'variants_count', 'is_active', 'is_hot', 'is_new', 'order'
+        'discount_badge', 'stock_badge', 'variants_count',
+        'is_active', 'is_hot', 'is_new', 'is_best_seller', 'order'
     ]
     list_display_links = ['name']
-    list_editable = ['is_active', 'is_hot', 'is_new']
-    list_filter = ['category', 'is_active', 'is_hot', 'is_new', ProductPriceFilter]
+    list_editable = ['is_active', 'is_hot', 'is_new', 'is_best_seller']
+    list_filter = ['category', 'is_active', 'is_hot', 'is_new', 'is_best_seller', ProductPriceFilter]
     search_fields = ['name', 'seo_title', 'meta_description', 'category__name']
     ordering = ['order']
     readonly_fields = ['created_at', 'updated_at', 'image_preview', 'discount_info']
@@ -578,7 +579,7 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
             'description': 'حدد توصيف المنتج: عليه أنماط؟ عليه مقاسات؟ عليه ألوان فقط؟ إذا لم تحدد شيئاً، سيكون منتج بسيط.'
         }),
         ('الحالة', {
-            'fields': ('is_active', 'is_new', 'is_hot', 'rating', 'order')
+            'fields': ('is_active', 'is_new', 'is_hot', 'is_best_seller', 'rating', 'order')
         }),
         ('التواريخ', {
             'fields': ('created_at', 'updated_at'),
@@ -602,6 +603,7 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
         'deactivate',
         'mark_hot',
         'mark_new',
+        'mark_best_seller',
         'add_to_home_offers',
         'add_to_home_best_sellers',
         'add_to_home_latest',
@@ -832,6 +834,11 @@ class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
         queryset.update(is_new=True)
         self.message_user(request, 'تم التحديد كجديد', messages.SUCCESS)
     mark_new.short_description = 'تحديد كجديد'
+
+    def mark_best_seller(self, request, queryset):
+        queryset.update(is_best_seller=True)
+        self.message_user(request, 'تم التحديد كالأكثر مبيعًا', messages.SUCCESS)
+    mark_best_seller.short_description = 'تحديد كالأكثر مبيعًا'
 
     def _add_products_to_home_collection(self, request, queryset, collection_type):
         labels = dict(HomeProductCollectionItem.COLLECTION_CHOICES)

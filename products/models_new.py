@@ -85,6 +85,7 @@ class Product(models.Model):
     # Status flags
     is_new = models.BooleanField(default=True)
     is_hot = models.BooleanField(default=False)
+    is_best_seller = models.BooleanField(default=False, verbose_name='الأكثر مبيعًا')
     is_active = models.BooleanField(default=True)
     
     rating = models.FloatField(default=5.0)

@@ -812,6 +812,7 @@ const HomeProductTabs = {
     const rating = Number(product.rating || 5).toFixed(1);
     const badges = [
       product.has_offer ? `<span class="badge-sale">${discountLabel}</span>` : '',
+      product.is_best_seller ? '<span class="badge-best-seller">الأكثر مبيعًا</span>' : '',
       product.is_hot ? '<span class="badge-hot">رائج</span>' : '',
       product.is_new ? '<span class="badge-new">جديد</span>' : ''
     ].join('');

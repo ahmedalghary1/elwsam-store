@@ -1,5 +1,5 @@
 from django.db import OperationalError, ProgrammingError
-from django.db.models import Case, F, IntegerField, When
+from django.db.models import Case, F, IntegerField, Q, When
 
 from .image_utils import get_thumbnail_url
 from .models import HomeProductCollectionItem, Product
@@ -71,7 +71,7 @@ def get_product_collection_queryset(collection_type):
         ).order_by('order', '-updated_at', '-created_at')
 
     if collection_type == "best-sellers":
-        return queryset.filter(is_hot=True).order_by('order', '-rating', '-created_at')
+        return queryset.filter(Q(is_best_seller=True) | Q(is_hot=True)).order_by('order', '-rating', '-created_at')
 
     if collection_type == "latest":
         return queryset.order_by('-created_at')
@@ -96,6 +96,7 @@ def serialize_product_card(product):
         "url": product.get_absolute_url(),
         "is_hot": product.is_hot,
         "is_new": product.is_new,
+        "is_best_seller": product.is_best_seller,
         "has_offer": bool(old_price),
         "is_simple": product.is_simple_product(),
         "is_available": product.is_available(),

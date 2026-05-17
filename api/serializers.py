@@ -83,6 +83,7 @@ def serialize_product_summary(product, request):
         'absolute_url': absolute_url(request, url),
         'is_new': product.is_new,
         'is_hot': product.is_hot,
+        'is_best_seller': product.is_best_seller,
         'is_available': product.is_available(),
         'configuration_type': product.get_configuration_type(),
     }

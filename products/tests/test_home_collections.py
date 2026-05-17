@@ -64,6 +64,14 @@ class HomeProductCollectionTests(TestCase):
 
         self.assertEqual(products, [self.first_product])
 
+    def test_best_seller_flag_feeds_best_seller_collection(self):
+        self.first_product.is_best_seller = True
+        self.first_product.save(update_fields=["is_best_seller"])
+
+        products = list(get_product_collection_queryset("best-sellers"))
+
+        self.assertEqual(products, [self.first_product])
+
     def test_legacy_numeric_collection_values_are_still_displayed(self):
         HomeProductCollectionItem.objects.bulk_create([
             HomeProductCollectionItem(
@@ -160,6 +168,8 @@ class HomeProductCollectionTests(TestCase):
         self.assertContains(response, "offer-light")
 
     def test_product_collection_api_returns_curated_latest_without_public_cache(self):
+        self.first_product.is_best_seller = True
+        self.first_product.save(update_fields=["is_best_seller"])
         HomeProductCollectionItem.objects.create(
             collection_type=HomeProductCollectionItem.COLLECTION_LATEST,
             product=self.first_product,
@@ -170,4 +180,5 @@ class HomeProductCollectionTests(TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(data["products"][0]["name"], self.first_product.name)
+        self.assertIs(data["products"][0]["is_best_seller"], True)
         self.assertIn("no-store", response.headers["Cache-Control"])

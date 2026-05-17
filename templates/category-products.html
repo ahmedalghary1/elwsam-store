@@ -95,6 +95,9 @@
                 {% if product.old_price %}
                   <span class="badge-sale">خصم</span>
                 {% endif %}
+                {% if product.is_best_seller %}
+                  <span class="badge-best-seller">الأكثر مبيعًا</span>
+                {% endif %}
                 {% if product.is_hot %}
                   <span class="badge-hot">رائج</span>
                 {% endif %}
@@ -624,6 +627,11 @@
   }
 
   .badge-sale {
+    background: var(--color-danger);
+    color: white;
+  }
+
+  .badge-best-seller {
     background: var(--color-danger);
     color: white;
   }

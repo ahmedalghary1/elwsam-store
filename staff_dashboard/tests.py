@@ -75,6 +75,7 @@ class StaffDashboardProductTests(TestCase):
                 "stock": "7",
                 "is_active": "on",
                 "is_new": "on",
+                "is_best_seller": "on",
                 "rating": "5",
                 "order": "0",
                 "seo_title": "",
@@ -86,6 +87,7 @@ class StaffDashboardProductTests(TestCase):
         )
         self.assertEqual(response.status_code, 302)
         self.assertTrue(Product.objects.filter(name="منتج تجريبي").exists())
+        self.assertTrue(Product.objects.get(name="منتج تجريبي").is_best_seller)
 
     def test_superuser_can_add_color_to_product(self):
         product = Product.objects.create(
