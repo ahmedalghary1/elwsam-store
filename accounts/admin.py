@@ -2,7 +2,25 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.html import format_html
 from django.utils import timezone
-from .models import User, UserProfile, Address, UserOTP
+from .models import AdminPasswordChangeRequest, User, UserProfile, Address, UserOTP
+
+
+@admin.register(AdminPasswordChangeRequest)
+class AdminPasswordChangeRequestAdmin(admin.ModelAdmin):
+    list_display = ("requester", "status", "approved_by", "created_at", "decided_at")
+    list_filter = ("status", "created_at", "decided_at")
+    search_fields = ("requester__email", "requester__username", "approved_by__email")
+    readonly_fields = (
+        "requester",
+        "approved_by",
+        "token",
+        "password_hash",
+        "status",
+        "created_at",
+        "updated_at",
+        "decided_at",
+    )
+    ordering = ("-created_at",)
 
 
 # ================================================

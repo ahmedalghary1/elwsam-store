@@ -861,6 +861,13 @@ a { color: inherit; text-decoration: none; }
   grid-template-columns: minmax(160px, .9fr) minmax(190px, 1.2fr) minmax(90px, .45fr);
 }
 
+.product-image-add-options {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.4fr) minmax(160px, .8fr) minmax(90px, .4fr);
+  gap: 10px;
+  align-items: end;
+}
+
 .color-chip-grid,
 .color-library-grid,
 .type-card-grid {
@@ -1141,6 +1148,10 @@ a { color: inherit; text-decoration: none; }
   font-weight: 700;
 }
 
+.product-image-grid .empty-panel {
+  grid-column: 1 / -1;
+}
+
 .dash-pagination {
   display: flex;
   align-items: center;
@@ -1206,6 +1217,7 @@ a { color: inherit; text-decoration: none; }
   .section-grid,
   .color-add-options,
   .image-add-options,
+  .product-image-add-options,
   .color-chip-grid,
   .color-library-grid,
   .type-card-grid,

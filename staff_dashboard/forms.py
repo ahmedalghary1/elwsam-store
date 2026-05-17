@@ -11,6 +11,7 @@ from products.models import (
     HomeProductCollectionItem,
     Product,
     ProductColor,
+    ProductImage,
     ProductType,
     ProductTypeColor,
     ProductTypeImage,
@@ -223,6 +224,60 @@ class ProductColorForm(ColorChoiceMixin, forms.ModelForm):
         if commit:
             instance.save()
         return instance
+
+
+class MultipleFileInput(forms.ClearableFileInput):
+    allow_multiple_selected = True
+
+
+class MultipleFileField(forms.FileField):
+    def clean(self, data, initial=None):
+        single_file_clean = super().clean
+        if isinstance(data, (list, tuple)):
+            return [single_file_clean(file_item, initial) for file_item in data]
+        return [single_file_clean(data, initial)]
+
+
+class ProductImageUploadForm(forms.Form):
+    images = MultipleFileField(
+        label="صور المنتج",
+        widget=MultipleFileInput(attrs={"multiple": True}),
+    )
+    color = forms.ModelChoiceField(
+        label="لون مرتبط",
+        queryset=Color.objects.none(),
+        required=False,
+    )
+    order = forms.IntegerField(label="بداية الترتيب", min_value=0, initial=0, required=False)
+
+    def __init__(self, *args, product=None, **kwargs):
+        self.product = product
+        super().__init__(*args, **kwargs)
+        self.fields["color"].queryset = Color.objects.order_by("name")
+        _apply_dashboard_widgets(self)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if not self.product:
+            raise ValidationError("يجب حفظ المنتج أولًا قبل إضافة الصور.")
+        if not cleaned_data.get("images"):
+            raise ValidationError("اختر صورة واحدة على الأقل.")
+        return cleaned_data
+
+    def save(self):
+        created_images = []
+        color = self.cleaned_data.get("color")
+        start_order = self.cleaned_data.get("order") or 0
+        for index, image in enumerate(self.cleaned_data["images"]):
+            created_images.append(
+                ProductImage.objects.create(
+                    product=self.product,
+                    color=color,
+                    image=image,
+                    order=start_order + index,
+                )
+            )
+        return created_images
 
 
 class ProductTypeDashboardForm(forms.ModelForm):

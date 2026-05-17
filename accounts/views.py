@@ -1,7 +1,8 @@
 import logging
 
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, update_session_auth_hash
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
@@ -9,8 +10,8 @@ from django.views.generic import ListView
 from django.contrib import messages
 from django.db import transaction
 from .models import User, UserProfile, Address, UserOTP
-from .forms import UserRegisterForm, UserLoginForm, UserProfileForm, AddressForm
-from .utils import create_otp, verify_otp, mark_otp_as_used
+from .forms import UserPasswordChangeForm, UserRegisterForm, UserLoginForm, UserProfileForm, AddressForm
+from .utils import create_admin_password_change_request, create_otp, verify_otp, mark_otp_as_used
 
 logger = logging.getLogger(__name__)
 
@@ -128,13 +129,14 @@ class ProfileView(LoginRequiredMixin, View):
     template_name = "accounts/profile.html"
     login_url = "accounts:login"
 
-    def get_context(self, request, profile_form=None):
+    def get_context(self, request, profile_form=None, password_form=None):
         profile, _ = UserProfile.objects.get_or_create(user=request.user)
         addresses = request.user.addresses.all()
         default_address = addresses.filter(is_default=True).first()
         return {
             'profile': profile,
             'profile_form': profile_form or UserProfileForm(instance=profile, user=request.user),
+            'password_form': password_form or UserPasswordChangeForm(user=request.user),
             'addresses': addresses,
             'default_address': default_address,
             'addresses_count': addresses.count(),
@@ -144,6 +146,39 @@ class ProfileView(LoginRequiredMixin, View):
         return render(request, self.template_name, self.get_context(request))
 
     def post(self, request):
+        if request.POST.get('form_action') == 'change_password':
+            password_form = UserPasswordChangeForm(request.POST, user=request.user)
+            if password_form.is_valid():
+                new_password = password_form.cleaned_data['new_password1']
+                if request.user.is_superuser:
+                    other_admins_exist = User.objects.filter(
+                        is_active=True,
+                        is_superuser=True,
+                    ).exclude(pk=request.user.pk).exclude(email="").exists()
+                    if not other_admins_exist:
+                        messages.error(request, "لا يمكن تغيير كلمة مرور الأدمن بدون وجود أدمن آخر نشط للموافقة.")
+                        return render(request, self.template_name, self.get_context(request, password_form=password_form))
+
+                    _change_request, recipients = create_admin_password_change_request(
+                        user=request.user,
+                        password_hash=make_password(new_password),
+                        request=request,
+                    )
+                    messages.success(
+                        request,
+                        f"تم إرسال طلب تغيير كلمة المرور إلى {len(recipients)} أدمن للموافقة. لن تتغير كلمة المرور قبل الموافقة.",
+                    )
+                    return redirect('accounts:profile')
+
+                request.user.set_password(new_password)
+                request.user.save(update_fields=['password'])
+                update_session_auth_hash(request, request.user)
+                messages.success(request, "تم تغيير كلمة المرور بنجاح.")
+                return redirect('accounts:profile')
+
+            messages.error(request, "يرجى مراجعة بيانات تغيير كلمة المرور.")
+            return render(request, self.template_name, self.get_context(request, password_form=password_form))
+
         profile, _ = UserProfile.objects.get_or_create(user=request.user)
         profile_form = UserProfileForm(request.POST, request.FILES, instance=profile, user=request.user)
         if profile_form.is_valid():
@@ -390,12 +425,35 @@ class ResetPasswordView(View):
         
         try:
             user = User.objects.get(email=email)
+            if user.is_superuser:
+                other_admins_exist = User.objects.filter(
+                    is_active=True,
+                    is_superuser=True,
+                ).exclude(pk=user.pk).exclude(email="").exists()
+                if not other_admins_exist:
+                    messages.error(request, "لا يمكن تغيير كلمة مرور الأدمن بدون وجود أدمن آخر نشط للموافقة.")
+                    return render(request, self.template_name)
+
+                _change_request, recipients = create_admin_password_change_request(
+                    user=user,
+                    password_hash=make_password(password1),
+                    request=request,
+                )
+
+                request.session.pop('password_reset_email', None)
+                request.session.pop('reset_code_verified', None)
+                messages.success(
+                    request,
+                    f"تم إرسال طلب تغيير كلمة المرور إلى {len(recipients)} أدمن للموافقة. لن تتغير كلمة المرور قبل الموافقة.",
+                )
+                return redirect('accounts:login')
+
             user.set_password(password1)
             user.save()
             
             # حذف بيانات الجلسة
-            del request.session['password_reset_email']
-            del request.session['reset_code_verified']
+            request.session.pop('password_reset_email', None)
+            request.session.pop('reset_code_verified', None)
             
             messages.success(request, "تم تغيير كلمة المرور بنجاح! يمكنك الآن تسجيل الدخول")
             return redirect('accounts:login')

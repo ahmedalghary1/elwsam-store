@@ -177,6 +177,54 @@
       </section>
     </div>
 
+    <section class="profile-panel password-panel" aria-labelledby="change-password-heading">
+      <div class="profile-panel-header">
+        <div>
+          <span class="panel-kicker">الأمان</span>
+          <h2 id="change-password-heading">تغيير كلمة المرور</h2>
+        </div>
+      </div>
+
+      <form method="post" class="profile-form password-change-form">
+        {% csrf_token %}
+        <input type="hidden" name="form_action" value="change_password">
+
+        <div class="profile-form-grid">
+          <div class="profile-form-row">
+            <label for="{{ password_form.old_password.id_for_label }}">كلمة المرور الحالية</label>
+            {{ password_form.old_password }}
+            {% if password_form.old_password.errors %}
+              <span class="profile-field-error">{{ password_form.old_password.errors.0 }}</span>
+            {% endif %}
+          </div>
+
+          <div class="profile-form-row">
+            <label for="{{ password_form.new_password1.id_for_label }}">كلمة المرور الجديدة</label>
+            {{ password_form.new_password1 }}
+            {% if password_form.new_password1.errors %}
+              <span class="profile-field-error">{{ password_form.new_password1.errors.0 }}</span>
+            {% endif %}
+          </div>
+
+          <div class="profile-form-row">
+            <label for="{{ password_form.new_password2.id_for_label }}">تأكيد كلمة المرور الجديدة</label>
+            {{ password_form.new_password2 }}
+            {% if password_form.new_password2.errors %}
+              <span class="profile-field-error">{{ password_form.new_password2.errors.0 }}</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="password-form-footer">
+          <button type="submit" class="btn btn-primary profile-save-btn">
+            <i class="fas fa-key" aria-hidden="true"></i>
+            تغيير كلمة المرور
+          </button>
+          <a href="{% url 'accounts:forgot_password' %}" class="forgot-password-link">نسيت كلمة المرور؟</a>
+        </div>
+      </form>
+    </section>
+
     <section class="profile-panel addresses-panel" aria-labelledby="addresses-heading">
       <div class="profile-panel-header addresses-header">
         <div>
@@ -554,6 +602,29 @@
   justify-self: start;
 }
 
+.password-panel {
+  margin-bottom: clamp(18px, 3vw, 28px);
+}
+
+.password-form-footer {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.forgot-password-link {
+  color: var(--color-gray-700);
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.forgot-password-link:hover {
+  color: var(--color-black);
+}
+
 .addresses-header {
   align-items: center;
 }
@@ -719,6 +790,15 @@
   .profile-save-btn {
     width: 100%;
     justify-content: center;
+  }
+
+  .password-form-footer {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .forgot-password-link {
+    text-align: center;
   }
 
   .profile-stats,

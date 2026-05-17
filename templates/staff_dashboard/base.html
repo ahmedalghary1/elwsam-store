@@ -39,6 +39,9 @@
         <a href="{% url 'staff_dashboard:customers' %}" class="{% if active_nav == 'customers' %}active{% endif %}">
           <i class="fas fa-users"></i><span>العملاء</span>
         </a>
+        <a href="{% url 'staff_dashboard:admin_password_change_requests' %}" class="{% if active_nav == 'admin_password_requests' %}active{% endif %}">
+          <i class="fas fa-key"></i><span>طلبات كلمات مرور الأدمن</span>
+        </a>
         <a href="{% url 'staff_dashboard:home_collections' %}" class="{% if active_nav == 'home_collections' %}active{% endif %}">
           <i class="fas fa-house-chimney-window"></i><span>الصفحة الرئيسية</span>
         </a>

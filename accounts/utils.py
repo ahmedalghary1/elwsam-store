@@ -1,9 +1,10 @@
 import random
 from django.core.mail import send_mail
 from django.conf import settings
+from django.urls import reverse
 from django.utils import timezone
 from datetime import timedelta
-from .models import UserOTP
+from .models import AdminPasswordChangeRequest, UserOTP
 
 
 def generate_otp_code():
@@ -141,3 +142,55 @@ def mark_otp_as_used(otp):
     """تعليم OTP كمستخدم"""
     otp.is_used = True
     otp.save()
+
+
+def send_admin_password_change_approval_email(change_request, approval_url, recipients):
+    requester = change_request.requester
+    requester_name = requester.get_full_name() or requester.username or requester.email
+    subject = "طلب موافقة على تغيير كلمة مرور أدمن"
+    message = f"""
+مرحباً،
+
+الأدمن {requester_name} ({requester.email}) يريد تغيير كلمة المرور الخاصة به.
+
+لا يتم تطبيق كلمة المرور الجديدة إلا بعد موافقة أدمن آخر من لوحة التحكم.
+
+رابط صفحة الموافقة:
+{approval_url}
+
+إذا لم تكن تعرف سبب هذا الطلب، راجع حسابات الأدمن فوراً.
+"""
+    send_mail(
+        subject=subject,
+        message=message,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=list(recipients),
+        fail_silently=False,
+    )
+
+
+def create_admin_password_change_request(user, password_hash, request=None):
+    AdminPasswordChangeRequest.objects.filter(
+        requester=user,
+        status=AdminPasswordChangeRequest.STATUS_PENDING,
+    ).update(status=AdminPasswordChangeRequest.STATUS_CANCELLED, decided_at=timezone.now())
+
+    change_request = AdminPasswordChangeRequest.objects.create(
+        requester=user,
+        password_hash=password_hash,
+    )
+    approval_path = reverse(
+        "staff_dashboard:admin_password_change_request_detail",
+        args=[change_request.token],
+    )
+    approval_url = request.build_absolute_uri(approval_path) if request else approval_path
+
+    recipients = list(
+        user.__class__.objects.filter(is_active=True, is_superuser=True)
+        .exclude(pk=user.pk)
+        .exclude(email="")
+        .values_list("email", flat=True)
+    )
+    if recipients:
+        send_admin_password_change_approval_email(change_request, approval_url, recipients)
+    return change_request, recipients

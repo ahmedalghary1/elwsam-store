@@ -3,6 +3,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 
+from accounts.models import AdminPasswordChangeRequest
 from orders.models import Order, OrderItem
 from products.models import (
     Category,
@@ -11,6 +12,7 @@ from products.models import (
     HomeExclusiveOffer,
     Product,
     ProductColor,
+    ProductImage,
     ProductType,
     ProductTypeColor,
     ProductTypeImage,
@@ -49,6 +51,85 @@ class StaffDashboardAccessTests(TestCase):
         response = self.client.get(reverse("staff_dashboard:dashboard"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "لوحة التحكم")
+
+
+class AdminPasswordChangeApprovalTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.requester = User.objects.create_superuser(
+            email="requester@example.com",
+            username="requester",
+            password="oldpass123",
+        )
+        self.approver = User.objects.create_superuser(
+            email="approver@example.com",
+            username="approver",
+            password="approver123",
+        )
+
+    def prepare_reset_session(self):
+        session = self.client.session
+        session["password_reset_email"] = self.requester.email
+        session["reset_code_verified"] = True
+        session.save()
+
+    def test_superuser_password_reset_creates_pending_approval_request(self):
+        self.prepare_reset_session()
+        response = self.client.post(
+            reverse("accounts:reset_password"),
+            {"password1": "newpass12345", "password2": "newpass12345"},
+        )
+
+        self.assertRedirects(response, reverse("accounts:login"))
+        change_request = AdminPasswordChangeRequest.objects.get(requester=self.requester)
+        self.assertEqual(change_request.status, AdminPasswordChangeRequest.STATUS_PENDING)
+        self.requester.refresh_from_db()
+        self.assertTrue(self.requester.check_password("oldpass123"))
+
+    def test_other_superuser_can_approve_request_and_change_password(self):
+        self.requester.set_password("newpass12345")
+        password_hash = self.requester.password
+        self.requester.set_password("oldpass123")
+        self.requester.save()
+        change_request = AdminPasswordChangeRequest.objects.create(
+            requester=self.requester,
+            password_hash=password_hash,
+        )
+
+        self.client.login(email=self.approver.email, password="approver123")
+        response = self.client.post(
+            reverse("staff_dashboard:admin_password_change_request_detail", args=[change_request.token]),
+            {"action": "approve"},
+        )
+
+        self.assertRedirects(response, reverse("staff_dashboard:admin_password_change_requests"))
+        change_request.refresh_from_db()
+        self.requester.refresh_from_db()
+        self.assertEqual(change_request.status, AdminPasswordChangeRequest.STATUS_APPROVED)
+        self.assertEqual(change_request.approved_by, self.approver)
+        self.assertTrue(self.requester.check_password("newpass12345"))
+
+    def test_superuser_cannot_approve_own_password_change_request(self):
+        self.requester.set_password("newpass12345")
+        password_hash = self.requester.password
+        self.requester.set_password("oldpass123")
+        self.requester.save()
+        change_request = AdminPasswordChangeRequest.objects.create(
+            requester=self.requester,
+            password_hash=password_hash,
+        )
+
+        self.client.login(email=self.requester.email, password="oldpass123")
+        response = self.client.post(
+            reverse("staff_dashboard:admin_password_change_request_detail", args=[change_request.token]),
+            {"action": "approve"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        change_request.refresh_from_db()
+        self.requester.refresh_from_db()
+        self.assertEqual(change_request.status, AdminPasswordChangeRequest.STATUS_PENDING)
+        self.assertTrue(self.requester.check_password("oldpass123"))
 
 
 class StaffDashboardProductTests(TestCase):
@@ -111,6 +192,45 @@ class StaffDashboardProductTests(TestCase):
         self.assertTrue(ProductColor.objects.filter(product=product, color__name="Black").exists())
         product.refresh_from_db()
         self.assertTrue(product.has_colors)
+
+    def test_superuser_can_upload_and_delete_multiple_product_images(self):
+        product = Product.objects.create(
+            name="Gallery Product",
+            category=self.category,
+            description="Product with gallery",
+            price="100.00",
+        )
+        first_image = SimpleUploadedFile(
+            "gallery-1.gif",
+            b"GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;",
+            content_type="image/gif",
+        )
+        second_image = SimpleUploadedFile(
+            "gallery-2.gif",
+            b"GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;",
+            content_type="image/gif",
+        )
+
+        response = self.client.post(
+            reverse("staff_dashboard:product_image_add", args=[product.pk]),
+            {
+                "images": [first_image, second_image],
+                "color": "",
+                "order": "3",
+            },
+        )
+
+        self.assertRedirects(response, reverse("staff_dashboard:product_edit", args=[product.pk]))
+        self.assertEqual(ProductImage.objects.filter(product=product).count(), 2)
+        self.assertEqual(list(ProductImage.objects.filter(product=product).values_list("order", flat=True)), [3, 4])
+
+        image_to_delete = ProductImage.objects.filter(product=product).order_by("order").first()
+        delete_response = self.client.post(
+            reverse("staff_dashboard:product_image_delete", args=[product.pk, image_to_delete.pk])
+        )
+
+        self.assertRedirects(delete_response, reverse("staff_dashboard:product_edit", args=[product.pk]))
+        self.assertEqual(ProductImage.objects.filter(product=product).count(), 1)
 
     def test_superuser_can_manage_color_library(self):
         response = self.client.post(
@@ -314,6 +434,7 @@ class StaffDashboardSmokeTests(TestCase):
             reverse("staff_dashboard:order_detail", args=[self.order.pk]),
             reverse("staff_dashboard:order_detail", args=[self.guest_order.pk]),
             reverse("staff_dashboard:customers"),
+            reverse("staff_dashboard:admin_password_change_requests"),
             reverse("staff_dashboard:home_collections"),
             reverse("staff_dashboard:hero_slides"),
             reverse("staff_dashboard:home_offers"),

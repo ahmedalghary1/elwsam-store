@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.views import redirect_to_login
+from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db.models import Count, Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
@@ -11,6 +12,7 @@ from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 
 from orders.models import Cart, Order, OrderItem
+from accounts.models import AdminPasswordChangeRequest
 from products.models import (
     Category,
     Color,
@@ -38,6 +40,7 @@ from .forms import (
     OrderStatusForm,
     ProductColorForm,
     ProductForm,
+    ProductImageUploadForm,
     ProductTypeColorForm,
     ProductTypeDashboardForm,
     ProductTypeImageForm,
@@ -166,6 +169,7 @@ def _product_management_context(product):
     if not product:
         return {}
     product_colors = ProductColor.objects.filter(product=product).select_related("color").order_by("order", "id")
+    product_images = ProductImage.objects.filter(product=product).select_related("color").order_by("order", "id")
     product_types = (
         ProductType.objects.filter(product=product)
         .select_related("type")
@@ -176,11 +180,15 @@ def _product_management_context(product):
         "product_management": True,
         "product": product,
         "product_colors": product_colors,
+        "product_images": product_images,
         "product_types": product_types,
         "product_color_count": product_colors.count(),
+        "product_image_count": product_images.count(),
         "product_type_count": product_types.count(),
         "product_color_form": ProductColorForm(product=product),
+        "product_image_form": ProductImageUploadForm(product=product),
         "product_color_add_url": reverse("staff_dashboard:product_color_add", args=[product.pk]),
+        "product_image_add_url": reverse("staff_dashboard:product_image_add", args=[product.pk]),
         "product_type_add_url": reverse("staff_dashboard:product_type_add", args=[product.pk]),
         "colors_library_url": reverse("staff_dashboard:colors"),
         "product_public_url": product.get_absolute_url(),
@@ -401,6 +409,31 @@ def product_color_delete(request, pk, color_pk):
             product.has_colors = False
             product.save(update_fields=["has_colors", "updated_at"])
         messages.success(request, f"تم حذف لون {color_name} من المنتج.")
+    return redirect("staff_dashboard:product_edit", pk=product.pk)
+
+
+@superuser_required
+def product_image_add(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    if request.method != "POST":
+        return redirect("staff_dashboard:product_edit", pk=product.pk)
+
+    form = ProductImageUploadForm(request.POST, request.FILES, product=product)
+    if form.is_valid():
+        created_images = form.save()
+        messages.success(request, f"تمت إضافة {len(created_images)} صورة للمنتج بنجاح.")
+    else:
+        messages.error(request, "تعذر إضافة الصور. تأكد من اختيار صورة واحدة على الأقل.")
+    return redirect("staff_dashboard:product_edit", pk=product.pk)
+
+
+@superuser_required
+def product_image_delete(request, pk, image_pk):
+    product = get_object_or_404(Product, pk=pk)
+    product_image = get_object_or_404(ProductImage, pk=image_pk, product=product)
+    if request.method == "POST":
+        product_image.delete()
+        messages.success(request, "تم حذف صورة المنتج.")
     return redirect("staff_dashboard:product_edit", pk=product.pk)
 
 
@@ -785,6 +818,59 @@ def customers_list(request):
             "customers": page_obj.object_list,
             "filters": {"q": query, "role": role, "status": status},
             "total_count": queryset.count(),
+        },
+    )
+
+
+@superuser_required
+def admin_password_change_requests(request):
+    status = request.GET.get("status", AdminPasswordChangeRequest.STATUS_PENDING)
+    queryset = AdminPasswordChangeRequest.objects.select_related("requester", "approved_by")
+    if status != "all":
+        queryset = queryset.filter(status=status)
+
+    page_obj = _paginate(request, queryset, per_page=20)
+    return _render(
+        request,
+        "staff_dashboard/admin_password_change_requests.html",
+        {
+            "active_nav": "admin_password_requests",
+            "page_obj": page_obj,
+            "requests": page_obj.object_list,
+            "filters": {"status": status},
+            "status_choices": AdminPasswordChangeRequest.STATUS_CHOICES,
+            "total_count": queryset.count(),
+        },
+    )
+
+
+@superuser_required
+def admin_password_change_request_detail(request, token):
+    change_request = get_object_or_404(
+        AdminPasswordChangeRequest.objects.select_related("requester", "approved_by"),
+        token=token,
+    )
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action == "approve":
+            try:
+                change_request.approve(request.user)
+            except ValidationError as exc:
+                messages.error(request, exc.messages[0] if hasattr(exc, "messages") else str(exc))
+            else:
+                messages.success(request, "تمت الموافقة على الطلب وتغيير كلمة مرور الأدمن.")
+                return redirect("staff_dashboard:admin_password_change_requests")
+        else:
+            messages.error(request, "إجراء غير صحيح.")
+
+    return _render(
+        request,
+        "staff_dashboard/admin_password_change_request_detail.html",
+        {
+            "active_nav": "admin_password_requests",
+            "change_request": change_request,
+            "can_approve": change_request.is_pending and change_request.requester_id != request.user.pk,
+            "is_self_request": change_request.requester_id == request.user.pk,
         },
     )
 

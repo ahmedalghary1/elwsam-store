@@ -1,6 +1,7 @@
 import re
 
 from django import forms
+from django.contrib.auth import password_validation
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
@@ -373,6 +374,59 @@ class UserProfileForm(forms.ModelForm):
         if commit:
             profile.save()
         return profile
+
+
+class UserPasswordChangeForm(forms.Form):
+    old_password = forms.CharField(widget=forms.PasswordInput(attrs={
+        'class': 'form-control',
+        'placeholder': 'كلمة المرور الحالية',
+        'autocomplete': 'current-password',
+    }))
+    new_password1 = forms.CharField(widget=forms.PasswordInput(attrs={
+        'class': 'form-control',
+        'placeholder': 'كلمة المرور الجديدة',
+        'autocomplete': 'new-password',
+    }))
+    new_password2 = forms.CharField(widget=forms.PasswordInput(attrs={
+        'class': 'form-control',
+        'placeholder': 'تأكيد كلمة المرور الجديدة',
+        'autocomplete': 'new-password',
+    }))
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+        self.fields['old_password'].error_messages.update({
+            'required': 'يرجى إدخال كلمة المرور الحالية.',
+        })
+        self.fields['new_password1'].error_messages.update({
+            'required': 'يرجى إدخال كلمة المرور الجديدة.',
+        })
+        self.fields['new_password2'].error_messages.update({
+            'required': 'يرجى تأكيد كلمة المرور الجديدة.',
+        })
+
+    def clean_old_password(self):
+        old_password = self.cleaned_data.get('old_password')
+        if self.user is not None and not self.user.check_password(old_password):
+            raise forms.ValidationError('كلمة المرور الحالية غير صحيحة.')
+        return old_password
+
+    def clean(self):
+        cleaned_data = super().clean()
+        new_password1 = cleaned_data.get('new_password1')
+        new_password2 = cleaned_data.get('new_password2')
+
+        if new_password1 and new_password2 and new_password1 != new_password2:
+            self.add_error('new_password2', 'كلمتا المرور الجديدتان غير متطابقتين.')
+
+        if new_password1 and self.user is not None:
+            try:
+                password_validation.validate_password(new_password1, self.user)
+            except ValidationError as error:
+                self.add_error('new_password1', error)
+
+        return cleaned_data
 
 
 # =========================

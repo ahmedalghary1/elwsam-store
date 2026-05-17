@@ -10,6 +10,27 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+def load_env_file(path):
+    if not path.exists():
+        return
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+
+
+def env_bool(name, default=False):
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+load_env_file(BASE_DIR / ".env")
+
+
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-rl17&5ecdx1h131wc@wy!^r-*7zh(q@!+#4jy2*%tw=z@4dv2i')
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -159,15 +180,14 @@ DEFAULT_CHARSET = 'utf-8'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Email Configuration
-#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # للتطوير - يطبع في Console
-# للإنتاج استخدم SMTP:
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'ahmedalghary1@gmail.com'
-EMAIL_HOST_PASSWORD ='owzw fltf veow mwiu'
-DEFAULT_FROM_EMAIL = 'متجر الوسام <ahmedalghary1@gmail.com>'
+EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = os.environ.get('EMAIL_HOST', "mail.elwsamshop.com")
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '465'))
+EMAIL_USE_TLS = env_bool('EMAIL_USE_TLS', False)
+EMAIL_USE_SSL = env_bool('EMAIL_USE_SSL', True)
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'support@elwsamshop.com')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'info@100')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'ELWSAM Shop <support@elwsamshop.com>')
 
 # OTP Settings
 OTP_EXPIRY_MINUTES = 10  # مدة صلاحية OTP بالدقائق

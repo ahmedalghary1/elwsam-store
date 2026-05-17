@@ -1,5 +1,12 @@
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
+from django.utils.crypto import get_random_string
+
+
+def generate_admin_password_request_token():
+    return get_random_string(64)
 
 # =========================
 # 1️⃣ Custom User Model
@@ -123,3 +130,64 @@ class UserOTP(models.Model):
         """التحقق من صلاحية OTP"""
         from django.utils import timezone
         return not self.is_used and timezone.now() < self.expires_at
+
+
+class AdminPasswordChangeRequest(models.Model):
+    STATUS_PENDING = "pending"
+    STATUS_APPROVED = "approved"
+    STATUS_REJECTED = "rejected"
+    STATUS_CANCELLED = "cancelled"
+
+    STATUS_CHOICES = [
+        (STATUS_PENDING, "Pending"),
+        (STATUS_APPROVED, "Approved"),
+        (STATUS_REJECTED, "Rejected"),
+        (STATUS_CANCELLED, "Cancelled"),
+    ]
+
+    requester = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="admin_password_change_requests",
+    )
+    approved_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        related_name="approved_admin_password_change_requests",
+        blank=True,
+        null=True,
+    )
+    token = models.CharField(
+        max_length=64,
+        unique=True,
+        default=generate_admin_password_request_token,
+        db_index=True,
+    )
+    password_hash = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    decided_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.requester.email} password change ({self.status})"
+
+    @property
+    def is_pending(self):
+        return self.status == self.STATUS_PENDING
+
+    def approve(self, approver):
+        if not self.is_pending:
+            raise ValidationError("This request is no longer pending.")
+        if self.requester_id == approver.pk:
+            raise ValidationError("Admins cannot approve their own password change requests.")
+
+        self.requester.password = self.password_hash
+        self.requester.save(update_fields=["password"])
+        self.approved_by = approver
+        self.status = self.STATUS_APPROVED
+        self.decided_at = timezone.now()
+        self.save(update_fields=["approved_by", "status", "decided_at", "updated_at"])

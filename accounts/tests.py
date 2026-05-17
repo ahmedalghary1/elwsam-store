@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import Address, UserProfile
+from .models import Address, AdminPasswordChangeRequest, UserProfile
 
 
 User = get_user_model()
@@ -265,6 +265,72 @@ class ProfileViewTests(TestCase):
         self.assertEqual(self.user.email, "updated@example.com")
         self.assertEqual(self.user.phone, "+201009998887")
         self.assertEqual(self.user.profile.bio, "نبذة محدثة")
+
+    def test_profile_changes_password_for_regular_user(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("accounts:profile"),
+            {
+                "form_action": "change_password",
+                "old_password": "StrongPass123!",
+                "new_password1": "NewStrongPass456!",
+                "new_password2": "NewStrongPass456!",
+            },
+        )
+
+        self.assertRedirects(response, reverse("accounts:profile"))
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password("NewStrongPass456!"))
+        self.assertTrue(self.client.login(email=self.user.email, password="NewStrongPass456!"))
+
+    def test_profile_rejects_wrong_old_password(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("accounts:profile"),
+            {
+                "form_action": "change_password",
+                "old_password": "WrongPass123!",
+                "new_password1": "NewStrongPass456!",
+                "new_password2": "NewStrongPass456!",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password("StrongPass123!"))
+
+    def test_profile_admin_password_change_requires_other_admin_approval(self):
+        admin = User.objects.create_superuser(
+            username="adminprofile",
+            email="adminprofile@example.com",
+            password="AdminStrongPass123!",
+            is_active=True,
+        )
+        User.objects.create_superuser(
+            username="approver",
+            email="approver-profile@example.com",
+            password="ApproverStrongPass123!",
+            is_active=True,
+        )
+        self.client.force_login(admin)
+
+        response = self.client.post(
+            reverse("accounts:profile"),
+            {
+                "form_action": "change_password",
+                "old_password": "AdminStrongPass123!",
+                "new_password1": "AdminNewStrongPass456!",
+                "new_password2": "AdminNewStrongPass456!",
+            },
+        )
+
+        self.assertRedirects(response, reverse("accounts:profile"))
+        change_request = AdminPasswordChangeRequest.objects.get(requester=admin)
+        self.assertEqual(change_request.status, AdminPasswordChangeRequest.STATUS_PENDING)
+        admin.refresh_from_db()
+        self.assertTrue(admin.check_password("AdminStrongPass123!"))
 
     def test_profile_rejects_duplicate_email_and_phone(self):
         User.objects.create_user(
