@@ -452,6 +452,13 @@ class StaffDashboardSmokeTests(TestCase):
                 response = self.client.get(url)
                 self.assertEqual(response.status_code, 200)
 
+    def test_orders_list_has_visible_detail_button(self):
+        response = self.client.get(reverse("staff_dashboard:orders"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "تفاصيل")
+        self.assertContains(response, reverse("staff_dashboard:order_detail", args=[self.order.pk]))
+
     def test_order_detail_shows_details_and_editable_status(self):
         response = self.client.get(reverse("staff_dashboard:order_detail", args=[self.order.pk]))
 
