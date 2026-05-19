@@ -106,14 +106,13 @@ class UserOTP(models.Model):
     لتخزين رموز التحقق المؤقتة (Email) لكل مستخدم
     """
     PURPOSE_CHOICES = [
-        ('email_verification', 'التحقق من البريد الإلكتروني'),
         ('password_reset', 'إعادة تعيين كلمة المرور'),
     ]
     
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="otps", null=True, blank=True)
     email = models.EmailField(blank=True,null=True) 
     code = models.CharField(max_length=6)
-    purpose = models.CharField(max_length=20, choices=PURPOSE_CHOICES, default='email_verification')
+    purpose = models.CharField(max_length=20, choices=PURPOSE_CHOICES, default='password_reset')
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField(blank=True,null=True)
     is_used = models.BooleanField(default=False)

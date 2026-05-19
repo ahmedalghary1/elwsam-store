@@ -17,13 +17,13 @@ def generate_otp_code():
     return f"{secrets.randbelow(900000) + 100000:06d}"
 
 
-def create_otp(email, purpose='email_verification', user=None):
+def create_otp(email, purpose='password_reset', user=None):
     """
     إنشاء OTP جديد وإرساله عبر البريد الإلكتروني
     
     Args:
         email: البريد الإلكتروني
-        purpose: الغرض من OTP (email_verification أو password_reset)
+        purpose: الغرض من OTP. حالياً يستخدم فقط لإعادة تعيين كلمة المرور.
         user: المستخدم (اختياري)
     
     Returns:
@@ -32,6 +32,8 @@ def create_otp(email, purpose='email_verification', user=None):
     email = normalize_email(email)
     if not email:
         raise ValueError("Email is required to create an OTP.")
+    if purpose != 'password_reset':
+        raise ValueError("OTP is only supported for password reset.")
 
     # حذف أي OTP قديم غير مستخدم لنفس البريد والغرض
     UserOTP.objects.filter(
@@ -75,23 +77,7 @@ def send_otp_email(email, code, purpose):
         code: كود OTP
         purpose: الغرض من OTP
     """
-    if purpose == 'email_verification':
-        subject = 'تأكيد حسابك في متجر الوسام'
-        message = f"""
-مرحباً بك في متجر الوسام!
-
-لإكمال عملية التسجيل، يرجى إدخال الكود التالي:
-
-{code}
-
-هذا الكود صالح لمدة {getattr(settings, 'OTP_EXPIRY_MINUTES', 10)} دقائق فقط.
-
-إذا لم تقم بإنشاء حساب، يرجى تجاهل هذه الرسالة.
-
-مع تحيات،
-فريق متجر الوسام
-        """
-    elif purpose == 'password_reset':
+    if purpose == 'password_reset':
         subject = 'إعادة تعيين كلمة المرور - متجر الوسام'
         message = f"""
 مرحباً،
@@ -110,8 +96,7 @@ def send_otp_email(email, code, purpose):
 فريق متجر الوسام
         """
     else:
-        subject = 'كود التحقق - متجر الوسام'
-        message = f'كود التحقق الخاص بك هو: {code}'
+        raise ValueError("Unsupported OTP purpose.")
     
     sent_count = send_mail(
         subject=subject,

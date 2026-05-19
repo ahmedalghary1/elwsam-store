@@ -228,8 +228,6 @@ class UserOTPAdmin(admin.ModelAdmin):
     email_display.short_description = 'البريد الإلكتروني'
 
     def purpose_badge(self, obj):
-        if obj.purpose == 'email_verification':
-            return format_html('<span style="background:#17a2b8;color:white;padding:2px 8px;border-radius:12px;font-size:0.8em;">تحقق من البريد</span>')
         return format_html('<span style="background:#fd7e14;color:white;padding:2px 8px;border-radius:12px;font-size:0.8em;">إعادة كلمة المرور</span>')
     purpose_badge.short_description = 'الغرض'
 

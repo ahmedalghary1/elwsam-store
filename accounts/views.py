@@ -39,20 +39,15 @@ class RegisterView(View):
             try:
                 with transaction.atomic():
                     user = form.save(commit=False)
-                    user.is_active = False  # تعطيل الحساب حتى يتم التحقق من البريد
+                    user.is_active = True
                     user.save()
 
                     # إنشاء Profile تلقائياً
                     UserProfile.objects.get_or_create(user=user)
 
-                    # إرسال OTP للتحقق من البريد
-                    create_otp(user.email, purpose='email_verification', user=user)
-
-                # حفظ البريد في الجلسة للتحقق
-                request.session['pending_verification_email'] = user.email
-
-                messages.success(request, "تم إنشاء الحساب بنجاح! تم إرسال كود التحقق إلى بريدك الإلكتروني.")
-                return redirect('accounts:verify_email')
+                request.session.pop('pending_verification_email', None)
+                messages.success(request, "تم إنشاء الحساب بنجاح. يمكنك الآن تسجيل الدخول مباشرة.")
+                return redirect('accounts:login')
             except Exception:
                 logger.exception("Failed to create account for email=%s", form.cleaned_data.get('email'))
                 messages.error(request, "حدث خطأ أثناء إنشاء الحساب. يرجى المحاولة مرة أخرى.")
@@ -281,44 +276,12 @@ class VerifyEmailView(View):
     template_name = "accounts/verify_email.html"
 
     def get(self, request):
-        email = request.session.get('pending_verification_email')
-        if not email:
-            messages.error(request, "لا يوجد حساب في انتظار التحقق")
-            return redirect('accounts:register')
-        return render(request, self.template_name, {'email': email})
+        request.session.pop('pending_verification_email', None)
+        messages.info(request, "تفعيل البريد غير مطلوب حالياً. يمكنك تسجيل الدخول مباشرة.")
+        return redirect('accounts:login')
 
     def post(self, request):
-        email = request.session.get('pending_verification_email')
-        code = request.POST.get('code', '').strip()
-        
-        if not email:
-            messages.error(request, "انتهت صلاحية الجلسة، يرجى التسجيل مرة أخرى")
-            return redirect('accounts:register')
-        
-        # التحقق من الكود
-        is_valid, result = verify_otp(email, code, 'email_verification')
-        
-        if is_valid:
-            # تفعيل الحساب
-            try:
-                user = User.objects.get(email=email)
-                user.is_active = True
-                user.save()
-                
-                # تعليم OTP كمستخدم
-                mark_otp_as_used(result)
-                
-                # حذف البريد من الجلسة
-                del request.session['pending_verification_email']
-                
-                messages.success(request, "تم تفعيل حسابك بنجاح! يمكنك الآن تسجيل الدخول")
-                return redirect('accounts:login')
-            except User.DoesNotExist:
-                messages.error(request, "حدث خطأ، يرجى المحاولة مرة أخرى")
-        else:
-            messages.error(request, result)
-        
-        return render(request, self.template_name, {'email': email})
+        return self.get(request)
 
 
 # =========================
@@ -326,19 +289,9 @@ class VerifyEmailView(View):
 # =========================
 class ResendOTPView(View):
     def post(self, request):
-        email = request.session.get('pending_verification_email')
-        if not email:
-            messages.error(request, "لا يوجد حساب في انتظار التحقق")
-            return redirect('accounts:register')
-        
-        try:
-            user = User.objects.get(email=email)
-            create_otp(email, purpose='email_verification', user=user)
-            messages.success(request, "تم إرسال كود جديد إلى بريدك الإلكتروني")
-        except User.DoesNotExist:
-            messages.error(request, "حدث خطأ، يرجى المحاولة مرة أخرى")
-        
-        return redirect('accounts:verify_email')
+        request.session.pop('pending_verification_email', None)
+        messages.info(request, "أكواد التحقق تستخدم الآن لإعادة تعيين كلمة المرور فقط.")
+        return redirect('accounts:login')
 
 
 # =========================

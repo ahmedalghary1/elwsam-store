@@ -143,7 +143,7 @@ class AuthViewsTests(TestCase):
         self.assertContains(response, "رقم الهاتف مطلوب")
 
     @patch("accounts.views.create_otp")
-    def test_register_success_creates_inactive_user_and_redirects_to_verification(self, create_otp):
+    def test_register_success_creates_active_user_without_otp(self, create_otp):
         response = self.client.post(
             reverse("accounts:register"),
             {
@@ -156,12 +156,13 @@ class AuthViewsTests(TestCase):
             },
         )
 
-        self.assertRedirects(response, reverse("accounts:verify_email"))
+        self.assertRedirects(response, reverse("accounts:login"))
         user = User.objects.get(email="fresh@example.com")
-        self.assertFalse(user.is_active)
+        self.assertTrue(user.is_active)
         self.assertEqual(user.phone, "+201009998887")
-        self.assertEqual(self.client.session["pending_verification_email"], user.email)
-        create_otp.assert_called_once_with(user.email, purpose="email_verification", user=user)
+        self.assertNotIn("pending_verification_email", self.client.session)
+        self.assertFalse(UserOTP.objects.filter(user=user).exists())
+        create_otp.assert_not_called()
 
     @patch("accounts.views.create_otp")
     def test_register_allows_username_with_spaces(self, create_otp):
@@ -177,8 +178,15 @@ class AuthViewsTests(TestCase):
             },
         )
 
-        self.assertRedirects(response, reverse("accounts:verify_email"))
+        self.assertRedirects(response, reverse("accounts:login"))
         self.assertTrue(User.objects.filter(username="Ahmed Ali").exists())
+        create_otp.assert_not_called()
+
+    def test_verify_email_route_no_longer_requires_otp(self):
+        response = self.client.get(reverse("accounts:verify_email"))
+
+        self.assertRedirects(response, reverse("accounts:login"))
+        self.assertNotIn("pending_verification_email", self.client.session)
 
     @patch("accounts.views.create_otp")
     def test_forgot_password_sends_code_and_opens_verify_page(self, create_otp):
@@ -259,6 +267,10 @@ class OTPEmailTests(TestCase):
 
         self.assertFalse(is_valid)
         self.assertEqual(message, "الكود يجب أن يتكون من 6 أرقام")
+
+    def test_create_otp_rejects_account_creation_purpose(self):
+        with self.assertRaises(ValueError):
+            create_otp(self.user.email, purpose="email_verification", user=self.user)
 
 
 class ProfileViewTests(TestCase):
