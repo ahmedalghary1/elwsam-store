@@ -1,26 +1,9 @@
-from urllib.parse import urljoin
-
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
-from django.templatetags.static import static
 from django.utils.html import escape
 
 
 BRAND_NAME = "متجر الوسام"
-LOGO_STATIC_PATH = "image/ELWSAM-LOGO2020-104.webp"
-
-
-def get_email_logo_url():
-    configured_url = getattr(settings, "EMAIL_LOGO_URL", "")
-    if configured_url:
-        return configured_url
-
-    logo_path = static(LOGO_STATIC_PATH)
-    if logo_path.startswith(("http://", "https://")):
-        return logo_path
-
-    base_url = getattr(settings, "CANONICAL_BASE_URL", "https://elwsamshop.com")
-    return urljoin(f"{base_url.rstrip('/')}/", logo_path.lstrip("/"))
 
 
 def _render_action_button(label, url):
@@ -39,7 +22,6 @@ def _render_action_button(label, url):
 
 
 def render_branded_email_html(title, intro, body_lines, code=None, action_label="", action_url="", footer_note=""):
-    logo_url = get_email_logo_url()
     escaped_lines = [escape(line) for line in body_lines if line]
     body_html = "".join(
         f'<p style="margin:0 0 12px;color:#374151;font-size:15px;line-height:1.8;">{line}</p>'
@@ -73,8 +55,7 @@ def render_branded_email_html(title, intro, body_lines, code=None, action_label=
         <td align="center">
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;background:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #e5e7eb;">
             <tr>
-              <td align="center" style="background:#111827;padding:24px 18px 20px;">
-                <img src="{escape(logo_url)}" width="104" height="104" alt="{BRAND_NAME}" style="display:block;width:104px;height:104px;object-fit:contain;margin:0 auto 10px;border:0;">
+              <td align="center" style="background:#111827;padding:22px 18px 20px;">
                 <div style="color:#f5c542;font-size:18px;font-weight:900;">{BRAND_NAME}</div>
               </td>
             </tr>

@@ -147,7 +147,8 @@ class AdminPasswordChangeApprovalTests(TestCase):
         self.assertIn("تمت الموافقة على طلب تغيير كلمة مرور", mail.outbox[0].body)
         self.assertIn(self.approver.username, mail.outbox[0].body)
         self.assertEqual(len(mail.outbox[0].alternatives), 1)
-        self.assertIn("ELWSAM-LOGO2020-104.webp", mail.outbox[0].alternatives[0][0])
+        self.assertIn("متجر الوسام", mail.outbox[0].alternatives[0][0])
+        self.assertNotIn("ELWSAM-LOGO2020-104.webp", mail.outbox[0].alternatives[0][0])
 
     def test_superuser_cannot_approve_own_password_change_request(self):
         self.requester.set_password("newpass12345")
