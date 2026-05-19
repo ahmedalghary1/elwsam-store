@@ -1,5 +1,6 @@
 import logging
 
+from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.hashers import make_password
@@ -15,8 +16,9 @@ from .utils import (
     AdminPasswordChangeRequestUnavailable,
     create_admin_password_change_request,
     create_otp,
-    verify_otp,
     mark_otp_as_used,
+    normalize_email,
+    verify_otp,
 )
 
 logger = logging.getLogger(__name__)
@@ -349,24 +351,34 @@ class ForgotPasswordView(View):
         return render(request, self.template_name)
 
     def post(self, request):
-        email = request.POST.get('email', '').strip()
-        
+        email = normalize_email(request.POST.get('email', ''))
+        if not email:
+            messages.error(request, "يرجى إدخال البريد الإلكتروني المرتبط بحسابك.")
+            return render(request, self.template_name)
+
+        user = User.objects.filter(email__iexact=email).first()
+        if not user:
+            messages.error(request, "لا يوجد حساب مسجل بهذا البريد الإلكتروني.")
+            return render(request, self.template_name, {"email": email})
+
         try:
-            user = User.objects.get(email=email)
-            
-            # إنشاء وإرسال OTP
-            create_otp(email, purpose='password_reset', user=user)
-            
-            # حفظ البريد في الجلسة
-            request.session['password_reset_email'] = email
-            
-            messages.success(request, "تم إرسال كود التحقق إلى بريدك الإلكتروني")
-            return redirect('accounts:verify_reset_code')
-            
-        except User.DoesNotExist:
-            messages.error(request, "لا يوجد حساب مسجل بهذا البريد الإلكتروني")
-        
-        return render(request, self.template_name)
+            create_otp(user.email, purpose='password_reset', user=user)
+        except Exception:
+            logger.exception("Failed to send password reset OTP for user_id=%s", user.pk)
+            messages.error(
+                request,
+                "تعذر إرسال كود التحقق الآن. يرجى المحاولة مرة أخرى بعد قليل.",
+            )
+            return render(request, self.template_name, {"email": email})
+
+        request.session['password_reset_email'] = normalize_email(user.email)
+        request.session.pop('reset_code_verified', None)
+
+        messages.success(
+            request,
+            "تم إرسال كود التحقق إلى البريد الإلكتروني الخاص بالحساب، وتم فتح صفحة إدخال الكود تلقائيًا.",
+        )
+        return redirect('accounts:verify_reset_code')
 
 
 # =========================
@@ -376,14 +388,21 @@ class VerifyResetCodeView(View):
     template_name = "accounts/verify_reset_code.html"
 
     def get(self, request):
-        email = request.session.get('password_reset_email')
+        email = normalize_email(request.session.get('password_reset_email'))
         if not email:
             messages.error(request, "يرجى إدخال بريدك الإلكتروني أولاً")
             return redirect('accounts:forgot_password')
-        return render(request, self.template_name, {'email': email})
+        return render(
+            request,
+            self.template_name,
+            {
+                'email': email,
+                'otp_expiry_minutes': getattr(settings, 'OTP_EXPIRY_MINUTES', 10),
+            },
+        )
 
     def post(self, request):
-        email = request.session.get('password_reset_email')
+        email = normalize_email(request.session.get('password_reset_email'))
         code = request.POST.get('code', '').strip()
         
         if not email:
@@ -405,7 +424,14 @@ class VerifyResetCodeView(View):
         else:
             messages.error(request, result)
         
-        return render(request, self.template_name, {'email': email})
+        return render(
+            request,
+            self.template_name,
+            {
+                'email': email,
+                'otp_expiry_minutes': getattr(settings, 'OTP_EXPIRY_MINUTES', 10),
+            },
+        )
 
 
 # =========================
@@ -438,7 +464,7 @@ class ResetPasswordView(View):
             return render(request, self.template_name)
         
         try:
-            user = User.objects.get(email=email)
+            user = User.objects.get(email__iexact=email)
             if user.is_superuser:
                 other_admins_exist = User.objects.filter(
                     is_active=True,

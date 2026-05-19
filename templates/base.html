@@ -47,6 +47,7 @@
     @media (min-width:768px) and (max-width:1023px){.home-page .hero-content{text-align:center;margin-inline:auto}.home-page .hero-title{max-width:760px;margin-inline:auto}.home-page .hero-title-line{max-width:100%;margin-inline:auto;font-size:clamp(1.2rem,3vw,1.72rem);line-height:1.45;white-space:nowrap}.home-page .hero-subtitle{max-width:620px;margin-inline:auto}}
     @media (max-width:767px){.home-page .hero{min-height:auto}.home-page .hero-inner{display:flex;flex-direction:column;align-items:stretch;padding:18px var(--container-padding) 24px;gap:16px}.home-page .hero-content{display:contents}.home-page .hero-image-side{order:5;overflow:visible}.home-page .hero-badge{order:2;align-self:center;margin-bottom:0;font-size:.72rem;line-height:1.45}.home-page .hero-title{order:3;width:100%;margin-bottom:0;font-size:clamp(1.42rem,6.2vw,1.92rem)!important;line-height:1.32;text-align:center}.home-page .hero-title .highlight{display:block;max-width:12em;margin-inline:auto}.home-page .hero-brand-word{font-size:clamp(2.15rem,10vw,2.9rem);line-height:.98}.home-page .hero-title-line{max-width:100%;margin:8px auto 0;color:var(--color-white);font-size:clamp(.82rem,3.7vw,1.06rem);line-height:1.45;font-weight:900;overflow-wrap:normal;text-wrap:nowrap;white-space:nowrap}.home-page .hero-subtitle{order:4;max-width:31em;margin-inline:auto;margin-bottom:0;font-size:.86rem;line-height:1.85;text-align:center;white-space:normal}.home-page .hero-actions{order:6;display:grid;grid-template-columns:1fr;gap:10px}.home-page .hero-actions .btn{width:100%;min-height:48px;padding:12px 18px;white-space:normal}.home-page .hero-media-frame{border-radius:18px}.home-page .hero-slider .slider-dots{display:none}}
     @media (max-width:1023px){.home-page .hero-slider .slider-dots{display:none}}
+    .site-messages{width:min(var(--container-max),calc(100% - 32px));margin:18px auto 0;display:grid;gap:10px}.site-message{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:var(--radius-md);border:1px solid #e5e7eb;background:#fff;color:#111827;font-weight:700;box-shadow:0 8px 24px rgba(15,23,42,.08)}.site-message.success{background:#ecfdf5;border-color:#bbf7d0;color:#166534}.site-message.error,.site-message.danger{background:#fef2f2;border-color:#fecaca;color:#991b1b}.site-message.warning{background:#fffbeb;border-color:#fed7aa;color:#92400e}.site-message.info{background:#eff6ff;border-color:#bfdbfe;color:#1d4ed8}
   </style>
 
   <!-- Fonts -->
@@ -155,6 +156,16 @@
   </aside>
 
   <div id="main-content" tabindex="-1">
+    {% if messages %}
+      <div class="site-messages" role="status" aria-live="polite">
+        {% for message in messages %}
+          <div class="site-message {{ message.tags|default:'info' }}">
+            <i class="fas {% if message.tags == 'success' %}fa-circle-check{% elif message.tags == 'error' %}fa-triangle-exclamation{% elif message.tags == 'warning' %}fa-circle-exclamation{% else %}fa-circle-info{% endif %}" aria-hidden="true"></i>
+            <span>{{ message }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
     {% block content %}{% endblock content %}
   </div>
 

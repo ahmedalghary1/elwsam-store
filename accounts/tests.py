@@ -1,10 +1,12 @@
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.core import mail
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
-from .models import Address, AdminPasswordChangeRequest, UserProfile
+from .models import Address, AdminPasswordChangeRequest, UserOTP, UserProfile
+from .utils import create_otp, verify_otp
 
 
 User = get_user_model()
@@ -177,6 +179,86 @@ class AuthViewsTests(TestCase):
 
         self.assertRedirects(response, reverse("accounts:verify_email"))
         self.assertTrue(User.objects.filter(username="Ahmed Ali").exists())
+
+    @patch("accounts.views.create_otp")
+    def test_forgot_password_sends_code_and_opens_verify_page(self, create_otp):
+        response = self.client.post(
+            reverse("accounts:forgot_password"),
+            {"email": " Existing@Example.COM "},
+            follow=True,
+        )
+
+        self.assertRedirects(response, reverse("accounts:verify_reset_code"))
+        self.assertEqual(self.client.session["password_reset_email"], self.user.email)
+        self.assertNotIn("reset_code_verified", self.client.session)
+        create_otp.assert_called_once_with(self.user.email, purpose="password_reset", user=self.user)
+        self.assertContains(response, "تم إرسال كود التحقق إلى البريد الإلكتروني الخاص بالحساب")
+        self.assertContains(response, self.user.email)
+
+    @patch("accounts.views.create_otp")
+    def test_forgot_password_handles_missing_account_without_opening_code_page(self, create_otp):
+        response = self.client.post(
+            reverse("accounts:forgot_password"),
+            {"email": "missing@example.com"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "لا يوجد حساب مسجل بهذا البريد الإلكتروني")
+        self.assertNotIn("password_reset_email", self.client.session)
+        create_otp.assert_not_called()
+
+    @patch("accounts.views.create_otp", side_effect=RuntimeError("mail down"))
+    def test_forgot_password_handles_email_send_failure(self, create_otp):
+        response = self.client.post(
+            reverse("accounts:forgot_password"),
+            {"email": self.user.email},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "تعذر إرسال كود التحقق الآن")
+        self.assertNotIn("password_reset_email", self.client.session)
+        create_otp.assert_called_once()
+
+
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    DEFAULT_FROM_EMAIL="test@example.com",
+    OTP_EXPIRY_MINUTES=10,
+)
+class OTPEmailTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="otpuser",
+            email="otp@example.com",
+            password="CorrectPass123!",
+            is_active=True,
+        )
+
+    def test_create_otp_sends_email_and_stores_normalized_code(self):
+        otp = create_otp(" OTP@Example.COM ", purpose="password_reset", user=self.user)
+
+        self.assertEqual(otp.email, "otp@example.com")
+        self.assertEqual(len(otp.code), 6)
+        self.assertTrue(otp.code.isdigit())
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn(otp.code, mail.outbox[0].body)
+
+        is_valid, result = verify_otp("OTP@example.com", otp.code, "password_reset")
+        self.assertTrue(is_valid)
+        self.assertEqual(result, otp)
+
+    def test_create_otp_replaces_old_unused_code_for_same_purpose(self):
+        first = create_otp(self.user.email, purpose="password_reset", user=self.user)
+        second = create_otp(self.user.email, purpose="password_reset", user=self.user)
+
+        self.assertFalse(UserOTP.objects.filter(pk=first.pk).exists())
+        self.assertTrue(UserOTP.objects.filter(pk=second.pk, is_used=False).exists())
+
+    def test_verify_otp_rejects_malformed_codes(self):
+        is_valid, message = verify_otp(self.user.email, "123", "password_reset")
+
+        self.assertFalse(is_valid)
+        self.assertEqual(message, "الكود يجب أن يتكون من 6 أرقام")
 
 
 class ProfileViewTests(TestCase):

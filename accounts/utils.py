@@ -1,4 +1,4 @@
-import random
+import secrets
 from django.core.mail import send_mail
 from django.conf import settings
 from django.apps import apps
@@ -8,9 +8,13 @@ from datetime import timedelta
 from .models import UserOTP
 
 
+def normalize_email(email):
+    return (email or "").strip().lower()
+
+
 def generate_otp_code():
     """توليد كود OTP عشوائي من 6 أرقام"""
-    return str(random.randint(100000, 999999))
+    return f"{secrets.randbelow(900000) + 100000:06d}"
 
 
 def create_otp(email, purpose='email_verification', user=None):
@@ -25,6 +29,10 @@ def create_otp(email, purpose='email_verification', user=None):
     Returns:
         UserOTP object
     """
+    email = normalize_email(email)
+    if not email:
+        raise ValueError("Email is required to create an OTP.")
+
     # حذف أي OTP قديم غير مستخدم لنفس البريد والغرض
     UserOTP.objects.filter(
         email=email, 
@@ -48,8 +56,12 @@ def create_otp(email, purpose='email_verification', user=None):
         expires_at=expires_at
     )
     
-    # إرسال البريد الإلكتروني
-    send_otp_email(email, code, purpose)
+    # إرسال البريد الإلكتروني، وحذف الكود إذا فشل الإرسال حتى لا يبقى كود لم يصل للمستخدم.
+    try:
+        send_otp_email(email, code, purpose)
+    except Exception:
+        otp.delete()
+        raise
     
     return otp
 
@@ -101,13 +113,15 @@ def send_otp_email(email, code, purpose):
         subject = 'كود التحقق - متجر الوسام'
         message = f'كود التحقق الخاص بك هو: {code}'
     
-    send_mail(
+    sent_count = send_mail(
         subject=subject,
         message=message,
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[email],
         fail_silently=False,
     )
+    if sent_count == 0:
+        raise RuntimeError("OTP email was not sent.")
 
 
 def verify_otp(email, code, purpose):
@@ -122,6 +136,13 @@ def verify_otp(email, code, purpose):
     Returns:
         tuple: (is_valid, otp_object or error_message)
     """
+    email = normalize_email(email)
+    code = (code or "").strip()
+    if not email or not code:
+        return False, 'الكود غير صحيح'
+    if not code.isdigit() or len(code) != 6:
+        return False, 'الكود يجب أن يتكون من 6 أرقام'
+
     try:
         otp = UserOTP.objects.filter(
             email=email,
