@@ -1,8 +1,11 @@
+from decimal import Decimal
+
 from django.contrib.auth import get_user_model
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from accounts.models import AdminPasswordChangeRequest
 from orders.models import Order, OrderItem
@@ -52,6 +55,36 @@ class StaffDashboardAccessTests(TestCase):
         response = self.client.get(reverse("staff_dashboard:dashboard"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "لوحة التحكم")
+
+    def test_dashboard_30_day_sales_counts_delivered_orders_only(self):
+        delivered_order = Order.objects.create(
+            status="delivered",
+            total_price="120.00",
+            shipping_address="Delivered address",
+            shipping_phone="01000000000",
+        )
+        Order.objects.create(
+            status="pending",
+            total_price="999.00",
+            shipping_address="Pending address",
+            shipping_phone="01111111111",
+        )
+        old_delivered_order = Order.objects.create(
+            status="delivered",
+            total_price="300.00",
+            shipping_address="Old delivered address",
+            shipping_phone="01222222222",
+        )
+        Order.objects.filter(pk=old_delivered_order.pk).update(
+            created_at=timezone.now() - timezone.timedelta(days=31)
+        )
+
+        self.client.login(email="admin@example.com", password="pass12345")
+        response = self.client.get(reverse("staff_dashboard:dashboard"))
+
+        self.assertEqual(response.status_code, 200)
+        sales_stat = next(item for item in response.context["stats"] if item["icon"] == "fa-chart-line")
+        self.assertEqual(Decimal(sales_stat["value"].split()[0]), Decimal(delivered_order.total_price))
 
 
 class AdminPasswordChangeApprovalTests(TestCase):

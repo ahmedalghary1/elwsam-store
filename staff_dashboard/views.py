@@ -241,8 +241,7 @@ def dashboard(request):
     ]
 
     revenue_30_days = (
-        Order.objects.exclude(status="cancelled")
-        .filter(created_at__gte=since_30_days)
+        Order.objects.filter(status="delivered", created_at__gte=since_30_days)
         .aggregate(total=Sum("total_price"))["total"]
         or 0
     )
