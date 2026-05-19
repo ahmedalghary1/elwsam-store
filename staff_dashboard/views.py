@@ -240,9 +240,6 @@ def _color_usage_count(color):
 
 @order_staff_required
 def dashboard(request):
-    if not request.user.is_superuser:
-        return redirect("staff_dashboard:orders")
-
     today = timezone.localdate()
     since_30_days = timezone.now() - timezone.timedelta(days=30)
 
@@ -266,6 +263,29 @@ def dashboard(request):
         or 0
     )
     orders_today = Order.objects.filter(created_at__date=today).count()
+    latest_orders = (
+        Order.objects.select_related("user")
+        .prefetch_related("items")
+        .order_by("-created_at")[:8]
+    )
+
+    if not request.user.is_superuser:
+        pending_orders = order_status_counts.get("pending", 0)
+        processing_orders = order_status_counts.get("processing", 0)
+        shipped_orders = order_status_counts.get("shipped", 0)
+        context = {
+            "active_nav": "dashboard",
+            "stats": [
+                {"label": "طلبات اليوم", "value": orders_today, "icon": "fa-receipt", "tone": "info"},
+                {"label": "قيد المراجعة", "value": pending_orders, "icon": "fa-hourglass-half", "tone": "warning"},
+                {"label": "قيد التنفيذ", "value": processing_orders + shipped_orders, "icon": "fa-truck-fast", "tone": "primary"},
+                {"label": "مبيعات آخر 30 يوم", "value": f"{revenue_30_days} ج.م", "icon": "fa-chart-line", "tone": "success"},
+            ],
+            "status_cards": status_cards,
+            "latest_orders": latest_orders,
+        }
+        return _render(request, "staff_dashboard/editor_dashboard.html", context)
+
     active_products = Product.objects.filter(is_active=True).count()
     inactive_products = Product.objects.filter(is_active=False).count()
 
@@ -277,11 +297,6 @@ def dashboard(request):
     }
     collection_labels = dict(HomeProductCollectionItem.COLLECTION_CHOICES)
 
-    latest_orders = (
-        Order.objects.select_related("user")
-        .prefetch_related("items")
-        .order_by("-created_at")[:8]
-    )
     simple_low_stock = Product.objects.filter(is_active=True, stock__lte=5).order_by("stock", "name")[:6]
     variant_low_stock = (
         ProductVariant.objects.filter(stock__lte=5)

@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
 from django.core import mail
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -59,6 +60,28 @@ class AuthViewsTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertIn("_auth_user_id", self.client.session)
+
+    def test_order_editor_login_redirects_to_staff_dashboard(self):
+        editor = User.objects.create_user(
+            username="order-editor",
+            email="editor@example.com",
+            password=self.password,
+            is_active=True,
+            is_staff=True,
+        )
+        editor.user_permissions.add(
+            *Permission.objects.filter(
+                content_type__app_label="orders",
+                codename__in=["view_order", "change_order"],
+            )
+        )
+
+        response = self.client.post(
+            reverse("accounts:login"),
+            {"identifier": editor.email, "password": self.password},
+        )
+
+        self.assertRedirects(response, reverse("staff_dashboard:dashboard"), fetch_redirect_response=False)
 
     def test_login_with_local_phone_format_succeeds(self):
         response = self.client.post(

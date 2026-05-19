@@ -71,11 +71,14 @@ class StaffDashboardAccessTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "لوحة التحكم")
 
-    def test_order_editor_dashboard_redirects_to_orders_only(self):
+    def test_order_editor_can_open_custom_dashboard(self):
         self.client.login(email="editor@example.com", password="pass12345")
         response = self.client.get(reverse("staff_dashboard:dashboard"))
 
-        self.assertRedirects(response, reverse("staff_dashboard:orders"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "لوحة محرر الطلبات")
+        self.assertContains(response, reverse("staff_dashboard:orders"))
+        self.assertNotContains(response, "منتج جديد")
 
     def test_order_editor_cannot_open_product_management(self):
         self.client.login(email="editor@example.com", password="pass12345")

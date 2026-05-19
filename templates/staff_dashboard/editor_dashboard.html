@@ -1,0 +1,71 @@
+{% extends "staff_dashboard/base.html" %}
+
+{% block page_title %}لوحة محرر الطلبات{% endblock page_title %}
+{% block page_actions %}
+  <a class="dash-btn dash-btn-primary" href="{% url 'staff_dashboard:orders' %}"><i class="fas fa-receipt"></i> إدارة الطلبات</a>
+{% endblock page_actions %}
+
+{% block content %}
+  <section class="dash-grid stats-grid">
+    {% for stat in stats %}
+      <article class="dash-card stat-card tone-{{ stat.tone }}">
+        <span class="stat-icon"><i class="fas {{ stat.icon }}"></i></span>
+        <div>
+          <p>{{ stat.label }}</p>
+          <strong>{{ stat.value }}</strong>
+        </div>
+      </article>
+    {% endfor %}
+  </section>
+
+  <section class="dash-grid status-grid">
+    {% for status in status_cards %}
+      <a class="dash-card status-card tone-{{ status.tone }}" href="{% url 'staff_dashboard:orders' %}?status={{ status.value }}">
+        <span>{{ status.label }}</span>
+        <strong>{{ status.count }}</strong>
+      </a>
+    {% endfor %}
+  </section>
+
+  <section class="dash-card">
+    <div class="card-head">
+      <div>
+        <h2>أحدث الطلبات</h2>
+        <p>تابع الطلبات الجديدة وغيّر حالتها من صفحة التفاصيل.</p>
+      </div>
+      <a href="{% url 'staff_dashboard:orders' %}">كل الطلبات</a>
+    </div>
+    <div class="dash-table-wrap compact">
+      <table class="dash-table">
+        <thead>
+          <tr>
+            <th>الطلب</th>
+            <th>العميل</th>
+            <th>الهاتف</th>
+            <th>الحالة</th>
+            <th>الإجمالي</th>
+            <th>إجراءات</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in latest_orders %}
+            <tr>
+              <td><a href="{% url 'staff_dashboard:order_detail' order.pk %}">#{{ order.pk }}</a></td>
+              <td>{{ order.customer_display_name }}</td>
+              <td>{{ order.shipping_phone|default:"-" }}</td>
+              <td><span class="dash-badge status-{{ order.status }}">{{ order.get_status_display }}</span></td>
+              <td><strong>{{ order.total_price }} ج.م</strong></td>
+              <td>
+                <a class="dash-btn" href="{% url 'staff_dashboard:order_detail' order.pk %}">
+                  <i class="fas fa-pen-to-square"></i> تحديث الحالة
+                </a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="6" class="empty-cell">لا توجد طلبات بعد.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock content %}

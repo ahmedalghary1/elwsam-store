@@ -10,6 +10,7 @@ from django.views import View
 from django.views.generic import ListView
 from django.contrib import messages
 from django.db import transaction
+from django.urls import reverse
 from .models import User, UserProfile, Address, UserOTP
 from .forms import UserPasswordChangeForm, UserRegisterForm, UserLoginForm, UserProfileForm, AddressForm
 from .utils import (
@@ -20,6 +21,7 @@ from .utils import (
     normalize_email,
     verify_otp,
 )
+from staff_dashboard.permissions import has_order_editor_access
 
 logger = logging.getLogger(__name__)
 
@@ -103,7 +105,9 @@ class LoginView(View):
                 user = form.cleaned_data['user']
                 login(request, user)
                 messages.success(request, f"مرحبًا {user.username}")
-                next_url = request.POST.get('next') or request.GET.get('next') or 'index'
+                next_url = request.POST.get('next') or request.GET.get('next')
+                if not next_url:
+                    next_url = reverse('staff_dashboard:dashboard') if has_order_editor_access(user) else reverse('index')
                 if request.POST.get('has_cart_data') == 'true':
                     next_url = f"{next_url}{'&' if '?' in next_url else '?'}login=success"
                 return redirect(next_url)
