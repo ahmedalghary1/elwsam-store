@@ -10,6 +10,7 @@ from django.utils import timezone
 
 from accounts.models import AdminPasswordChangeRequest
 from orders.models import Order, OrderItem
+from staff_dashboard.permissions import has_order_editor_access
 from products.models import (
     Category,
     Color,
@@ -570,6 +571,29 @@ class StaffDashboardSmokeTests(TestCase):
         self.assertRedirects(response, reverse("staff_dashboard:order_detail", args=[self.order.pk]))
         self.order.refresh_from_db()
         self.assertEqual(self.order.status, "shipped")
+
+    def test_superuser_can_make_customer_order_editor_from_dashboard(self):
+        response = self.client.post(
+            reverse("staff_dashboard:customer_edit", args=[self.customer.pk]),
+            {
+                "username": self.customer.username,
+                "first_name": self.customer.first_name,
+                "last_name": self.customer.last_name,
+                "email": self.customer.email,
+                "phone": self.customer.phone or "",
+                "is_active": "on",
+                "is_order_editor": "on",
+            },
+        )
+
+        self.assertRedirects(response, reverse("staff_dashboard:customer_edit", args=[self.customer.pk]))
+        self.customer.refresh_from_db()
+        self.assertTrue(self.customer.is_staff)
+        self.assertTrue(has_order_editor_access(self.customer))
+
+        response = self.client.get(reverse("staff_dashboard:customers") + "?role=editors")
+        self.assertContains(response, self.customer.email)
+        self.assertContains(response, "محرر طلبات")
 
     def test_order_editor_can_update_only_order_status_from_dashboard_detail(self):
         self.client.logout()

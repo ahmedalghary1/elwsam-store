@@ -16,16 +16,6 @@ class StaffDashboardConfig(AppConfig):
 
 
 def ensure_order_editor_group(**kwargs):
-    from django.contrib.auth.models import Group, Permission
+    from .permissions import get_order_editor_group
 
-    from .permissions import ORDER_EDITOR_GROUP_NAME, ORDER_EDITOR_PERMISSION_CODENAMES
-
-    permissions = Permission.objects.filter(
-        content_type__app_label="orders",
-        codename__in=ORDER_EDITOR_PERMISSION_CODENAMES,
-    )
-    if permissions.count() != len(ORDER_EDITOR_PERMISSION_CODENAMES):
-        return
-
-    group, _created = Group.objects.get_or_create(name=ORDER_EDITOR_GROUP_NAME)
-    group.permissions.add(*permissions)
+    get_order_editor_group()

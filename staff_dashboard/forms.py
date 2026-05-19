@@ -17,6 +17,7 @@ from products.models import (
     ProductTypeImage,
     Type,
 )
+from .permissions import has_order_editor_access, set_order_editor_role
 
 
 def _apply_dashboard_widgets(form):
@@ -638,9 +639,15 @@ class HomeExclusiveOfferForm(forms.ModelForm):
 
 
 class CustomerForm(forms.ModelForm):
+    is_order_editor = forms.BooleanField(
+        label="محرر الطلبات",
+        required=False,
+        help_text="يسمح للمستخدم برؤية الطلبات وتغيير حالتها فقط من الداشبورد وDjango Admin.",
+    )
+
     class Meta:
         model = get_user_model()
-        fields = ["username", "first_name", "last_name", "email", "phone", "is_active", "is_staff"]
+        fields = ["username", "first_name", "last_name", "email", "phone", "is_active", "is_staff", "is_order_editor"]
         labels = {
             "username": "اسم المستخدم",
             "first_name": "الاسم الأول",
@@ -656,13 +663,23 @@ class CustomerForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if self.instance.pk and self.current_user and self.instance.pk == self.current_user.pk:
             self.fields["is_active"].disabled = True
+        if self.instance.pk:
+            self.fields["is_order_editor"].initial = has_order_editor_access(self.instance) and not self.instance.is_superuser
+        if self.instance.is_superuser:
+            self.fields["is_order_editor"].disabled = True
+            self.fields["is_order_editor"].help_text = "المشرف العام لديه كل الصلاحيات بالفعل."
         _apply_dashboard_widgets(self)
 
     def save(self, commit=True):
         user = super().save(commit=False)
+        is_order_editor = self.cleaned_data.get("is_order_editor", False)
+        if is_order_editor:
+            user.is_staff = True
         if self.current_user and user.pk == self.current_user.pk:
             user.is_active = True
         if commit:
             user.save()
             self.save_m2m()
+            if not user.is_superuser:
+                set_order_editor_role(user, is_order_editor)
         return user

@@ -46,7 +46,7 @@ from .forms import (
     ProductTypeDashboardForm,
     ProductTypeImageForm,
 )
-from .permissions import can_manage_full_dashboard, has_order_editor_access
+from .permissions import ORDER_EDITOR_GROUP_NAME, can_manage_full_dashboard, has_order_editor_access
 
 
 ORDER_STATUS_META = {
@@ -859,6 +859,8 @@ def customers_list(request):
         )
     if role == "customers":
         queryset = queryset.filter(is_staff=False, is_superuser=False)
+    elif role == "editors":
+        queryset = queryset.filter(groups__name=ORDER_EDITOR_GROUP_NAME, is_superuser=False).distinct()
     elif role == "staff":
         queryset = queryset.filter(is_staff=True, is_superuser=False)
     elif role == "superusers":
@@ -869,6 +871,8 @@ def customers_list(request):
         queryset = queryset.filter(is_active=False)
 
     page_obj = _paginate(request, queryset, per_page=20)
+    for customer in page_obj.object_list:
+        customer.is_order_editor = has_order_editor_access(customer) and not customer.is_superuser
     return _render(
         request,
         "staff_dashboard/customers_list.html",
@@ -965,7 +969,7 @@ def customer_form(request, pk):
             "active_nav": "customers",
             "form": form,
             "page_title": "تعديل مستخدم",
-            "page_subtitle": "تعديل بيانات التواصل وحالة الحساب. تغيير كلمة المرور أو الصلاحيات المتقدمة يتم من Django Admin.",
+            "page_subtitle": "تعديل بيانات التواصل وحالة الحساب، ومنح صلاحية محرر الطلبات عند الحاجة.",
             "cancel_url": reverse("staff_dashboard:customers"),
             "advanced_url": _admin_change_url(customer),
             "advanced_label": "إدارة متقدمة للمستخدم",
