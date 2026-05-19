@@ -56,6 +56,13 @@ ORDER_STATUS_META = {
     "cancelled": ("ملغي", "danger"),
 }
 
+PAYMENT_METHOD_LABELS = {
+    "cash_on_delivery": "الدفع عند الاستلام",
+    "credit_card": "بطاقة ائتمان",
+    "bank_transfer": "تحويل بنكي",
+    "card": "بطاقة ائتمان",
+}
+
 
 def _admin_password_request_model():
     try:
@@ -758,6 +765,7 @@ def order_detail(request, pk):
         Order.objects.select_related("user").prefetch_related(
             "items",
             "items__product",
+            "items__product__category",
             "items__variant",
             "items__product_type",
         ),
@@ -773,6 +781,22 @@ def order_detail(request, pk):
     else:
         form = OrderStatusForm(instance=order)
 
+    editable_fields = _field_items(
+        form,
+        [
+            "payment_method",
+            "contact_method",
+            "shipping_name",
+            "shipping_phone",
+            "shipping_city",
+            "shipping_address",
+            "shipping_notes",
+            "order_notes",
+        ],
+        {"shipping_address", "shipping_notes", "order_notes"},
+    )
+    contact_labels = dict(Order.CONTACT_METHOD_CHOICES)
+
     return _render(
         request,
         "staff_dashboard/order_detail.html",
@@ -781,8 +805,15 @@ def order_detail(request, pk):
             "order": order,
             "items": order.items.all(),
             "form": form,
+            "status_field": form["status"],
+            "editable_fields": editable_fields,
             "status_label": ORDER_STATUS_META.get(order.status, (order.status, "muted"))[0],
             "status_tone": ORDER_STATUS_META.get(order.status, (order.status, "muted"))[1],
+            "statuses": _status_context(),
+            "items_count": order.get_total_items(),
+            "subtotal": order.get_subtotal(),
+            "payment_label": PAYMENT_METHOD_LABELS.get(order.payment_method, order.payment_method),
+            "contact_label": contact_labels.get(order.contact_method, order.contact_method),
             "advanced_url": _admin_change_url(order),
         },
     )

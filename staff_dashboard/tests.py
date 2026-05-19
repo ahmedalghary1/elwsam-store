@@ -451,3 +451,33 @@ class StaffDashboardSmokeTests(TestCase):
             with self.subTest(url=url):
                 response = self.client.get(url)
                 self.assertEqual(response.status_code, 200)
+
+    def test_order_detail_shows_details_and_editable_status(self):
+        response = self.client.get(reverse("staff_dashboard:order_detail", args=[self.order.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "طلب #")
+        self.assertContains(response, "عميل تجريبي")
+        self.assertContains(response, "عنوان تجريبي")
+        self.assertContains(response, "تحديث حالة الطلب")
+        self.assertContains(response, 'name="status"')
+
+    def test_superuser_can_update_order_status_from_dashboard_detail(self):
+        response = self.client.post(
+            reverse("staff_dashboard:order_detail", args=[self.order.pk]),
+            {
+                "status": "shipped",
+                "payment_method": self.order.payment_method,
+                "contact_method": self.order.contact_method,
+                "shipping_name": self.order.shipping_name,
+                "shipping_phone": self.order.shipping_phone,
+                "shipping_city": self.order.shipping_city,
+                "shipping_address": self.order.shipping_address,
+                "shipping_notes": self.order.shipping_notes or "",
+                "order_notes": self.order.order_notes or "",
+            },
+        )
+
+        self.assertRedirects(response, reverse("staff_dashboard:order_detail", args=[self.order.pk]))
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, "shipped")

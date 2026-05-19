@@ -7,71 +7,165 @@
 {% endblock page_actions %}
 
 {% block content %}
+  <section class="order-hero dash-card">
+    <div class="order-hero-main">
+      <span class="dash-badge {{ status_tone }}">{{ status_label }}</span>
+      <h2>طلب #{{ order.pk }}</h2>
+      <p>{{ order.customer_display_name }} · {{ order.created_at|date:"Y-m-d H:i" }}</p>
+    </div>
+    <div class="order-hero-stats">
+      <div>
+        <span>الإجمالي</span>
+        <strong>{{ order.total_price }} ج.م</strong>
+      </div>
+      <div>
+        <span>عدد القطع</span>
+        <strong>{{ items_count }}</strong>
+      </div>
+      <div>
+        <span>طريقة الدفع</span>
+        <strong>{{ payment_label|default:"-" }}</strong>
+      </div>
+    </div>
+  </section>
+
+  <section class="dash-card order-status-strip" aria-label="مراحل الطلب">
+    {% for status in statuses %}
+      <span class="order-status-step {% if order.status == status.value %}active{% endif %} tone-{{ status.tone }}">
+        <i class="fas {% if order.status == status.value %}fa-circle-check{% else %}fa-circle{% endif %}"></i>
+        {{ status.label }}
+      </span>
+    {% endfor %}
+  </section>
+
   <section class="dash-two-columns order-layout">
-    <article class="dash-card">
-      <div class="card-head">
-        <div>
-          <h2>بيانات الطلب</h2>
-          <p><span class="dash-badge {{ status_tone }}">{{ status_label }}</span></p>
-        </div>
-        <strong class="order-total">{{ order.total_price }} ج.م</strong>
-      </div>
-
-      <dl class="detail-list">
-        <div><dt>العميل</dt><dd>{{ order.customer_display_name }}</dd></div>
-        <div><dt>البريد</dt><dd>{{ order.customer_email|default:"-" }}</dd></div>
-        <div><dt>الهاتف</dt><dd>{{ order.shipping_phone }}</dd></div>
-        <div><dt>المدينة</dt><dd>{{ order.shipping_city|default:"-" }}</dd></div>
-        <div><dt>الدفع</dt><dd>{{ order.payment_method }}</dd></div>
-        <div><dt>التاريخ</dt><dd>{{ order.created_at|date:"Y-m-d H:i" }}</dd></div>
-      </dl>
-
-      <div class="dash-table-wrap compact">
-        <table class="dash-table">
-          <thead>
-            <tr>
-              <th>المنتج</th>
-              <th>الاختيار</th>
-              <th>الكمية</th>
-              <th>السعر</th>
-              <th>الإجمالي</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for item in items %}
-              <tr>
-                <td>{{ item.product.name }}</td>
-                <td>{{ item.get_variant_display|default:"-" }}</td>
-                <td>{{ item.quantity }}</td>
-                <td>{{ item.price }} ج.م</td>
-                <td><strong>{{ item.get_total_price }} ج.م</strong></td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </article>
-
-    <article class="dash-card">
-      <div class="card-head">
-        <div><h2>تحديث الطلب</h2><p>تغيير الحالة وبيانات الشحن</p></div>
-      </div>
-      <form method="post" class="dash-form">
-        {% csrf_token %}
-        {% if form.non_field_errors %}
-          <div class="form-errors">{{ form.non_field_errors }}</div>
-        {% endif %}
-        {% for field in form.visible_fields %}
-          <div class="dash-field{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}">
-            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-            {{ field }}
-            {% if field.errors %}<div class="field-error">{{ field.errors|join:", " }}</div>{% endif %}
+    <div class="order-main-column">
+      <article class="dash-card">
+        <div class="card-head">
+          <div>
+            <h2>بيانات العميل والشحن</h2>
+            <p>تفاصيل التواصل ومكان التسليم</p>
           </div>
-        {% endfor %}
-        <div class="form-actions">
-          <button class="dash-btn dash-btn-primary" type="submit"><i class="fas fa-floppy-disk"></i> حفظ التغييرات</button>
         </div>
-      </form>
-    </article>
+
+        <dl class="detail-list order-detail-grid">
+          <div><dt>العميل</dt><dd>{{ order.customer_display_name }}</dd></div>
+          <div><dt>البريد</dt><dd>{{ order.customer_email|default:"-" }}</dd></div>
+          <div><dt>الهاتف</dt><dd>{{ order.shipping_phone|default:"-" }}</dd></div>
+          <div><dt>المدينة</dt><dd>{{ order.shipping_city|default:"-" }}</dd></div>
+          <div><dt>التواصل</dt><dd>{{ contact_label|default:"-" }}</dd></div>
+          <div><dt>آخر تحديث</dt><dd>{{ order.updated_at|date:"Y-m-d H:i" }}</dd></div>
+          <div class="detail-span-full"><dt>عنوان الشحن</dt><dd>{{ order.shipping_address|linebreaksbr }}</dd></div>
+        </dl>
+
+        <div class="notes-grid order-notes-grid">
+          <div>
+            <strong>ملاحظات الشحن</strong>
+            <span>{{ order.shipping_notes|default:"لا توجد ملاحظات شحن."|linebreaksbr }}</span>
+          </div>
+          <div>
+            <strong>ملاحظات الطلب</strong>
+            <span>{{ order.order_notes|default:"لا توجد ملاحظات للطلب."|linebreaksbr }}</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="dash-card">
+        <div class="card-head">
+          <div>
+            <h2>منتجات الطلب</h2>
+            <p>{{ items_count }} قطعة داخل الطلب</p>
+          </div>
+          <strong class="order-total">{{ subtotal }} ج.م</strong>
+        </div>
+
+        <div class="dash-table-wrap compact">
+          <table class="dash-table">
+            <thead>
+              <tr>
+                <th>المنتج</th>
+                <th>الاختيار</th>
+                <th>الكمية</th>
+                <th>السعر</th>
+                <th>الإجمالي</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in items %}
+                <tr>
+                  <td>
+                    <strong>{{ item.product.name }}</strong>
+                    {% if item.product.category %}<small>{{ item.product.category.name }}</small>{% endif %}
+                  </td>
+                  <td>
+                    {% with variant=item.get_variant_display %}
+                      {% if variant %}
+                        <span class="order-variant">
+                          {% if item.color_code %}<span class="color-dot" style="background: {{ item.color_code }};"></span>{% endif %}
+                          {{ variant }}
+                        </span>
+                      {% else %}
+                        -
+                      {% endif %}
+                    {% endwith %}
+                  </td>
+                  <td>{{ item.quantity }}</td>
+                  <td>{{ item.price }} ج.م</td>
+                  <td><strong>{{ item.get_total_price }} ج.م</strong></td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="5" class="empty-cell">لا توجد منتجات داخل هذا الطلب.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </div>
+
+    <aside class="order-side-column">
+      <article class="dash-card order-update-card">
+        <div class="card-head">
+          <div>
+            <h2>تحديث حالة الطلب</h2>
+            <p>غيّر المرحلة الحالية واحفظ التعديل مباشرة</p>
+          </div>
+        </div>
+        <form method="post" class="dash-form">
+          {% csrf_token %}
+          {% if form.non_field_errors %}
+            <div class="form-errors">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          <div class="dash-field field-status">
+            <label for="{{ status_field.id_for_label }}">{{ status_field.label }}</label>
+            {{ status_field }}
+            {% if status_field.errors %}<div class="field-error">{{ status_field.errors|join:", " }}</div>{% endif %}
+          </div>
+
+          <div class="form-actions">
+            <button class="dash-btn dash-btn-primary" type="submit"><i class="fas fa-floppy-disk"></i> حفظ الحالة</button>
+          </div>
+
+          <div class="order-edit-fields">
+            <h3>بيانات قابلة للتعديل</h3>
+            <div class="form-grid">
+              {% for item in editable_fields %}
+                {% with field=item.field %}
+                  <div class="dash-field field-{{ field.name }}{% if item.wide %} field-span-full{% endif %}{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}<div class="field-error">{{ field.errors|join:", " }}</div>{% endif %}
+                  </div>
+                {% endwith %}
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button class="dash-btn dash-btn-primary" type="submit"><i class="fas fa-floppy-disk"></i> حفظ كل التغييرات</button>
+          </div>
+        </form>
+      </article>
+    </aside>
   </section>
 {% endblock content %}
