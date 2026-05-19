@@ -146,24 +146,28 @@
             <button class="dash-btn dash-btn-primary" type="submit"><i class="fas fa-floppy-disk"></i> حفظ الحالة</button>
           </div>
 
-          <div class="order-edit-fields">
-            <h3>بيانات قابلة للتعديل</h3>
-            <div class="form-grid">
-              {% for item in editable_fields %}
-                {% with field=item.field %}
-                  <div class="dash-field field-{{ field.name }}{% if item.wide %} field-span-full{% endif %}{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}">
-                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                    {{ field }}
-                    {% if field.errors %}<div class="field-error">{{ field.errors|join:", " }}</div>{% endif %}
-                  </div>
-                {% endwith %}
-              {% endfor %}
+          {% if editable_fields %}
+            <div class="order-edit-fields">
+              <h3>بيانات قابلة للتعديل</h3>
+              <div class="form-grid">
+                {% for item in editable_fields %}
+                  {% with field=item.field %}
+                    <div class="dash-field field-{{ field.name }}{% if item.wide %} field-span-full{% endif %}{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}">
+                      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                      {{ field }}
+                      {% if field.errors %}<div class="field-error">{{ field.errors|join:", " }}</div>{% endif %}
+                    </div>
+                  {% endwith %}
+                {% endfor %}
+              </div>
             </div>
-          </div>
+          {% endif %}
 
-          <div class="form-actions">
-            <button class="dash-btn dash-btn-primary" type="submit"><i class="fas fa-floppy-disk"></i> حفظ كل التغييرات</button>
-          </div>
+          {% if editable_fields %}
+            <div class="form-actions">
+              <button class="dash-btn dash-btn-primary" type="submit"><i class="fas fa-floppy-disk"></i> حفظ كل التغييرات</button>
+            </div>
+          {% endif %}
         </form>
       </article>
     </aside>

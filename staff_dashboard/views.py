@@ -37,6 +37,7 @@ from .forms import (
     HeroSlideForm,
     HomeExclusiveOfferForm,
     HomeCollectionItemForm,
+    OrderStatusOnlyForm,
     OrderStatusForm,
     ProductColorForm,
     ProductForm,
@@ -45,6 +46,7 @@ from .forms import (
     ProductTypeDashboardForm,
     ProductTypeImageForm,
 )
+from .permissions import can_manage_full_dashboard, has_order_editor_access
 
 
 ORDER_STATUS_META = {
@@ -84,8 +86,23 @@ def superuser_required(view_func):
     return wrapped
 
 
+def order_staff_required(view_func):
+    @wraps(view_func)
+    def wrapped(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect_to_login(request.get_full_path(), reverse("accounts:login"))
+        if not has_order_editor_access(request.user):
+            messages.error(request, "ليست لديك صلاحية الوصول إلى إدارة الطلبات.")
+            return redirect("index")
+        return view_func(request, *args, **kwargs)
+
+    return wrapped
+
+
 def _render(request, template_name, context):
     context.setdefault("active_nav", "dashboard")
+    context.setdefault("can_manage_full_dashboard", can_manage_full_dashboard(request.user))
+    context.setdefault("can_manage_orders", has_order_editor_access(request.user))
     try:
         context.setdefault("django_admin_url", reverse("admin:index"))
     except NoReverseMatch:
@@ -221,8 +238,11 @@ def _color_usage_count(color):
     )
 
 
-@superuser_required
+@order_staff_required
 def dashboard(request):
+    if not request.user.is_superuser:
+        return redirect("staff_dashboard:orders")
+
     today = timezone.localdate()
     since_30_days = timezone.now() - timezone.timedelta(days=30)
 
@@ -724,7 +744,7 @@ def category_delete(request, pk):
     )
 
 
-@superuser_required
+@order_staff_required
 def orders_list(request):
     queryset = Order.objects.select_related("user").prefetch_related("items").order_by("-created_at")
     query = request.GET.get("q", "").strip()
@@ -758,7 +778,7 @@ def orders_list(request):
     )
 
 
-@superuser_required
+@order_staff_required
 def order_detail(request, pk):
     order = get_object_or_404(
         Order.objects.select_related("user").prefetch_related(
@@ -770,30 +790,33 @@ def order_detail(request, pk):
         ),
         pk=pk,
     )
+    form_class = OrderStatusForm if request.user.is_superuser else OrderStatusOnlyForm
     if request.method == "POST":
-        form = OrderStatusForm(request.POST, instance=order)
+        form = form_class(request.POST, instance=order)
         if form.is_valid():
             form.save()
             messages.success(request, "تم تحديث الطلب بنجاح.")
             return redirect("staff_dashboard:order_detail", pk=order.pk)
         messages.error(request, "يرجى مراجعة بيانات الطلب.")
     else:
-        form = OrderStatusForm(instance=order)
+        form = form_class(instance=order)
 
-    editable_fields = _field_items(
-        form,
-        [
-            "payment_method",
-            "contact_method",
-            "shipping_name",
-            "shipping_phone",
-            "shipping_city",
-            "shipping_address",
-            "shipping_notes",
-            "order_notes",
-        ],
-        {"shipping_address", "shipping_notes", "order_notes"},
-    )
+    editable_fields = []
+    if request.user.is_superuser:
+        editable_fields = _field_items(
+            form,
+            [
+                "payment_method",
+                "contact_method",
+                "shipping_name",
+                "shipping_phone",
+                "shipping_city",
+                "shipping_address",
+                "shipping_notes",
+                "order_notes",
+            ],
+            {"shipping_address", "shipping_notes", "order_notes"},
+        )
     contact_labels = dict(Order.CONTACT_METHOD_CHOICES)
 
     return _render(

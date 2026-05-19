@@ -520,6 +520,19 @@ class OrderStatusForm(forms.ModelForm):
         _apply_dashboard_widgets(self)
 
 
+class OrderStatusOnlyForm(forms.ModelForm):
+    class Meta:
+        model = Order
+        fields = ["status"]
+        labels = {
+            "status": "حالة الطلب",
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        _apply_dashboard_widgets(self)
+
+
 class HomeCollectionItemForm(forms.ModelForm):
     class Meta:
         model = HomeProductCollectionItem

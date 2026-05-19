@@ -87,6 +87,12 @@ class OrderItemInline(admin.TabularInline):
     def has_add_permission(self, request, obj=None):
         return False
 
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser or request.user.has_perm("orders.view_order")
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
 
 class CartItemInline(admin.TabularInline):
     model = CartItem
@@ -137,6 +143,28 @@ class OrderAdmin(admin.ModelAdmin):
     )
 
     actions = ["mark_as_paid", "mark_as_processing", "mark_as_shipped", "mark_as_delivered", "mark_as_cancelled"]
+    editor_editable_fields = {"status"}
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        actions.pop("delete_selected", None)
+        return actions
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = set(super().get_readonly_fields(request, obj))
+        if request.user.is_superuser:
+            return tuple(readonly_fields)
+
+        for _title, options in self.fieldsets:
+            readonly_fields.update(
+                field
+                for field in options.get("fields", ())
+                if field not in self.editor_editable_fields
+            )
+        return tuple(readonly_fields)
 
     def order_id(self, obj):
         return format_html("<strong>#{}</strong>", obj.id)

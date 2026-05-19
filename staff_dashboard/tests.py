@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from django.contrib.auth.models import Permission
 from django.contrib.auth import get_user_model
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -38,6 +39,19 @@ class StaffDashboardAccessTests(TestCase):
             password="pass12345",
             is_active=True,
         )
+        self.editor = User.objects.create_user(
+            email="editor@example.com",
+            username="editor",
+            password="pass12345",
+            is_active=True,
+            is_staff=True,
+        )
+        self.editor.user_permissions.add(
+            *Permission.objects.filter(
+                content_type__app_label="orders",
+                codename__in=["view_order", "change_order"],
+            )
+        )
 
     def test_anonymous_user_is_redirected_to_login(self):
         response = self.client.get(reverse("staff_dashboard:dashboard"))
@@ -55,6 +69,19 @@ class StaffDashboardAccessTests(TestCase):
         response = self.client.get(reverse("staff_dashboard:dashboard"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "لوحة التحكم")
+
+    def test_order_editor_dashboard_redirects_to_orders_only(self):
+        self.client.login(email="editor@example.com", password="pass12345")
+        response = self.client.get(reverse("staff_dashboard:dashboard"))
+
+        self.assertRedirects(response, reverse("staff_dashboard:orders"))
+
+    def test_order_editor_cannot_open_product_management(self):
+        self.client.login(email="editor@example.com", password="pass12345")
+        response = self.client.get(reverse("staff_dashboard:products"))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], reverse("index"))
 
     def test_dashboard_30_day_sales_counts_delivered_orders_only(self):
         delivered_order = Order.objects.create(
@@ -435,6 +462,19 @@ class StaffDashboardSmokeTests(TestCase):
             password="pass12345",
             is_active=True,
         )
+        self.editor = User.objects.create_user(
+            email="editor@example.com",
+            username="editor",
+            password="pass12345",
+            is_active=True,
+            is_staff=True,
+        )
+        self.editor.user_permissions.add(
+            *Permission.objects.filter(
+                content_type__app_label="orders",
+                codename__in=["view_order", "change_order"],
+            )
+        )
         self.category = Category.objects.create(name="تصنيف smoke")
         self.product = Product.objects.create(
             name="منتج smoke",
@@ -530,3 +570,33 @@ class StaffDashboardSmokeTests(TestCase):
         self.assertRedirects(response, reverse("staff_dashboard:order_detail", args=[self.order.pk]))
         self.order.refresh_from_db()
         self.assertEqual(self.order.status, "shipped")
+
+    def test_order_editor_can_update_only_order_status_from_dashboard_detail(self):
+        self.client.logout()
+        self.client.login(email="editor@example.com", password="pass12345")
+
+        response = self.client.post(
+            reverse("staff_dashboard:order_detail", args=[self.order.pk]),
+            {
+                "status": "delivered",
+                "shipping_phone": "01999999999",
+                "shipping_address": "Changed by editor",
+            },
+        )
+
+        self.assertRedirects(response, reverse("staff_dashboard:order_detail", args=[self.order.pk]))
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, "delivered")
+        self.assertEqual(self.order.shipping_phone, "01000000000")
+        self.assertEqual(self.order.shipping_address, "عنوان تجريبي")
+
+    def test_order_editor_order_detail_hides_non_status_edit_fields(self):
+        self.client.logout()
+        self.client.login(email="editor@example.com", password="pass12345")
+
+        response = self.client.get(reverse("staff_dashboard:order_detail", args=[self.order.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'name="status"')
+        self.assertNotContains(response, 'name="shipping_phone"')
+        self.assertNotContains(response, "بيانات قابلة للتعديل")
