@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
@@ -108,6 +109,12 @@ class AdminPasswordChangeApprovalTests(TestCase):
         self.assertEqual(change_request.status, AdminPasswordChangeRequest.STATUS_APPROVED)
         self.assertEqual(change_request.approved_by, self.approver)
         self.assertTrue(self.requester.check_password("newpass12345"))
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, [self.requester.email])
+        self.assertIn("تمت الموافقة على طلب تغيير كلمة مرور", mail.outbox[0].body)
+        self.assertIn(self.approver.username, mail.outbox[0].body)
+        self.assertEqual(len(mail.outbox[0].alternatives), 1)
+        self.assertIn("ELWSAM-LOGO2020-104.webp", mail.outbox[0].alternatives[0][0])
 
     def test_superuser_cannot_approve_own_password_change_request(self):
         self.requester.set_password("newpass12345")
@@ -130,6 +137,7 @@ class AdminPasswordChangeApprovalTests(TestCase):
         self.requester.refresh_from_db()
         self.assertEqual(change_request.status, AdminPasswordChangeRequest.STATUS_PENDING)
         self.assertTrue(self.requester.check_password("oldpass123"))
+        self.assertEqual(len(mail.outbox), 0)
 
 
 class StaffDashboardProductTests(TestCase):

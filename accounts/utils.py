@@ -1,10 +1,10 @@
 import secrets
-from django.core.mail import send_mail
 from django.conf import settings
 from django.apps import apps
 from django.urls import reverse
 from django.utils import timezone
 from datetime import timedelta
+from .email_utils import send_branded_email
 from .models import UserOTP
 
 
@@ -78,32 +78,38 @@ def send_otp_email(email, code, purpose):
         purpose: الغرض من OTP
     """
     if purpose == 'password_reset':
-        subject = 'إعادة تعيين كلمة المرور - متجر الوسام'
-        message = f"""
-مرحباً،
+        expiry_minutes = getattr(settings, 'OTP_EXPIRY_MINUTES', 10)
+        subject = 'كود إعادة تعيين كلمة المرور - متجر الوسام'
+        message = f"""مرحباً،
 
-تلقينا طلباً لإعادة تعيين كلمة المرور الخاصة بحسابك.
+تلقينا طلباً لإعادة تعيين كلمة المرور الخاصة بحسابك في متجر الوسام.
 
-لإعادة تعيين كلمة المرور، يرجى إدخال الكود التالي:
+كود التحقق الخاص بك هو: {code}
 
-{code}
+هذا الكود صالح لمدة {expiry_minutes} دقائق فقط.
 
-هذا الكود صالح لمدة {getattr(settings, 'OTP_EXPIRY_MINUTES', 10)} دقائق فقط.
-
-إذا لم تطلب إعادة تعيين كلمة المرور، يرجى تجاهل هذه الرسالة.
+إذا لم تطلب إعادة تعيين كلمة المرور، يرجى تجاهل هذه الرسالة ولن يتم تغيير كلمة المرور.
 
 مع تحيات،
 فريق متجر الوسام
-        """
+"""
+        body_lines = [
+            "تلقينا طلباً لإعادة تعيين كلمة المرور الخاصة بحسابك في متجر الوسام.",
+            f"استخدم كود التحقق التالي خلال {expiry_minutes} دقائق فقط لإكمال تغيير كلمة المرور.",
+            "إذا لم تطلب إعادة تعيين كلمة المرور، تجاهل هذه الرسالة ولن يتم تغيير كلمة المرور.",
+        ]
     else:
         raise ValueError("Unsupported OTP purpose.")
     
-    sent_count = send_mail(
+    sent_count = send_branded_email(
         subject=subject,
-        message=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
+        text_message=message,
         recipient_list=[email],
-        fail_silently=False,
+        title="إعادة تعيين كلمة المرور",
+        intro="استخدم الكود التالي لإكمال التحقق.",
+        body_lines=body_lines,
+        code=code,
+        footer_note="لا تشارك هذا الكود مع أي شخص. فريق متجر الوسام لن يطلب منك الكود خارج صفحة إعادة التعيين.",
     )
     if sent_count == 0:
         raise RuntimeError("OTP email was not sent.")
@@ -159,8 +165,7 @@ def send_admin_password_change_approval_email(change_request, approval_url, reci
     requester = change_request.requester
     requester_name = requester.get_full_name() or requester.username or requester.email
     subject = "طلب موافقة على تغيير كلمة مرور أدمن"
-    message = f"""
-مرحباً،
+    message = f"""مرحباً،
 
 الأدمن {requester_name} ({requester.email}) يريد تغيير كلمة المرور الخاصة به.
 
@@ -171,12 +176,20 @@ def send_admin_password_change_approval_email(change_request, approval_url, reci
 
 إذا لم تكن تعرف سبب هذا الطلب، راجع حسابات الأدمن فوراً.
 """
-    send_mail(
+    send_branded_email(
         subject=subject,
-        message=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=list(recipients),
-        fail_silently=False,
+        text_message=message,
+        title="طلب موافقة على تغيير كلمة مرور أدمن",
+        intro="يوجد طلب جديد يحتاج مراجعة أدمن آخر قبل تطبيقه.",
+        body_lines=[
+            f"الأدمن {requester_name} ({requester.email}) طلب تغيير كلمة المرور الخاصة به.",
+            "لن يتم تطبيق كلمة المرور الجديدة إلا بعد موافقة أدمن آخر من لوحة التحكم.",
+            "إذا لم تكن تعرف سبب هذا الطلب، راجع حسابات الأدمن فوراً.",
+        ],
+        action_label="مراجعة الطلب",
+        action_url=approval_url,
+        footer_note="هذا الإجراء يحمي حسابات الأدمن من تغيير كلمات المرور بدون موافقة مستقلة.",
     )
 
 

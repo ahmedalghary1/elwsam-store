@@ -250,6 +250,9 @@ class OTPEmailTests(TestCase):
         self.assertTrue(otp.code.isdigit())
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn(otp.code, mail.outbox[0].body)
+        self.assertEqual(len(mail.outbox[0].alternatives), 1)
+        self.assertIn("ELWSAM-LOGO2020-104.webp", mail.outbox[0].alternatives[0][0])
+        self.assertIn(otp.code, mail.outbox[0].alternatives[0][0])
 
         is_valid, result = verify_otp("OTP@example.com", otp.code, "password_reset")
         self.assertTrue(is_valid)

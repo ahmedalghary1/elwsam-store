@@ -1,8 +1,15 @@
+import logging
+
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 from django.utils.crypto import get_random_string
+
+from .email_utils import send_branded_email
+
+
+logger = logging.getLogger(__name__)
 
 
 def generate_admin_password_request_token():
@@ -178,6 +185,48 @@ class AdminPasswordChangeRequest(models.Model):
     def is_pending(self):
         return self.status == self.STATUS_PENDING
 
+    def send_approval_notification_email(self):
+        if not self.requester.email:
+            return 0
+
+        if self.approved_by_id:
+            approver_name = self.approved_by.get_full_name() or self.approved_by.username or self.approved_by.email
+        else:
+            approver_name = "أدمن آخر"
+        requester_name = self.requester.get_full_name() or self.requester.username or self.requester.email
+        subject = "تمت الموافقة على تغيير كلمة المرور - متجر الوسام"
+        message = f"""مرحباً {requester_name}،
+
+تمت الموافقة على طلب تغيير كلمة مرور حساب الأدمن الخاص بك بواسطة {approver_name}.
+
+تم تطبيق كلمة المرور الجديدة ويمكنك استخدامها الآن في تسجيل الدخول.
+
+إذا لم تكن أنت من طلب تغيير كلمة المرور، يرجى التواصل مع إدارة المتجر فوراً.
+
+مع تحيات،
+فريق متجر الوسام
+"""
+        try:
+            return send_branded_email(
+                subject=subject,
+                text_message=message,
+                recipient_list=[self.requester.email],
+                title="تم تغيير كلمة المرور بنجاح",
+                intro="تمت الموافقة على طلبك وتطبيق كلمة المرور الجديدة.",
+                body_lines=[
+                    f"وافق {approver_name} على طلب تغيير كلمة مرور حساب الأدمن الخاص بك.",
+                    "تم تطبيق كلمة المرور الجديدة ويمكنك استخدامها الآن في تسجيل الدخول.",
+                    "إذا لم تكن أنت من طلب تغيير كلمة المرور، يرجى التواصل مع إدارة المتجر فوراً.",
+                ],
+                footer_note="لا ترسل كلمة مرورك لأي شخص، وتأكد دائماً من استخدام كلمة مرور قوية وفريدة.",
+            )
+        except Exception:
+            logger.exception(
+                "Failed to send admin password approval notification for request_id=%s",
+                self.pk,
+            )
+            return 0
+
     def approve(self, approver):
         if not self.is_pending:
             raise ValidationError("This request is no longer pending.")
@@ -190,3 +239,4 @@ class AdminPasswordChangeRequest(models.Model):
         self.status = self.STATUS_APPROVED
         self.decided_at = timezone.now()
         self.save(update_fields=["approved_by", "status", "decided_at", "updated_at"])
+        self.send_approval_notification_email()
